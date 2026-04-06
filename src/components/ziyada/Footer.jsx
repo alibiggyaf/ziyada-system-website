@@ -109,7 +109,7 @@ export default function Footer({ lang }) {
             © 2026 Ziyada Systems. All Rights Reserved.
           </p>
           <p style={{ color: "var(--text-secondary)", fontSize: "0.78rem", marginTop: 4 }}>
-            www.ziyada-system.com · Ziyadasystem@gmail.com
+            ziyadasystem.com · info@ziyadasystem.com
           </p>
         </div>
         <div style={{ display: "flex", gap: 20 }}>

@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-const SITE_URL = "https://www.ziyada-system.com";
+const SITE_URL = "https://ziyadasystem.com";
 const DEFAULT_OG_IMAGE = "/og-image.png";
 
 export default function useSEO({ title, titleEn, description, descriptionEn, keywords, path, schema, noindex }) {

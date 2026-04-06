@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
-const SITE_URL = 'https://www.ziyada-system.com'
+const SITE_URL = 'https://ziyadasystem.com'
 
 // Try to read env vars (support both process.env and .env.local)
 const supabaseUrl = process.env.VITE_SUPABASE_URL || 'https://nuyscajjlhxviuyrxzyq.supabase.co'

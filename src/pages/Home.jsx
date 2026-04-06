@@ -77,7 +77,7 @@ export default function Home() {
     titleEn: "Ziyada Systems — Integrated Digital Growth Systems",
     description: "نبني لمنشأتك المنظومة الرقمية التي توحّد العمليات وتطلق كفاءة الفريق وتمنح قيادتك سيطرة كاملة على الأداء",
     path: "/Home",
-    schema: { "@context": "https://schema.org", "@type": "Organization", name: "Ziyada Systems", url: "https://www.ziyada-system.com", description: "Integrated digital growth systems for ambitious companies in Saudi Arabia" }
+    schema: { "@context": "https://schema.org", "@type": "Organization", name: "Ziyada Systems", url: "https://ziyadasystem.com", description: "Integrated digital growth systems for ambitious companies in Saudi Arabia" }
   });
 
   return (
