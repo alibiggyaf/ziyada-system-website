@@ -57,3 +57,6 @@ __pycache__/
 .DS_Store
 Thumbs.db
 >>>>>>> 84272d5 (Initial commit: full website (frontend, backend, all assets))
+projects/ziyada-system/token_gmail_readonly.json
+projects/ziyada-system/token_sheets.json
+projects/ziyada-system/tools/gws_populate.sh
