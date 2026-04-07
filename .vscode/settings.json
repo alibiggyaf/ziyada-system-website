@@ -1,11 +1,13 @@
 {
   "search.exclude": {
-    "**/.venv/**": true,
+    "": true,
     "**/__pycache__/**": true,
     "**/.tmp/**": true,
+    "**/.venv/**": true,
     "**/node_modules/**": true
   },
   "files.exclude": {
+    "": true,
     "**/__pycache__": true,
     "**/.DS_Store": true
   },
@@ -28,5 +30,7 @@
     "*.pps": "presentationViewer.viewer",
     "*.ppsx": "presentationViewer.viewer",
     "*.ppsm": "presentationViewer.viewer"
-  }
+  },
+  "search.useGlobalIgnoreFiles": true,
+  "search.useParentIgnoreFiles": true
 }
