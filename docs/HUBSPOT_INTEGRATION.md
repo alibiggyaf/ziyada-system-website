@@ -1,5 +1,42 @@
 # HubSpot Integration - Ziyada System
 
+---
+**Last Updated:** April 7, 2026
+
+**Environment Variable Summary**
+
+Add these to your `.env` (values are examples, do not share secrets):
+
+```
+SUPABASE_URL=https://nuyscajjlhxviuyrxzyq.supabase.co
+SUPABASE_ANON_KEY=sb_publishable_...
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+HUBSPOT_PRIVATE_APP_TOKEN=pat-eu1-...
+HUBSPOT_CLIENT_SECRET=...
+```
+
+All secrets should be stored in your .env and n8n credentials, never in version control.
+
+---
+## 2A. Testing & Maintenance Instructions
+
+### Testing (Front & Backend)
+
+1. Submit a test lead/booking form on the website (use a test email).
+2. Confirm the row appears in Supabase (`leads` or `bookings`).
+3. Check n8n: Workflow triggers and completes (all nodes green).
+4. Check HubSpot: Contact and deal are created/updated with all mapped fields.
+5. Check email: Notification arrives at `ziyadasystem@gmail.com`.
+6. Check Supabase: `hubspot_contact_id` is written back to the row.
+
+### Ongoing Maintenance
+
+- If any step fails, use the error handling and troubleshooting section below.
+- For new issues, update this doc with solutions or lessons learned.
+- If you add new fields or change the workflow, update the mapping tables and .env documentation here.
+
+---
+
 > Supabase Database --> n8n Workflow --> HubSpot CRM
 >
 > Bilingual (AR/EN) lead generation pipeline for the Ziyada System website.

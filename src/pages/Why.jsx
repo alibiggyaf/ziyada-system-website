@@ -1,6 +1,6 @@
 import { useOutletContext } from "react-router-dom";
 import { Link } from "react-router-dom";
-import { IconClockAlert, IconTrendingDown, IconEyeOff, IconUnlink } from "../components/ziyada/BrandIcons";
+import { IconClockAlert, IconTrendingDown, IconEyeOff, IconUnlink, IconCheck } from "../components/ziyada/BrandIcons";
 import useSEO from '@/lib/useSEO';
 
 const C = {
@@ -67,7 +67,7 @@ export default function Why() {
       <ul style={{ listStyle: "none", padding: 0 }}>
         {items.map((item, i) => (
           <li key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 12, color: "var(--text-primary)", fontSize: "0.9rem" }}>
-            <span style={{ color: "var(--accent-primary)", flexShrink: 0, marginTop: 2 }}>✓</span>
+            <span style={{ color: "var(--accent-primary)", flexShrink: 0, marginTop: 3 }}><IconCheck size={14} /></span>
             <span>{item}</span>
           </li>
         ))}

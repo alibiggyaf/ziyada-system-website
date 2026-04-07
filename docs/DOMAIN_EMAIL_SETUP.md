@@ -99,13 +99,18 @@
    - `ali@ziyadasystem.com` → `ziyadasystem@gmail.com`
    - `sales@ziyadasystem.com` → `ziyadasystem@gmail.com`
    - `support@ziyadasystem.com` → `ziyadasystem@gmail.com`
-7. Verify each address (Cloudflare sends a confirmation to Gmail)
-8. To **send as** `info@ziyadasystem.com` from Gmail:
-   - Gmail → Settings → Accounts → "Add another email address"
-   - Name: `زيادة سيستم | Ziyada Systems`, Email: `info@ziyadasystem.com`
-   - SMTP server: `smtp.gmail.com`, Port: 587
-   - Use your Gmail credentials + App Password
-   - Verify and set as default sender
+   7. Verify each address (Cloudflare sends a confirmation to Gmail)
+   8. To **send as** any address (info@, ali@, support@, sales@) from Gmail:
+      - Gmail → Settings → Accounts → "Add another email address"
+      - Name: (مثلاً Ziyada Systems, Support, Sales)
+      - Email: (info@ziyadasystem.com, support@ziyadasystem.com, ali@ziyadasystem.com, sales@ziyadasystem.com)
+      - SMTP server: smtp.gmail.com, Port: 587
+      - Username: بريدك على Gmail (ziyadasystem@gmail.com)
+      - Password: Gmail App Password (من إعدادات Google)
+      - أكمل التحقق (سيرسل Gmail كود تحقق لكل عنوان)
+      - كرر الخطوات لكل عنوان تريد الإرسال منه
+
+   **النتيجة:** يمكنك الإرسال والاستقبال من جميع عناوين أعمالك مباشرة من Gmail.
 
 ### Option B: Hostinger Email (Paid — Check if Included in Your Plan)
 
@@ -139,6 +144,8 @@
 | support@ziyadasystem.com       | Customer support tickets                 | High     |
 | sales@ziyadasystem.com         | Sales team / lead forms                  | Medium   |
 | noreply@ziyadasystem.com       | Automated notifications (system emails)  | Medium   |
+
+**All above addresses are now active and routed to your Gmail via Cloudflare Email Routing.**
 
 **Recommendation:** Use **Cloudflare Email Routing** (Option A) — it's free, takes 10 minutes, and routes everything to your existing Gmail. You can always upgrade to a paid plan later if needed.
 

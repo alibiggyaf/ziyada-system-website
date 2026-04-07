@@ -13,12 +13,12 @@ export const translations = {
       title: 'حلولنا العملية',
       intro: 'نقدم حلولاً عملية تشمل تصميم الأنظمة التشغيلية، تطوير البنية الرقمية، وبناء أنظمة البيانات.',
       items: [
-        { icon: '🎯', title: 'استراتيجية النمو', desc: 'نبني خارطة طريق واضحة لنمو أعمالك بناءً على بيانات حقيقية.' },
-        { icon: '🔄', title: 'مسارات التحويل', desc: 'تصميم وتحسين مسارات المبيعات لزيادة معدلات التحويل.' },
-        { icon: '🤝', title: 'تصميم CRM', desc: 'بناء وتخصيص أنظمة إدارة علاقات العملاء لتناسب احتياجاتك.' },
-        { icon: '📊', title: 'إدارة الإعلانات', desc: 'حملات إعلانية مدروسة على جميع المنصات بعائد استثمار محسوب.' },
-        { icon: '📈', title: 'تحليل البيانات', desc: 'لوحات تحكم ذكية تحول بياناتك إلى قرارات استراتيجية.' },
-        { icon: '⚡', title: 'أتمتة العمليات', desc: 'أتمتة المهام المتكررة لتحرير فريقك للعمل الاستراتيجي.' }
+        { title: 'استراتيجية النمو', desc: 'نبني خارطة طريق واضحة لنمو أعمالك بناءً على بيانات حقيقية.' },
+        { title: 'مسارات التحويل', desc: 'تصميم وتحسين مسارات المبيعات لزيادة معدلات التحويل.' },
+        { title: 'تصميم CRM', desc: 'بناء وتخصيص أنظمة إدارة علاقات العملاء لتناسب احتياجاتك.' },
+        { title: 'إدارة الإعلانات', desc: 'حملات إعلانية مدروسة على جميع المنصات بعائد استثمار محسوب.' },
+        { title: 'تحليل البيانات', desc: 'لوحات تحكم ذكية تحول بياناتك إلى قرارات استراتيجية.' },
+        { title: 'أتمتة العمليات', desc: 'أتمتة المهام المتكررة لتحرير فريقك للعمل الاستراتيجي.' }
       ]
     },
     about: {
@@ -74,12 +74,12 @@ export const translations = {
       title: 'Our Practical Solutions',
       intro: 'We offer practical solutions including operational system design, digital infrastructure development, and data system building.',
       items: [
-        { icon: '🎯', title: 'Growth Strategy', desc: 'We build a clear roadmap for your business growth based on real data.' },
-        { icon: '🔄', title: 'Conversion Funnels', desc: 'Design and optimize sales funnels to increase conversion rates.' },
-        { icon: '🤝', title: 'CRM Design', desc: 'Build and customize CRM systems tailored to your needs.' },
-        { icon: '📊', title: 'Ads Management', desc: 'Strategic advertising campaigns across all platforms with measured ROI.' },
-        { icon: '📈', title: 'Data Analytics', desc: 'Smart dashboards that turn your data into strategic decisions.' },
-        { icon: '⚡', title: 'Process Automation', desc: 'Automate repetitive tasks to free your team for strategic work.' }
+        { title: 'Growth Strategy', desc: 'We build a clear roadmap for your business growth based on real data.' },
+        { title: 'Conversion Funnels', desc: 'Design and optimize sales funnels to increase conversion rates.' },
+        { title: 'CRM Design', desc: 'Build and customize CRM systems tailored to your needs.' },
+        { title: 'Ads Management', desc: 'Strategic advertising campaigns across all platforms with measured ROI.' },
+        { title: 'Data Analytics', desc: 'Smart dashboards that turn your data into strategic decisions.' },
+        { title: 'Process Automation', desc: 'Automate repetitive tasks to free your team for strategic work.' }
       ]
     },
     about: {

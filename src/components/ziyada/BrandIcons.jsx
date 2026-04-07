@@ -132,3 +132,32 @@ export const IconCalculator = ({ size }) => (
     <line x1="8" y1="18" x2="16" y2="18" />
   </I>
 );
+
+// Checkmark
+export const IconCheck = ({ size }) => (
+  <I size={size}><polyline points="20 6 9 17 4 12" /></I>
+);
+
+// User / Person
+export const IconUser = ({ size }) => (
+  <I size={size}>
+    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+    <circle cx="12" cy="7" r="4" />
+  </I>
+);
+
+// Map Pin / Location
+export const IconMapPin = ({ size }) => (
+  <I size={size}>
+    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+    <circle cx="12" cy="10" r="3" />
+  </I>
+);
+
+// Clock / Time
+export const IconClock = ({ size }) => (
+  <I size={size}>
+    <circle cx="12" cy="12" r="10" />
+    <polyline points="12 6 12 12 16 14" />
+  </I>
+);

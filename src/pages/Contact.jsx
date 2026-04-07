@@ -53,7 +53,17 @@ export default function Contact() {
     try {
       const utmParams = getUTMParams();
       const sourcePage = getSourcePage();
-      await siteApi.functions.invoke("submitLead", { email: form.email, name: form.name, challenge: form.message, source: "contact", language: lang, ...utmParams, source_page: sourcePage });
+      // Prepare payload
+      const payload = { email: form.email, name: form.name, challenge: form.message, source: "contact", language: lang, ...utmParams, source_page: sourcePage };
+
+      // Contact Form Submission Handler (workflow name: Contact Form Submission Handler, workflow ID: 0f30c293-c375-45a2-9cf6-d55208de387b)
+      const contactFormWebhook = "https://n8n.srv953562.hstgr.cloud/webhook/0f30c293-c375-45a2-9cf6-d55208de387b";
+      await fetch(contactFormWebhook, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
       trackEvent('form_submit', { form: 'contact' });
       identifyUser(form.email);
       navigate("/ThankYou");

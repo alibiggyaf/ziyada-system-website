@@ -76,7 +76,7 @@ export default function Footer({ lang }) {
             </p>
             {subStatus === "success" ? (
               <p style={{ color: "#22c55e", fontSize: "0.9rem" }}>
-                {isRTL ? "شكراً! تم الاشتراك بنجاح ✓" : "Thank you! Subscribed successfully ✓"}
+                {isRTL ? "شكراً! تم الاشتراك بنجاح" : "Thank you! Subscribed successfully"}
               </p>
             ) : (
               <form onSubmit={handleSubscribe} style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
