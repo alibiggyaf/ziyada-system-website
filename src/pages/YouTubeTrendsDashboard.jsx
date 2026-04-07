@@ -130,7 +130,7 @@ export default function YouTubeTrendsDashboard() {
           wfActive: "مفعّل",
           sendReport: "إرسال التقرير",
           sending: "جاري الإرسال...",
-          sent: "تم الإرسال ✓",
+          sent: "تم الإرسال",
           sendError: "فشل الإرسال",
           chatPromptLabel: "رسالة التحليل",
           chatPlaceholder: "اكتب النيتش أو الطلب هنا...",
@@ -195,7 +195,7 @@ export default function YouTubeTrendsDashboard() {
           wfActive: "Active",
           sendReport: "Send Report",
           sending: "Sending...",
-          sent: "Sent ✓",
+          sent: "Sent",
           sendError: "Send failed",
           chatPromptLabel: "Analysis prompt",
           chatPlaceholder: "Type the niche or request here...",
@@ -471,7 +471,7 @@ export default function YouTubeTrendsDashboard() {
               }}
             >
               <PlayCircle size={15} />
-              {scrapeState === "loading" ? t.scraping : scrapeState === "done" ? "✓" : scrapeState === "error" ? "✗" : t.startScrape}
+              {scrapeState === "loading" ? t.scraping : scrapeState === "done" ? t.sent : scrapeState === "error" ? t.sendError : t.startScrape}
             </button>
 
             {data?.summary?.sheet_url ? (

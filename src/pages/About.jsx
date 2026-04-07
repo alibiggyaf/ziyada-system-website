@@ -9,8 +9,14 @@ const C = {
     p1: "زيادة للأنظمة المتقدمة هي شركة متخصصة في تصميم وبناء أنظمة النمو الرقمية للشركات الطموحة — من الأتمتة والـ CRM إلى توليد العملاء والتسويق الرقمي.",
     p2: "نؤمن بأن النمو الحقيقي يبدأ ببناء الأنظمة الصحيحة — كل شيء متصل ومبني على منطق تجاري واضح وقياس دقيق.",
     p3: "فريقنا يجمع بين خبرة التسويق الرقمي والهندسة التشغيلية لتقديم حلول شاملة تساعدك على التوسع دون فوضى.",
+<<<<<<< HEAD
     founder: "علي فلاتة — مؤسس زيادة سيستم",
     founder_title: "خبرة 10+ سنوات في بناء أنظمة النمو وأتمتة الأعمال",
+=======
+    founder: "علي فلاتة — الشريك المؤسس في زيادة سيستم",
+    founder_title: "خبرة 15+ سنة في بناء أنظمة النمو وأتمتة الأعمال. للاطلاع على أعمالي السابقة: ",
+    founder_portfolio: "زيارة البورتفوليو الشخصي",
+>>>>>>> 6772a43 (Update all pages, docs, and assets to latest local version (About.jsx, Contact.jsx, docs, etc))
     vision_title: "رؤيتنا",
     vision_desc: "أن نكون الشريك التشغيلي المفضل للشركات الطموحة في المنطقة العربية، ونساعدها على بناء أنظمة نمو متكاملة وقابلة للتوسع.",
     method_title: "منهجيتنا",
@@ -35,8 +41,9 @@ const C = {
     p1: "Ziyada Advanced Systems specializes in designing and building digital growth systems for ambitious companies — from automation and CRM to lead generation and digital marketing.",
     p2: "We believe real growth starts with building the right systems — everything connected and built on clear business logic with precise measurement.",
     p3: "Our team combines digital marketing expertise and operational engineering to deliver comprehensive solutions that help you scale without chaos.",
-    founder: "Ali Fallatah — Founder, Ziyada System",
-    founder_title: "10+ years of experience building growth systems and business automation",
+    founder: "Ali Fallatah — Co-Founder, Ziyada System",
+    founder_title: "15+ years of experience building growth systems and business automation. For my previous work: ",
+    founder_portfolio: "View personal portfolio",
     vision_title: "Our Vision",
     vision_desc: "To be the preferred operational partner for ambitious companies in the Arab region, helping them build integrated and scalable growth systems.",
     method_title: "Our Methodology",
@@ -83,7 +90,12 @@ export default function About() {
             <p style={{ fontSize: "1.05rem", lineHeight: 1.9, marginBottom: 26, color: "var(--text-primary)", opacity: 0.85 }}>{c.p3}</p>
             <div style={{ borderTop: "1px solid var(--border-glass)", paddingTop: 20 }}>
               <p style={{ fontWeight: 700, fontSize: "1.05rem" }}>{c.founder}</p>
-              <p style={{ fontSize: "0.9rem", marginTop: 6, color: "var(--text-primary)", opacity: 0.75 }}>{c.founder_title}</p>
+              <p style={{ fontSize: "0.9rem", marginTop: 6, color: "var(--text-primary)", opacity: 0.75 }}>
+                {c.founder_title}
+                <a href="https://alifallatah.netlify.app/" target="_blank" rel="noopener noreferrer" style={{ marginRight: 8, marginLeft: 8, color: "#3b82f6", textDecoration: "underline", fontWeight: 600 }}>
+                  {c.founder_portfolio}
+                </a>
+              </p>
             </div>
           </div>
         </div>

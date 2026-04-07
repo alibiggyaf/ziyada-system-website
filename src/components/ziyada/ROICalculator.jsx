@@ -57,20 +57,43 @@ const IconMail = () => (
     <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
   </svg>
 );
+const IconMegaphone = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="m3 11 19-9-9 19-2-8-8-2z"/>
+  </svg>
+);
+const IconGlobe = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10"/>
+    <line x1="2" y1="12" x2="22" y2="12"/>
+    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+  </svg>
+);
+const IconSettings = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="3"/>
+    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+  </svg>
+);
+const IconTargetLg = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
+  </svg>
+);
 
 // ─── Service Type Configs ─────────────────────────────────────────────────────
 const SERVICE_TYPES = {
   ar: [
-    { id: "ops_automation", label: "أتمتة العمليات الداخلية", icon: "⚙️", desc: "CRM، إيميلات، تقارير، إدخال بيانات" },
-    { id: "sales_crm",      label: "مبيعات وCRM",           icon: "🎯", desc: "توليد عملاء، متابعة، إغلاق صفقات" },
-    { id: "marketing",      label: "تسويق رقمي وإعلانات",   icon: "📢", desc: "حملات، SEO، سوشيال ميديا" },
-    { id: "web_dev",        label: "تطوير مواقع وتطبيقات",  icon: "🌐", desc: "موقع احترافي، صفحات هبوط" },
+    { id: "ops_automation", label: "أتمتة العمليات الداخلية", icon: <IconSettings />, desc: "CRM، إيميلات، تقارير، إدخال بيانات" },
+    { id: "sales_crm",      label: "مبيعات وCRM",           icon: <IconTargetLg />, desc: "توليد عملاء، متابعة، إغلاق صفقات" },
+    { id: "marketing",      label: "تسويق رقمي وإعلانات",   icon: <IconMegaphone />, desc: "حملات، SEO، سوشيال ميديا" },
+    { id: "web_dev",        label: "تطوير مواقع وتطبيقات",  icon: <IconGlobe />, desc: "موقع احترافي، صفحات هبوط" },
   ],
   en: [
-    { id: "ops_automation", label: "Internal Ops Automation", icon: "⚙️", desc: "CRM, emails, reports, data entry" },
-    { id: "sales_crm",      label: "Sales & CRM",             icon: "🎯", desc: "Lead gen, follow-up, closing deals" },
-    { id: "marketing",      label: "Digital Marketing & Ads", icon: "📢", desc: "Campaigns, SEO, social media" },
-    { id: "web_dev",        label: "Web & App Development",   icon: "🌐", desc: "Professional site, landing pages" },
+    { id: "ops_automation", label: "Internal Ops Automation", icon: <IconSettings />, desc: "CRM, emails, reports, data entry" },
+    { id: "sales_crm",      label: "Sales & CRM",             icon: <IconTargetLg />, desc: "Lead gen, follow-up, closing deals" },
+    { id: "marketing",      label: "Digital Marketing & Ads", icon: <IconMegaphone />, desc: "Campaigns, SEO, social media" },
+    { id: "web_dev",        label: "Web & App Development",   icon: <IconGlobe />, desc: "Professional site, landing pages" },
   ]
 };
 
@@ -280,7 +303,7 @@ export default function ROICalculator({ lang = "ar" }) {
                 }}
                   onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--accent-primary)"; e.currentTarget.style.background = "rgba(124,58,237,0.12)"; }}
                   onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(124,58,237,0.2)"; e.currentTarget.style.background = "rgba(124,58,237,0.06)"; }}>
-                  <div style={{ fontSize: "1.8rem", marginBottom: 10 }}>{st.icon}</div>
+                  <div style={{ marginBottom: 10, color: "var(--accent-primary)" }}>{st.icon}</div>
                   <div style={{ fontWeight: 700, fontSize: "0.95rem", marginBottom: 6 }}>{st.label}</div>
                   <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}>{st.desc}</div>
                 </button>

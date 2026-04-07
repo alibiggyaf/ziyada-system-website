@@ -1,13 +1,18 @@
 import { Link } from "react-router-dom";
 import { ArrowRight, ArrowLeft } from "lucide-react";
+import { IconZap, IconTarget, IconClock, IconUser, IconMapPin, IconCheck } from "./BrandIcons";
+
+const IconDot = () => (
+  <svg width="8" height="8" viewBox="0 0 8 8" fill="currentColor"><circle cx="4" cy="4" r="4" /></svg>
+);
 
 export default function ServiceDetailPage({ data, lang }) {
   const isRTL = lang === "ar";
   const Icon = data.icon;
 
   const caseLabels = {
-    ar: { who: "👤 من", what: "⚡ ماذا", when: "⏱ متى", where: "📍 أين", why: "🎯 لماذا" },
-    en: { who: "👤 Who", what: "⚡ What", when: "⏱ When", where: "📍 Where", why: "🎯 Why" }
+    ar: { who: { icon: IconUser,   text: "من"    }, what: { icon: IconZap,    text: "ماذا"  }, when: { icon: IconClock,  text: "متى"   }, where: { icon: IconMapPin, text: "أين"   }, why: { icon: IconTarget, text: "لماذا" } },
+    en: { who: { icon: IconUser,   text: "Who"   }, what: { icon: IconZap,    text: "What"  }, when: { icon: IconClock,  text: "When"  }, where: { icon: IconMapPin, text: "Where" }, why: { icon: IconTarget, text: "Why"   } }
   };
   const labels = caseLabels[lang] || caseLabels.ar;
 
@@ -44,7 +49,7 @@ export default function ServiceDetailPage({ data, lang }) {
           <ul style={{ listStyle: "none", padding: 0 }}>
             {data.scope.map((item, i) => (
               <li key={i} style={{ display: "flex", gap: 10, padding: "7px 0", color: "var(--text-secondary)", fontSize: "0.9rem", alignItems: "flex-start" }}>
-                <span style={{ color: "var(--accent-primary)", flexShrink: 0, marginTop: 2 }}>✓</span>{item}
+                <span style={{ color: "var(--accent-primary)", flexShrink: 0, marginTop: 3 }}><IconCheck size={14} /></span>{item}
               </li>
             ))}
           </ul>
@@ -56,7 +61,7 @@ export default function ServiceDetailPage({ data, lang }) {
           <ul style={{ listStyle: "none", padding: 0 }}>
             {data.features.map((item, i) => (
               <li key={i} style={{ display: "flex", gap: 10, padding: "7px 0", color: "var(--text-secondary)", fontSize: "0.9rem", alignItems: "flex-start" }}>
-                <span style={{ color: "#06b6d4", flexShrink: 0, marginTop: 2 }}>◆</span>{item}
+                <span style={{ color: "#06b6d4", flexShrink: 0, marginTop: 6 }}><IconDot /></span>{item}
               </li>
             ))}
           </ul>
@@ -89,12 +94,17 @@ export default function ServiceDetailPage({ data, lang }) {
             { label: labels.when, value: data.case.when, bg: "rgba(16,185,129,0.08)", color: "#10b981" },
             { label: labels.where, value: data.case.where, bg: "rgba(245,158,11,0.08)", color: "#f59e0b" },
             { label: labels.why, value: data.case.why, bg: "rgba(239,68,68,0.08)", color: "#ef4444" },
-          ].map((item, i) => (
+          ].map((item, i) => {
+            const LabelIcon = item.label.icon;
+            return (
             <div key={i} style={{ background: item.bg, borderRadius: 10, padding: 16 }}>
-              <div style={{ fontWeight: 700, color: item.color, marginBottom: 8, fontSize: "0.82rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>{item.label}</div>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, fontWeight: 700, color: item.color, marginBottom: 8, fontSize: "0.82rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                <LabelIcon size={14} />{item.label.text}
+              </div>
               <p style={{ color: "var(--text-secondary)", margin: 0, fontSize: "0.9rem", lineHeight: 1.5 }}>{item.value}</p>
             </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 

@@ -19,50 +19,37 @@
 
 ## 1. Domain Purchase - ziyadasystem.com
 
-### Recommended: Cloudflare Registrar (Cheapest)
 
-- **Price:** ~$10.11/year for .com (at-cost, zero markup)
-- **Renewal:** Same price every year (no bait-and-switch pricing)
-- **URL:** https://dash.cloudflare.com/ -> Register Domains
+### Actual Registrar Used: Namecheap (with Cloudflare DNS)
 
-**Why Cloudflare is the best choice:**
+- **Price Paid:** ~$9.58 first year, renews at ~$14.58/year
+- **Registrar:** [Namecheap](https://www.namecheap.com)
+- **DNS & Email Routing:** [Cloudflare](https://dash.cloudflare.com/) (all DNS and email routing handled here)
+- **Renewal:** Price increases after first year (see Namecheap for details)
+
+**Why this setup:**
 
 | Feature                  | Included Free |
 |--------------------------|:------------:|
-| DNS hosting              | Yes          |
-| CDN (global edge cache)  | Yes          |
+| DNS hosting (Cloudflare) | Yes          |
+| CDN (Cloudflare)         | Yes          |
 | SSL/TLS certificate      | Yes          |
 | DDoS protection          | Yes          |
 | DNSSEC                   | Yes          |
 | WHOIS privacy            | Yes          |
 | Hidden fees / upsells    | None         |
 
-**How to register:**
-1. Go to https://dash.cloudflare.com/
-2. Create a free Cloudflare account (or log in)
-3. Click **Domain Registration** in the left sidebar
-4. Click **Register Domain**
-5. Search for `ziyadasystem.com`
-6. Add to cart and complete checkout (~$10.11)
-7. Domain is live immediately with Cloudflare DNS
+**How it was set up:**
+1. Domain purchased at [Namecheap](https://www.namecheap.com)
+2. Nameservers pointed to Cloudflare (for DNS & email routing)
+3. All DNS records and email routing configured in Cloudflare
+4. Website deployed on Vercel
 
-### Alternative A: Namecheap
+### Alternative: Cloudflare Registrar
 
-- **Price:** ~$9.58 first year, renews at ~$14.58/year
-- **URL:** https://www.namecheap.com
-- **Pros:** Cheap first year, good UI, free WhoisGuard
-- **Cons:** Renewal price jumps; DNS not as fast as Cloudflare
-
-### Alternative B: Porkbun
-
-- **Price:** ~$9.73/year
-- **URL:** https://porkbun.com
-- **Pros:** Transparent pricing, free WHOIS privacy, free SSL
-- **Cons:** Smaller company, fewer advanced features
-
-### Recommendation
-
-**Go with Cloudflare.** You get the domain at wholesale cost every year, plus free CDN, DNS, SSL, and DDoS protection that would cost extra elsewhere. The renewal price never increases.
+- **Price:** ~$10.11/year for .com (at-cost, zero markup)
+- **URL:** https://dash.cloudflare.com/ -> Register Domains
+- **Note:** Not used for this project (Namecheap was used instead)
 
 ---
 
@@ -99,13 +86,18 @@
    - `ali@ziyadasystem.com` → `ziyadasystem@gmail.com`
    - `sales@ziyadasystem.com` → `ziyadasystem@gmail.com`
    - `support@ziyadasystem.com` → `ziyadasystem@gmail.com`
-7. Verify each address (Cloudflare sends a confirmation to Gmail)
-8. To **send as** `info@ziyadasystem.com` from Gmail:
-   - Gmail → Settings → Accounts → "Add another email address"
-   - Name: `زيادة سيستم | Ziyada Systems`, Email: `info@ziyadasystem.com`
-   - SMTP server: `smtp.gmail.com`, Port: 587
-   - Use your Gmail credentials + App Password
-   - Verify and set as default sender
+   7. Verify each address (Cloudflare sends a confirmation to Gmail)
+   8. To **send as** any address (info@, ali@, support@, sales@) from Gmail:
+      - Gmail → Settings → Accounts → "Add another email address"
+      - Name: (مثلاً Ziyada Systems, Support, Sales)
+      - Email: (info@ziyadasystem.com, support@ziyadasystem.com, ali@ziyadasystem.com, sales@ziyadasystem.com)
+      - SMTP server: smtp.gmail.com, Port: 587
+      - Username: بريدك على Gmail (ziyadasystem@gmail.com)
+      - Password: Gmail App Password (من إعدادات Google)
+      - أكمل التحقق (سيرسل Gmail كود تحقق لكل عنوان)
+      - كرر الخطوات لكل عنوان تريد الإرسال منه
+
+   **النتيجة:** يمكنك الإرسال والاستقبال من جميع عناوين أعمالك مباشرة من Gmail.
 
 ### Option B: Hostinger Email (Paid — Check if Included in Your Plan)
 
@@ -139,6 +131,8 @@
 | support@ziyadasystem.com       | Customer support tickets                 | High     |
 | sales@ziyadasystem.com         | Sales team / lead forms                  | Medium   |
 | noreply@ziyadasystem.com       | Automated notifications (system emails)  | Medium   |
+
+**All above addresses are now active and routed to your Gmail via Cloudflare Email Routing.**
 
 **Recommendation:** Use **Cloudflare Email Routing** (Option A) — it's free, takes 10 minutes, and routes everything to your existing Gmail. You can always upgrade to a paid plan later if needed.
 
@@ -296,58 +290,62 @@ DKIM and DMARC: Google Workspace admin console provides the DKIM key during setu
 
 ## 6. Step-by-Step Checklist
 
+
 ### Phase 1: Domain Purchase (15 minutes)
 
-- [ ] **Step 1:** Create a Cloudflare account at https://dash.cloudflare.com/sign-up
-- [ ] **Step 2:** Go to Domain Registration -> Register Domain
-- [ ] **Step 3:** Search for `ziyadasystem.com` and purchase (~$10.11)
+- [x] **Step 1:** Register `ziyadasystem.com` at [Namecheap](https://www.namecheap.com)
+- [x] **Step 2:** Create a Cloudflare account at https://dash.cloudflare.com/sign-up
+- [x] **Step 3:** Add domain to Cloudflare and update Namecheap nameservers to Cloudflare
 - [ ] **Step 4:** (Optional) Search for your ads domain and purchase (~$10.11)
-- [ ] **Step 5:** Verify domain appears in your Cloudflare dashboard
+- [x] **Step 5:** Verify domain appears in your Cloudflare dashboard
+
 
 ### Phase 2: Connect Domain to Vercel (10 minutes)
 
-- [ ] **Step 6:** In Cloudflare DNS, add A record: `@` -> `76.76.21.21` (DNS only, grey cloud)
-- [ ] **Step 7:** In Cloudflare DNS, add CNAME: `www` -> `cname.vercel-dns.com` (DNS only, grey cloud)
-- [ ] **Step 8:** In Vercel dashboard, go to project Settings -> Domains
-- [ ] **Step 9:** Add `ziyadasystem.com` and `www.ziyadasystem.com`
-- [ ] **Step 10:** Wait for green checkmarks (SSL provisioned, 1-5 minutes)
-- [ ] **Step 11:** Test: open https://ziyadasystem.com in browser -- site should load with HTTPS
+- [x] **Step 6:** In Cloudflare DNS, add A record: `@` -> `76.76.21.21` (DNS only, grey cloud)
+- [x] **Step 7:** In Cloudflare DNS, add CNAME: `www` -> `cname.vercel-dns.com` (DNS only, grey cloud)
+- [x] **Step 8:** In Vercel dashboard, go to project Settings -> Domains
+- [x] **Step 9:** Add `ziyadasystem.com` and `www.ziyadasystem.com`
+- [x] **Step 10:** Wait for green checkmarks (SSL provisioned, 1-5 minutes)
+- [x] **Step 11:** Test: open https://ziyadasystem.com in browser -- site should load with HTTPS
+
 
 ### Phase 3: Email Setup with Cloudflare Email Routing (10 minutes — FREE)
 
-- [ ] **Step 12:** In Cloudflare Dashboard → select `ziyadasystem.com` → click **Email** → **Email Routing**
-- [ ] **Step 13:** Click **Enable Email Routing** (Cloudflare auto-adds MX records)
-- [ ] **Step 14:** Add routing rule: `info@ziyadasystem.com` → `ziyadasystem@gmail.com` → click Verify
-- [ ] **Step 15:** Add routing rule: `ali@ziyadasystem.com` → `ziyadasystem@gmail.com` → click Verify
-- [ ] **Step 16:** Add routing rule: `sales@ziyadasystem.com` → `ziyadasystem@gmail.com` → click Verify
-- [ ] **Step 17:** Add routing rule: `support@ziyadasystem.com` → `ziyadasystem@gmail.com` → click Verify
-- [ ] **Step 18:** Check Gmail inbox — confirm each verification email arrived and click verify
-- [ ] **Step 19:** Add DMARC TXT record in Cloudflare DNS:
-  - Type: `TXT`, Name: `_dmarc`, Value: `v=DMARC1; p=none; rua=mailto:ziyadasystem@gmail.com`
-- [ ] **Step 20:** (Optional) Set up "Send As" in Gmail to send from `info@ziyadasystem.com`:
-  - Gmail → Settings (⚙️) → See all settings → Accounts → **Add another email address**
-  - Name: `زيادة سيستم | Ziyada Systems`
-  - Email: `info@ziyadasystem.com`
-  - SMTP Server: `smtp.gmail.com`, Port: `587`
-  - Username: `ziyadasystem@gmail.com`, Password: Gmail App Password
-  - Verify and set as default sender
+- [x] **Step 12:** In Cloudflare Dashboard → select `ziyadasystem.com` → click **Email** → **Email Routing**
+- [x] **Step 13:** Click **Enable Email Routing** (Cloudflare auto-adds MX records)
+- [x] **Step 14:** Add routing rule: `info@ziyadasystem.com` → `ziyadasystem@gmail.com` → click Verify
+- [x] **Step 15:** Add routing rule: `ali@ziyadasystem.com` → `ziyadasystem@gmail.com` → click Verify
+- [x] **Step 16:** Add routing rule: `sales@ziyadasystem.com` → `ziyadasystem@gmail.com` → click Verify
+- [x] **Step 17:** Add routing rule: `support@ziyadasystem.com` → `ziyadasystem@gmail.com` → click Verify
+- [x] **Step 18:** Check Gmail inbox — confirm each verification email arrived and click verify
+- [x] **Step 19:** Add DMARC TXT record in Cloudflare DNS:
+   - Type: `TXT`, Name: `_dmarc`, Value: `v=DMARC1; p=none; rua=mailto:ziyadasystem@gmail.com`
+- [x] **Step 20:** (Optional) Set up "Send As" in Gmail to send from `info@ziyadasystem.com`:
+   - Gmail → Settings (⚙️) → See all settings → Accounts → **Add another email address**
+   - Name: `زيادة سيستم | Ziyada Systems`
+   - Email: `info@ziyadasystem.com`
+   - SMTP Server: `smtp.gmail.com`, Port: `587`
+   - Username: `ziyadasystem@gmail.com`, Password: Gmail App Password
+   - Verify and set as default sender
+
 
 ### Phase 4: Testing (15 minutes)
 
-- [ ] **Step 21:** Log in to https://mail.zoho.com with ali@ziyadasystem.com
-- [ ] **Step 22:** Send a test email from ali@ziyadasystem.com to a personal Gmail
-- [ ] **Step 23:** Verify it arrives in Gmail inbox (not spam)
-- [ ] **Step 24:** Reply from Gmail back to ali@ziyadasystem.com
-- [ ] **Step 25:** Verify reply arrives in Zoho inbox
-- [ ] **Step 26:** Test email from info@ziyadasystem.com
-- [ ] **Step 27:** Check SPF/DKIM/DMARC pass: in Gmail, open the test email -> three dots -> "Show original" -> look for `spf=pass`, `dkim=pass`, `dmarc=pass`
+- [x] **Step 21:** Send a test email from info@ziyadasystem.com to a personal Gmail
+- [x] **Step 22:** Verify it arrives in Gmail inbox (not spam)
+- [x] **Step 23:** Reply from Gmail back to info@ziyadasystem.com
+- [x] **Step 24:** Verify reply arrives in Gmail (forwarded by Cloudflare)
+- [x] **Step 25:** Test email from ali@ziyadasystem.com
+- [x] **Step 26:** Check SPF/DKIM/DMARC pass: in Gmail, open the test email -> three dots -> "Show original" -> look for `spf=pass`, `dkim=pass`, `dmarc=pass`
+
 
 ### Phase 5: Update Website & Systems (10 minutes)
 
-- [ ] **Step 28:** Update contact email on website from `ziyadasystem@gmail.com` to `info@ziyadasystem.com`
-- [ ] **Step 29:** Update n8n workflows that send emails to use `noreply@ziyadasystem.com` as sender
-- [ ] **Step 30:** Update Google Business Profile with new email
-- [ ] **Step 31:** Update any social media profiles with new email
+- [x] **Step 28:** Update contact email on website from `ziyadasystem@gmail.com` to `info@ziyadasystem.com`
+- [x] **Step 29:** Update n8n workflows that send emails to use `noreply@ziyadasystem.com` as sender
+- [x] **Step 30:** Update Google Business Profile with new email
+- [x] **Step 31:** Update any social media profiles with new email
 
 ### Phase 6: Ads Domain Setup (if purchased) (10 minutes)
 
