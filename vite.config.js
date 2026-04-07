@@ -26,6 +26,7 @@ export default defineConfig({
     react(),
   ],
   build: {
+    outDir: 'dist', // Explicit output directory
     sourcemap: false,
     cssMinify: true,
     rollupOptions: {
