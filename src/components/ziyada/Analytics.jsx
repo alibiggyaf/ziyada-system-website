@@ -59,7 +59,8 @@ export default function Analytics() {
     }
 
     /* ── PostHog ── */
-    if (POSTHOG_KEY) {
+    const IS_LOCAL = window?.location?.hostname === 'localhost' || window?.location?.hostname === '127.0.0.1';
+    if (POSTHOG_KEY && IS_LOCAL) {
       posthog.init(POSTHOG_KEY, {
         api_host: "https://us.i.posthog.com",
         autocapture: true,
