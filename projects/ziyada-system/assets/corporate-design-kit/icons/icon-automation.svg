@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="112" height="112" viewBox="0 0 112 112">
+  <!-- Zap / Business Automation — matches website IconZap -->
+  <circle cx="56" cy="56" r="52" fill="#130b2e" stroke="#7c3aed" stroke-width="1.5" stroke-opacity="0.5"/>
+  <g transform="translate(32,32) scale(2)" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+  </g>
+</svg>

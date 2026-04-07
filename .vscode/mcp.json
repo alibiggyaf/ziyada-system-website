@@ -1,0 +1,9 @@
+{
+  "servers": {
+    "file-agents-server": {
+      "type": "stdio",
+      "command": "tsx",
+      "args": ["src/index.ts"]
+    }
+  }
+}

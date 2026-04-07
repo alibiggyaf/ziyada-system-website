@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Work</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+    <style>
+      :root { --bg:#09090c; --line:#27272f; --text:#f3f3f6; --muted:#b7b7c1; }
+      * { box-sizing:border-box; }
+      html,body { margin:0; padding:0; background:var(--bg); color:var(--text); font-family:Inter,sans-serif; }
+      a { color:inherit; text-decoration:none; }
+      .topbar { position:fixed; inset:0 0 auto 0; z-index:40; height:74px; display:flex; justify-content:space-between; align-items:center; padding:0 1rem; background:linear-gradient(to bottom, rgba(8,8,10,.95), rgba(8,8,10,0)); }
+      .top-link { text-transform:uppercase; letter-spacing:.18em; font-size:.62rem; }
+      .hero { min-height:56vh; padding:6.4rem 1rem 2rem; display:grid; place-items:center; text-align:center; border-bottom:1px solid var(--line); background:linear-gradient(rgba(8,8,10,.55), rgba(8,8,10,.55)), url('https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?q=80&w=2100&auto=format&fit=crop') center/cover; }
+      .hero h1 { margin:0; font-size:clamp(2rem,8vw,5.6rem); line-height:1.03; font-weight:400; }
+      .hero p { margin-top:1rem; max-width:700px; color:#d7d8df; line-height:1.65; }
+      .cta { position:relative; display:inline-flex; align-items:center; gap:.5rem; border:1px solid #8f919d; border-radius:999px; padding:.6rem 1rem; margin-top:1.2rem; overflow:hidden; transition:color .24s ease,border-color .24s ease; }
+      .cta::before { content:""; position:absolute; inset:0; background:#f2f2f5; transform:translateX(-101%); transition:transform .32s cubic-bezier(.22,1,.36,1); }
+      .cta span { position:relative; z-index:1; }
+      .cta:hover { color:#0b0b0f; border-color:#f2f2f5; }
+      .cta:hover::before { transform:translateX(0); }
+      .wrap { padding:2.4rem 1rem; }
+      .label { margin:0 0 .9rem; text-transform:uppercase; letter-spacing:.18em; font-size:.64rem; color:var(--muted); }
+      .list { border-top:1px solid var(--line); }
+      .row { border-bottom:1px solid var(--line); padding:1.35rem 0; display:grid; grid-template-columns:1fr auto; gap:1rem; align-items:center; transition:padding .24s ease,background .24s ease; }
+      .title { margin:0; font-size:clamp(1.35rem,5.8vw,3.4rem); font-weight:400; }
+      .sub { margin-top:.42rem; color:var(--muted); font-size:.62rem; letter-spacing:.13em; text-transform:uppercase; }
+      .arrow { width:40px; height:40px; border:1px solid #4a4a56; border-radius:999px; display:grid; place-items:center; opacity:0; transform:translateX(-10px); transition:all .24s ease; }
+      .row:hover { background:#111117; padding-top:1.55rem; padding-bottom:1.55rem; }
+      .row:hover .arrow { opacity:1; transform:translateX(0); }
+      .preview { position:fixed; top:0; left:0; width:min(44vw,340px); aspect-ratio:4/3; border:1px solid #32323c; border-radius:10px; overflow:hidden; pointer-events:none; opacity:0; transform:translate(-50%,-50%) scale(.9); transition:opacity .2s ease,transform .2s ease; z-index:90; }
+      .preview img { width:100%; height:100%; object-fit:cover; }
+      .preview.show { opacity:1; transform:translate(-50%,-50%) scale(1); }
+      @media (min-width:920px){ .topbar,.wrap{padding-left:2.6rem;padding-right:2.6rem;} .hero{padding-left:2rem;padding-right:2rem;} }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="top-link" href="index.html">Home</a>
+      <a class="top-link" href="contact.html">Contact</a>
+    </header>
+    <section class="hero">
+      <div>
+        <h1>Selected Work</h1>
+        <p>Project grid with the same visual rhythm and hover behavior from the homepage interaction system.</p>
+        <a class="cta" href="contact.html"><span>Start a project</span></a>
+      </div>
+    </section>
+    <main class="wrap">
+      <h2 class="label">Projects</h2>
+      <div class="list">
+        <a class="row" href="work_case_twice.html" data-img="https://images.unsplash.com/photo-1518005020951-eccb494ad742?q=80&w=1200&auto=format&fit=crop">
+          <div><h3 class="title">TWICE</h3><div class="sub">Interaction & Development / 2024</div></div>
+          <div class="arrow">↗</div>
+        </a>
+        <a class="row" href="work_case_damai.html" data-img="https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=1200&auto=format&fit=crop">
+          <div><h3 class="title">The Damai</h3><div class="sub">Design & Development / 2024</div></div>
+          <div class="arrow">↗</div>
+        </a>
+      </div>
+    </main>
+    <div class="preview" id="preview"><img id="previewImg" alt="Project preview" /></div>
+    <script>
+      const preview = document.getElementById('preview');
+      const previewImg = document.getElementById('previewImg');
+      const rows = document.querySelectorAll('.row');
+      let mx = window.innerWidth / 2, my = window.innerHeight / 2, px = mx, py = my;
+      window.addEventListener('mousemove', (e) => { mx = e.clientX; my = e.clientY; });
+      function animate(){ px += (mx - px) * 0.2; py += (my - py) * 0.2; preview.style.left = px + 'px'; preview.style.top = py + 'px'; requestAnimationFrame(animate); }
+      animate();
+      rows.forEach((row) => {
+        row.addEventListener('mouseenter', () => { previewImg.src = row.getAttribute('data-img') || ''; preview.classList.add('show'); });
+        row.addEventListener('mouseleave', () => preview.classList.remove('show'));
+      });
+    </script>
+  </body>
+</html>

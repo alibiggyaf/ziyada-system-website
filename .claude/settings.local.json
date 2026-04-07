@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(lsof -iTCP -sTCP:LISTEN -n)",
+      "Bash(grep -rn \"n8n.srv953562\\\\|webhook.*youtube\\\\|youtube.*webhook\" '/Users/djbiggy/Downloads/Claude Code- File Agents/projects/ziyada-system/' --include=*.py --include=*.sh --include=*.md)",
+      "Bash(export N8N_API_KEY=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMTU5ZDRmNC03MTExLTQ4NTAtOGQ5OC0yYWM1MzU1Mjg3ZWUiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwiaWF0IjoxNzczOTM3NjU5LCJleHAiOjE3ODE2NDcyMDB9.57H2mbac54qiRQusl37xQXlnfYYRNvJ3-lm4crYBlqA\")",
+      "Bash(curl -s -X POST https://n8n.srv953562.hstgr.cloud/api/v1/workflows/4wO4enlPyFeNduqY/deactivate -H 'X-N8N-API-KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMTU5ZDRmNC03MTExLTQ4NTAtOGQ5OC0yYWM1MzU1Mjg3ZWUiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwiaWF0IjoxNzczOTM3NjU5LCJleHAiOjE3ODE2NDcyMDB9.57H2mbac54qiRQusl37xQXlnfYYRNvJ3-lm4crYBlqA' -H 'Content-Type: application/json' -d '{}')",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('Deactivated:', not d.get\\('active'\\)\\)\")",
+      "Bash(npx vercel:*)",
+      "Read(//Users/djbiggy/.local/share/com.vercel.cli/**)",
+      "Read(//Users/djbiggy/.vercel/**)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('Token found:', bool\\(d.get\\('token'\\)\\)\\)\")"
+    ]
+  }
+}

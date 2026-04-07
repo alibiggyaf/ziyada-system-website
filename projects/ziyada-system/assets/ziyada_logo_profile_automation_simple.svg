@@ -1,0 +1,17 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Hexagon base -->
+  <polygon points="256,56 456,176 456,376 256,496 56,376 56,176" fill="#0f172a"/>
+  <!-- Interconnected nodes for automation -->
+  <circle cx="256" cy="120" r="12" fill="#3b82f6"/>
+  <circle cx="392" cy="176" r="10" fill="#8b5cf6"/>
+  <circle cx="392" cy="376" r="10" fill="#06b6d4"/>
+  <circle cx="256" cy="440" r="12" fill="#3b82f6"/>
+  <circle cx="120" cy="376" r="10" fill="#8b5cf6"/>
+  <circle cx="120" cy="176" r="10" fill="#06b6d4"/>
+  <!-- Connecting lines -->
+  <polyline points="256,120 392,176 392,376 256,440 120,376 120,176 256,120" stroke="#e2e8f0" stroke-width="4" fill="none"/>
+  <!-- "Z" shape as a filled path -->
+  <path d="M160 200 L352 200 L160 320 L352 320" stroke="#3b82f6" stroke-width="32" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <!-- "S" shape as a filled path -->
+  <path d="M352 220 Q256 256 352 292 Q256 328 160 292" stroke="#e2e8f0" stroke-width="20" fill="none"/>
+</svg>

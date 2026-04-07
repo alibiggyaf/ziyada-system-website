@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #env
 .env
 .env.*
@@ -33,3 +34,26 @@ dist-ssr
 local-data/*.json
 !local-data/README.md
 .vercel
+=======
+# Git Ignore
+# Temporary files
+.tmp/
+
+# Environment variables and secrets
+.env
+**/credentials.json
+**/token.json
+**/token.pickle
+**/token_docs.json
+client_secret_*.json
+**/.tmp/credentials.cleaned.json
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# OS files
+.DS_Store
+Thumbs.db
+>>>>>>> 84272d5 (Initial commit: full website (frontend, backend, all assets))

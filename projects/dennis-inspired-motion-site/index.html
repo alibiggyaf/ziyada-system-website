@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dennis Inspired - Home</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --bg: #09090c;
+        --line: #27272f;
+        --text: #f3f3f6;
+        --muted: #b7b7c1;
+        --overlay: rgba(6, 6, 8, 0.56);
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: Inter, sans-serif; }
+      body { overflow-x: hidden; }
+      a { color: inherit; text-decoration: none; }
+
+      .loader { position: fixed; inset: 0; z-index: 200; display: grid; place-items: center; background: #060609; transition: opacity 0.55s ease, visibility 0.55s ease; }
+      .loader.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+      .loader-word { font-size: clamp(2rem, 7vw, 5rem); font-weight: 500; letter-spacing: 0.04em; }
+
+      .shell { opacity: 0; transition: opacity 0.6s ease; }
+      .shell.ready { opacity: 1; }
+
+      .topbar { position: fixed; inset: 0 0 auto 0; z-index: 100; height: 74px; display: flex; justify-content: space-between; align-items: center; padding: 0 1rem; background: linear-gradient(to bottom, rgba(8, 8, 10, 0.95), rgba(8, 8, 10, 0)); }
+      .top-link, .menu-btn { text-transform: uppercase; letter-spacing: 0.18em; font-size: 0.62rem; }
+      .menu-btn { border: 0; background: transparent; color: var(--text); cursor: pointer; }
+
+      .menu { position: fixed; inset: 0; z-index: 90; background: rgba(7, 7, 9, 0.98); transform: translateY(-102%); transition: transform 0.42s cubic-bezier(0.22, 1, 0.36, 1); padding: 5.8rem 1rem 2rem; display: grid; gap: 1.8rem; }
+      .menu.open { transform: translateY(0); }
+      .menu h4 { margin: 0 0 0.5rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.16em; font-size: 0.62rem; font-weight: 500; }
+      .menu a { display: block; padding: 0.28rem 0; font-size: clamp(1.2rem, 5vw, 2.2rem); }
+      .menu-cols { display: grid; gap: 1.3rem; }
+
+      .hero { position: relative; min-height: 100svh; padding: 5.4rem 1rem 2.8rem; display: grid; place-items: center; text-align: center; overflow: hidden; border-bottom: 1px solid var(--line); }
+      .hero-bg { position: absolute; inset: 0; background-image: linear-gradient(var(--overlay), var(--overlay)), url('https://images.unsplash.com/photo-1467232004584-a241de8bcf5d?q=80&w=2200&auto=format&fit=crop'); background-position: center; background-size: cover; transform: scale(1.04); }
+      .hero-inner { position: relative; z-index: 1; max-width: 860px; }
+      .hero-title { margin: 0; font-size: clamp(2rem, 8.8vw, 6.5rem); line-height: 1.02; font-weight: 400; }
+      .hero-sub { margin: 1.1rem auto 0; max-width: 720px; color: #d9dae1; line-height: 1.65; font-size: clamp(0.98rem, 1.8vw, 1.2rem); }
+      .hero-lang { position: absolute; left: 1rem; bottom: 1rem; z-index: 1; color: #d6d7de; text-transform: uppercase; letter-spacing: 0.12em; font-size: 0.62rem; }
+
+      .cta {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        border: 1px solid #8f919d;
+        border-radius: 999px;
+        padding: 0.6rem 1rem;
+        margin-top: 1.3rem;
+        overflow: hidden;
+        transition: color 0.24s ease, border-color 0.24s ease;
+      }
+      .cta::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: #f2f2f5;
+        transform: translateX(-101%);
+        transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+      }
+      .cta span { position: relative; z-index: 1; }
+      .cta:hover { color: #0b0b0f; border-color: #f2f2f5; }
+      .cta:hover::before { transform: translateX(0); }
+
+      .marquee { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); overflow: hidden; }
+      .marquee-track { display: inline-flex; min-width: 200%; animation: flow 24s linear infinite; }
+      .marquee-item { padding: 0.9rem 1.6rem; font-size: clamp(1.15rem, 3vw, 2.3rem); font-weight: 300; color: #d3d4dd; }
+      @keyframes flow { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+      .section { padding: 2.4rem 1rem; }
+      .label { margin: 0 0 0.9rem; text-transform: uppercase; letter-spacing: 0.18em; font-size: 0.64rem; color: var(--muted); font-weight: 500; }
+      .work-list { border-top: 1px solid var(--line); }
+      .work-row { position: relative; border-bottom: 1px solid var(--line); padding: 1.3rem 0; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 0.8rem; transition: padding 0.25s ease, background 0.25s ease; }
+      .work-title { margin: 0; font-size: clamp(1.35rem, 5.7vw, 3.4rem); font-weight: 400; }
+      .work-meta { margin-top: 0.42rem; color: var(--muted); font-size: 0.62rem; letter-spacing: 0.13em; text-transform: uppercase; }
+      .work-arrow { width: 40px; height: 40px; border: 1px solid #4a4a56; border-radius: 999px; display: grid; place-items: center; opacity: 0; transform: translateX(-10px); transition: opacity 0.25s ease, transform 0.25s ease; }
+      .work-rail { position: absolute; left: 0; right: 0; bottom: 0; font-size: clamp(0.78rem, 1.5vw, 1rem); color: #aeb0ba; white-space: nowrap; opacity: 0; transform: translateY(10px); transition: opacity 0.25s ease, transform 0.25s ease; }
+      .work-rail span { display: inline-block; padding-right: 1.2rem; animation: railMove 10s linear infinite; }
+      @keyframes railMove { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+      .work-row:hover { background: #111117; padding-top: 1.55rem; padding-bottom: 1.55rem; }
+      .work-row:hover .work-arrow { opacity: 1; transform: translateX(0); }
+      .work-row:hover .work-rail { opacity: 1; transform: translateY(0); }
+
+      .hover-preview { position: fixed; top: 0; left: 0; width: min(44vw, 340px); aspect-ratio: 4 / 3; pointer-events: none; z-index: 130; border: 1px solid #32323c; border-radius: 10px; overflow: hidden; opacity: 0; transform: translate(-50%, -50%) scale(0.9); transition: opacity 0.2s ease, transform 0.2s ease; }
+      .hover-preview img { width: 100%; height: 100%; object-fit: cover; }
+      .hover-preview.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+
+      .about-grid { display: grid; gap: 1rem; }
+      .about-grid p { margin: 0; color: #d7d8df; line-height: 1.7; }
+      .contact { margin-top: 2rem; border-top: 1px solid var(--line); padding-top: 1.8rem; }
+      .contact h2 { margin: 0; font-size: clamp(2rem, 10vw, 5.7rem); line-height: 1; font-weight: 400; }
+      .contact-links { margin-top: 1rem; display: flex; flex-wrap: wrap; gap: 1rem; }
+      .meta { margin-top: 2rem; border-top: 1px solid var(--line); padding-top: 1rem; display: flex; justify-content: space-between; gap: 0.8rem; flex-wrap: wrap; color: var(--muted); font-size: 0.6rem; letter-spacing: 0.12em; text-transform: uppercase; }
+
+      @media (min-width: 920px) {
+        .topbar, .section { padding-left: 2.6rem; padding-right: 2.6rem; }
+        .hero { padding-left: 2rem; padding-right: 2rem; }
+        .menu-cols { grid-template-columns: 1fr 1fr; }
+        .about-grid { grid-template-columns: 2fr 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="loader" id="loader"><div class="loader-word" id="loaderWord">Hello</div></div>
+
+    <div class="menu" id="menu">
+      <div class="menu-cols">
+        <div>
+          <h4>Navigation</h4>
+          <a href="index.html">Home</a>
+          <a href="work.html">Work</a>
+          <a href="about.html">About</a>
+          <a href="contact.html">Contact</a>
+        </div>
+        <div>
+          <h4>Socials</h4>
+          <a href="#">Awwwards</a>
+          <a href="#">Instagram</a>
+          <a href="#">Twitter</a>
+          <a href="#">LinkedIn</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="shell" id="shell">
+      <header class="topbar">
+        <a class="top-link" href="index.html">View</a>
+        <button class="menu-btn" id="menuBtn">Menu</button>
+      </header>
+
+      <main>
+        <section class="hero">
+          <div class="hero-bg" id="heroBg"></div>
+          <div class="hero-inner">
+            <h1 class="hero-title">Freelance Designer & Developer with interaction-first web experiences.</h1>
+            <p class="hero-sub">Helping brands to stand out in the digital era. Together we set a new status quo with detail-focused design and frontend precision.</p>
+            <a class="cta" href="about.html"><span>About me</span></a>
+          </div>
+          <div class="hero-lang" id="heroLang">Hello</div>
+        </section>
+
+        <section class="marquee">
+          <div class="marquee-track" id="marqueeTrack">
+            <span class="marquee-item">Interaction, motion, typography, rhythm -</span>
+            <span class="marquee-item">Interaction, motion, typography, rhythm -</span>
+            <span class="marquee-item">Interaction, motion, typography, rhythm -</span>
+            <span class="marquee-item">Interaction, motion, typography, rhythm -</span>
+          </div>
+        </section>
+
+        <section class="section">
+          <h2 class="label">Selected Work</h2>
+          <div class="work-list">
+            <a class="work-row" href="work_case_twice.html" data-img="https://images.unsplash.com/photo-1518005020951-eccb494ad742?q=80&w=1200&auto=format&fit=crop">
+              <div>
+                <h3 class="work-title">TWICE</h3>
+                <div class="work-meta">Interaction & Development / 2024</div>
+              </div>
+              <div class="work-arrow">↗</div>
+              <div class="work-rail"><span>Interaction & Development - Interaction & Development - Interaction & Development - </span></div>
+            </a>
+            <a class="work-row" href="work_case_damai.html" data-img="https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=1200&auto=format&fit=crop">
+              <div>
+                <h3 class="work-title">The Damai</h3>
+                <div class="work-meta">Design & Development / 2024</div>
+              </div>
+              <div class="work-arrow">↗</div>
+              <div class="work-rail"><span>Design & Development - Design & Development - Design & Development - </span></div>
+            </a>
+          </div>
+        </section>
+
+        <section class="section">
+          <h2 class="label">About</h2>
+          <div class="about-grid">
+            <p>The combination of design, code, and interaction positions this website in a clean and modern visual language with meaningful motion and intentional hierarchy.</p>
+            <p>Subpages are fully mapped and maintain matching style, with a dedicated project case page that includes 3D mockup interaction.</p>
+          </div>
+
+          <div class="contact">
+            <h2>Let's work together</h2>
+            <div class="contact-links">
+              <a class="cta" href="contact.html"><span>Get in touch</span></a>
+              <a class="cta" href="mailto:ali.biggy.af@gmail.com"><span>ali.biggy.af@gmail.com</span></a>
+            </div>
+          </div>
+
+          <div class="meta">
+            <span>2026 Edition</span>
+            <span>Local Time GMT+3</span>
+            <span>Motion Portfolio</span>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="hover-preview" id="hoverPreview"><img id="hoverPreviewImg" alt="Project preview" /></div>
+
+    <script>
+      const words = ["Hello", "Bonjour", "स्वागत हे", "Ciao", "Olá", "おい", "Hallå", "Guten tag", "Hallo"];
+      const loader = document.getElementById("loader");
+      const loaderWord = document.getElementById("loaderWord");
+      const shell = document.getElementById("shell");
+      const heroLang = document.getElementById("heroLang");
+      const menu = document.getElementById("menu");
+      const menuBtn = document.getElementById("menuBtn");
+      const heroBg = document.getElementById("heroBg");
+      const marqueeTrack = document.getElementById("marqueeTrack");
+
+      let i = 0;
+      const loaderInt = setInterval(() => {
+        i = (i + 1) % words.length;
+        loaderWord.textContent = words[i];
+      }, 280);
+
+      const heroInt = setInterval(() => {
+        i = (i + 1) % words.length;
+        heroLang.textContent = words[i];
+      }, 1100);
+
+      setTimeout(() => {
+        clearInterval(loaderInt);
+        loader.classList.add("hidden");
+        shell.classList.add("ready");
+      }, 2400);
+
+      menuBtn.addEventListener("click", () => {
+        const open = menu.classList.toggle("open");
+        menuBtn.textContent = open ? "Close" : "Menu";
+        document.body.style.overflow = open ? "hidden" : "";
+      });
+
+      menu.querySelectorAll("a").forEach((link) => {
+        link.addEventListener("click", () => {
+          menu.classList.remove("open");
+          menuBtn.textContent = "Menu";
+          document.body.style.overflow = "";
+        });
+      });
+
+      let lastY = window.scrollY;
+      window.addEventListener("scroll", () => {
+        const y = window.scrollY;
+        heroBg.style.transform = `scale(1.04) translateY(${y * 0.03}px)`;
+        marqueeTrack.style.animationDirection = y > lastY ? "normal" : "reverse";
+        lastY = y;
+      });
+
+      const hoverPreview = document.getElementById("hoverPreview");
+      const hoverPreviewImg = document.getElementById("hoverPreviewImg");
+      const rows = document.querySelectorAll(".work-row");
+      let mx = window.innerWidth / 2;
+      let my = window.innerHeight / 2;
+      let px = mx;
+      let py = my;
+
+      window.addEventListener("mousemove", (e) => {
+        mx = e.clientX;
+        my = e.clientY;
+      });
+
+      function animatePreview() {
+        px += (mx - px) * 0.2;
+        py += (my - py) * 0.2;
+        hoverPreview.style.left = px + "px";
+        hoverPreview.style.top = py + "px";
+        requestAnimationFrame(animatePreview);
+      }
+      animatePreview();
+
+      rows.forEach((row) => {
+        row.addEventListener("mouseenter", () => {
+          hoverPreviewImg.src = row.getAttribute("data-img") || "";
+          hoverPreview.classList.add("show");
+        });
+        row.addEventListener("mouseleave", () => {
+          hoverPreview.classList.remove("show");
+        });
+      });
+
+      window.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          menu.classList.remove("open");
+          menuBtn.textContent = "Menu";
+          document.body.style.overflow = "";
+        }
+      });
+
+      window.addEventListener("beforeunload", () => clearInterval(heroInt));
+    </script>
+  </body>
+</html>

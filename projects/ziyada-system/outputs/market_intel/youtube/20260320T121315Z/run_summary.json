@@ -1,0 +1,15 @@
+{
+  "run_id": "20260320T121315Z",
+  "mode": "manual",
+  "timezone": "Asia/Riyadh",
+  "week_start": "2026-03-12T21:00:00+00:00",
+  "week_end": "2026-03-19T21:00:00+00:00",
+  "channels_selected": 17,
+  "videos_scored": 75,
+  "ingest_path": "/Users/djbiggy/Downloads/Claude Code- File Agents/projects/ziyada-system/outputs/market_intel/youtube/20260320T121315Z/weekly_ingest.json",
+  "scored_path": "/Users/djbiggy/Downloads/Claude Code- File Agents/projects/ziyada-system/outputs/market_intel/youtube/20260320T121315Z/weekly_scored.json",
+  "insights_path": "/Users/djbiggy/Downloads/Claude Code- File Agents/projects/ziyada-system/outputs/market_intel/youtube/20260320T121315Z/weekly_insights_bilingual.json",
+  "deck_url": "https://docs.google.com/presentation/d/1jzGdAJrRFnD1K_Rxy1c8gFxasXhjYUd8_VCoNeTBIy8/edit",
+  "sheet_url": "https://docs.google.com/spreadsheets/d/1rqcPn_Pt_3RQeWdzOcm0q8jrBGsay-BSto1Aja_j9Wg/edit",
+  "gmail_draft_id": "r-10466951928925724"
+}

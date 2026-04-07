@@ -1,0 +1,32 @@
+{
+  "search.exclude": {
+    "**/.venv/**": true,
+    "**/__pycache__/**": true,
+    "**/.tmp/**": true,
+    "**/node_modules/**": true
+  },
+  "files.exclude": {
+    "**/__pycache__": true,
+    "**/.DS_Store": true
+  },
+  "workbench.editorAssociations": {
+    "*.doc": "syncfusion-word-viewer",
+    "*.docx": "syncfusion-word-viewer",
+    "*.dot": "syncfusion-word-viewer",
+    "*.dotx": "syncfusion-word-viewer",
+    "*.rtf": "syncfusion-word-viewer",
+    "*.xls": "syncfusion-excel-viewer",
+    "*.xlsx": "syncfusion-excel-viewer",
+    "*.xlt": "syncfusion-excel-viewer",
+    "*.xltx": "syncfusion-excel-viewer",
+    "*.ppt": "presentationViewer.viewer",
+    "*.pptx": "presentationViewer.viewer",
+    "*.pptm": "presentationViewer.viewer",
+    "*.pot": "presentationViewer.viewer",
+    "*.potx": "presentationViewer.viewer",
+    "*.potm": "presentationViewer.viewer",
+    "*.pps": "presentationViewer.viewer",
+    "*.ppsx": "presentationViewer.viewer",
+    "*.ppsm": "presentationViewer.viewer"
+  }
+}

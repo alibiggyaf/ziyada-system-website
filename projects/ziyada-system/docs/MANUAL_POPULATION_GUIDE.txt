@@ -1,0 +1,284 @@
+ZIYADA SYSTEM - MANUAL SLIDE POPULATION GUIDE (APPROVED)
+=========================================================
+
+Presentation URL:
+https://docs.google.com/presentation/d/1DtD9wyNWoJrOd1hj3AQXrOBSe2UNwAB70mRTlbtliNo/edit
+
+Authority for this guide:
+1) projects/ziyada-system/docs/IMPLEMENTATION_TRACKER.md
+2) projects/ziyada-system/workflows/SLIDE_POPULATION_GUIDE.sh
+
+This guide replaces older draft tone and structure.
+Use operator-focused language (clear, direct, no hype).
+
+
+BRAND AND TYPE SYSTEM (MANDATORY)
+---------------------------------
+
+Voice and tone:
+- Operator-speak, no hype
+- Professional and direct
+- Clear expectations, no inflated claims
+
+Communication mode (required):
+- Use the official executive style (Mr. Ziyad communication mode).
+- Do not reuse newsletter copy style unless explicitly requested.
+- Keep language operational, credible, and outcome-focused.
+
+Saudi language kit (official):
+- Arabic should be formal Saudi business Arabic.
+- Avoid slang-heavy phrases and promotional exaggeration.
+- Preferred phrasing examples:
+	- حلول تشغيلية قابلة للتوسع
+	- تنفيذ واضح بمؤشرات قابلة للقياس
+	- شراكة تشغيلية مع التزام بالنتائج
+
+Typography (approved):
+- Headings (English): Inter Bold
+- Headings and body (Arabic): Noto Kufi Arabic
+- Body (English): Inter Regular
+- Secondary labels: Inter Medium / Noto Kufi Arabic Medium
+
+IMPORTANT FONT NOTE:
+- Noto Kufi Arabic is REQUIRED for Arabic body and headings.
+- Inter is REQUIRED for English body and headings.
+- Do not switch to non-approved alternatives.
+
+Color system (approved):
+- Deep Space Navy: #171C2B (main background)
+- Midnight Blue: #141D35 (alternate background)
+- Electric Blue: #1F3C88 (CTA)
+- Soft Neon Blue: #2F5CFF (accent/divider)
+- Neural Violet: #6B5CFF (highlight)
+- Light Text: #E6E9F2
+- Secondary Text: #9AA3B2
+
+
+SLIDE 1 - HERO
+--------------
+Background: #171C2B
+
+Title (60px, Outfit Black, #E6E9F2):
+Ziyada System
+
+Arabic subtitle (48px, Noto Kufi Arabic Bold, #6B5CFF):
+زيادة سيستم
+
+Tagline (32px, Inter Regular, #E6E9F2):
+Build Once. Scale Logically. Grow Predictably.
+
+Arabic tagline (28px, Noto Kufi Arabic Regular, #9AA3B2, RTL):
+نبني مرة واحدة، ونتوسع بثبات.
+
+
+SLIDE 2 - WHAT WE BUILD
+-----------------------
+Background: #171C2B
+
+Title (44px, Inter Bold, #6B5CFF):
+What We Build
+
+Arabic title (40px, Noto Kufi Arabic Bold, #1F3C88):
+ما نبنيه
+
+Three columns (Inter/Noto Kufi Arabic body rules):
+1) Managed Platforms
+	Production-grade infrastructure that handles scale.
+	Payments, auth, database, queues all included.
+
+2) Cloud Operations
+	Deployment, monitoring, scaling, and cost optimization.
+	We handle operations so your team can focus on product.
+
+3) API-First Design
+	REST + WebSocket with clear documentation.
+	Integrate in hours, not weeks.
+
+
+SLIDE 3 - WHAT WE ARE NOT
+-------------------------
+Background: #141D35
+
+Title (44px, Inter Bold, #6B5CFF):
+What We're NOT
+
+Arabic title (40px, Noto Kufi Arabic Bold, #E6E9F2):
+ما لسنا عليه
+
+Message (28px, Inter / Noto Kufi Arabic, #E6E9F2):
+No shortcuts. No off-the-shelf templates.
+No unrealistic delivery promises.
+No endless feature churn.
+
+Subtext (18px, Inter / Noto Kufi Arabic, #9AA3B2):
+We build focused platforms for serious operators.
+
+
+SLIDE 4 - WHAT WE DO
+--------------------
+Background: #171C2B
+
+Title (44px, Outfit Black, #6B5CFF):
+What We Do
+
+Arabic title (40px, Noto Kufi Arabic Bold, #1F3C88):
+ما نفعله
+
+Service cards:
+1) Platform Architecture
+	Design your stack, select components, plan scaling.
+
+2) Deployment and Setup
+	Build, deploy, verify, and release with rollback readiness.
+
+3) Operations and Growth
+	Monitoring, scaling, and cost optimization as you grow.
+
+
+SLIDE 5 - WHY CHOOSE ZIYADA
+---------------------------
+Background: #141D35
+
+Title (44px, Outfit Black, #6B5CFF):
+Why Choose Ziyada
+
+Arabic title (40px, Cairo Bold, #E6E9F2):
+لماذا زيادة
+
+Benefits (24px Inter/Noto Kufi Arabic Medium + 16px Inter/Noto Kufi Arabic Regular):
+- Speed to Market: weeks, not months, with disciplined delivery.
+- Built for Scale: architecture designed for growth.
+- Hands-On Partnership: dedicated engineers, clear ownership.
+- Cost Efficiency: right-sized infrastructure, no over-engineering.
+
+
+SLIDE 6 - OUR APPROACH
+----------------------
+Background: #171C2B
+
+Title (44px, Outfit Black, #6B5CFF):
+Our Approach
+
+Arabic title (40px, Noto Kufi Arabic Bold, #1F3C88):
+نهجنا
+
+4-step flow:
+1) Discover - Understand business, users, constraints.
+2) Design - Build a scalable architecture.
+3) Deploy - Implement, test, verify, launch.
+4) Operate - Maintain, scale, optimize continuously.
+
+
+SLIDE 7 - WHO WE SERVE
+----------------------
+Background: #141D35
+
+Title (44px, Outfit Black, #6B5CFF):
+Who We Serve
+
+Arabic title (40px, Noto Kufi Arabic Bold, #E6E9F2):
+من نخدم
+
+Primary segment:
+B2B SaaS and platform-focused teams with technical leadership.
+
+Examples:
+- Growth-focused product companies
+- Infrastructure and data teams
+- Operators with long-term product vision
+
+
+SLIDE 8 - OUR CORE VALUES
+-------------------------
+Background: #171C2B
+
+Title (44px, Outfit Black, #6B5CFF):
+Our Core Values
+
+Arabic title (40px, Noto Kufi Arabic Bold, #1F3C88):
+قيمنا الأساسية
+
+Value blocks:
+1) Pragmatic
+	We choose what works, not what trends.
+
+2) Operator-Minded
+	Engineering serves business outcomes.
+
+3) Long-Term Focused
+	Sustainable systems over short-term wins.
+
+
+SLIDE 9 - CLIENT PROOF
+----------------------
+Background: #141D35
+
+Title (44px, Outfit Black, #6B5CFF):
+What Our Clients Say
+
+Arabic title (40px, Noto Kufi Arabic Bold, #E6E9F2):
+ما يقوله عملاؤنا
+
+Use up to 3 concise testimonials with:
+- Quote (18px Inter / Noto Kufi Arabic)
+- Name and role (14px Inter Medium / Noto Kufi Arabic Medium)
+- Context line (12px Inter / Noto Kufi Arabic, secondary color)
+
+
+SLIDE 10 - CALL TO ACTION
+-------------------------
+Background: #171C2B
+
+Title (52px, Inter Bold, #6B5CFF):
+Let's Talk
+
+Arabic title (44px, Noto Kufi Arabic Bold, #E6E9F2):
+دعنا نتحدث
+
+Subheading (24px Inter / Noto Kufi Arabic):
+Ready to build a platform that scales?
+هل أنتم جاهزون لمنصة قابلة للتوسع؟
+
+Email (28px Inter Medium / Noto Kufi Arabic Medium, #1F3C88, clickable):
+hello@ziyadasystem.com
+
+
+SLIDE 11 - CLOSING
+------------------
+Background: #141D35
+
+Brand line (64px Inter Bold):
+Ziyada System
+
+Arabic brand line (54px Noto Kufi Arabic Bold):
+زيادة سيستم
+
+Footer:
+www.ziyadasystem.com | hello@ziyadasystem.com
+
+
+MANUAL POPULATION STEPS
+-----------------------
+1) Open the deck URL.
+2) Set alternating backgrounds:
+	odd slides #171C2B, even slides #141D35.
+3) Paste each slide copy from this guide.
+4) Apply typography exactly:
+	Inter for English text, Noto Kufi Arabic for Arabic text.
+5) For Arabic lines, enable RTL alignment and verify spacing.
+6) Apply accent colors for dividers, highlights, and CTA.
+7) Insert approved imagery/icons as needed.
+8) Run final QA checklist before sharing.
+
+
+FINAL QA CHECKLIST
+------------------
+- All 11 slides populated
+- Fonts are correct (Inter + Noto Kufi Arabic)
+- Arabic text is RTL and readable
+- Colors match approved palette
+- No hype language or aggressive sales copy
+- Spacing and alignment are consistent
+- CTA email is clickable
+
+Estimated time: 2-3 hours for complete, production-ready population.

@@ -1,0 +1,1348 @@
+{
+  "name": "Ali Content Writer",
+  "settings": {},
+  "nodes": [
+    {
+      "id": "Webhook In",
+      "name": "Webhook In",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        220,
+        280
+      ],
+      "webhookId": "ziyada-blog-ingest",
+      "parameters": {
+        "path": "ziyada-blog-ingest",
+        "httpMethod": "POST",
+        "responseMode": "onReceived",
+        "options": {}
+      }
+    },
+    {
+      "id": "Telegram Trigger",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        220,
+        360
+      ],
+      "webhookId": "ali-content-writer-engine-2026-telegram",
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "credentials": {
+        "telegramApi": {
+          "id": "PtelPKshJLRYXIvR",
+          "name": "@Aliabadi_Ai_Agent_bot"
+        }
+      }
+    },
+    {
+      "id": "Poll Intake Schedule",
+      "name": "Poll Intake Schedule",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        220,
+        120
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "Read Intake Rows",
+      "name": "Read Intake Rows",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        420,
+        120
+      ],
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "documentId": {
+          "mode": "id",
+          "value": "TEST_SHEET_ID"
+        },
+        "sheetName": {
+          "mode": "name",
+          "value": "ContentRequests"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "Select New Intake Rows",
+      "name": "Select New Intake Rows",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        620,
+        120
+      ],
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "const rows = $input.all();\nconst output = [];\nfor (const item of rows) {\n  const row = item.json || {};\n  // Check status column - supports multiple naming conventions\n  const statusCandidate = row.trigger_status ?? row['trigger status'] ?? row.send_status ?? row['send status'] ?? row.workflow_status ?? row['workflow status'] ?? row.status ?? row.request_status ?? row['request status'] ?? row.switch ?? row.active ?? row.enabled;\n  const hasStatusField = statusCandidate !== undefined && statusCandidate !== null && String(statusCandidate).trim() !== '';\n  const rawStatus = String(statusCandidate ?? '').trim().toLowerCase();\n  // Mandatory status gate: only rows explicitly set to start/continue are processed.\n  // Note: 'switch', 'active', 'enabled' columns will also work if set to 'start'/'continue'\n  if (!hasStatusField || !['start','continue'].includes(rawStatus)) {\n    continue;\n  }\n  const sentStatusRaw = String(row.sent_status ?? row['sent status'] ?? '').trim().toLowerCase();\n  const workflowStatusRaw = String(row.workflow_status ?? row['workflow status'] ?? '').trim().toLowerCase();\n  if (sentStatusRaw === 'done' || sentStatusRaw === 'finish' || workflowStatusRaw === 'done' || workflowStatusRaw === 'completed') {\n    continue;\n  }\n  const requestId = String(row.request_id || row.requestId || '').trim();\n  const fallbackKey = [row.company_name || row.company || '', row.industry || '', row.target_audience || row.audience || '', row.company_link || row.website || row.url || ''].join('|').trim();\n  const rowNumber = String(row.row_number || row.rowNumber || '').trim();\n  const key = requestId || (rowNumber ? `row:${rowNumber}` : fallbackKey);\n  if (!key) {\n    continue;\n  }\n  output.push({ json: { ...row, __intake_key: key, __trigger_status: rawStatus || (hasStatusField ? '' : 'start') } });\n  // Single-item queue mode: process only one intake row per polling run.\n  if (output.length >= 1) {\n    break;\n  }\n}\nreturn output;"
+      }
+    },
+    {
+      "id": "Normalize Intake Row Input",
+      "name": "Normalize Intake Row Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        760,
+        120
+      ],
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "const input = $json || {};\n// Support multiple status column naming conventions\nconst statusSource = input.trigger_status || input['trigger status'] || input.send_status || input['send status'] || input.workflow_status || input['workflow status'] || input.status || input.request_status || input['request status'] || input.switch || input.active || input.enabled || input.__trigger_status || '';\nconst statusRaw = String(statusSource).trim().toLowerCase();\nconst normalizedStatus = ['start','continue','pause','pending','done','finish'].includes(statusRaw) ? statusRaw : (statusRaw ? 'pending' : 'start');\nreturn [{ json: {\n  ...input,\n  request_id: input.request_id || input.requestId || '',\n  company_name: input.company_name || input.company || '',\n  industry: input.industry || '',\n  target_audience: input.target_audience || input.audience || '',\n  company_link: input.company_link || input.website || input.url || '',\n  writer_task: input.writer_task || input.prompt || input['prompt text'] || input.prompt_text || input.prompt_ar || input['prompt ar'] || '',\n  trigger_status: normalizedStatus,\n  sent_status: input.sent_status || input['sent status'] || input.delivery_status || 'pending',\n  source: input.source || 'sheet_intake',\n  approval_status: input.approval_status || 'approved'\n} }];"
+      }
+    },
+    {
+      "id": "Prepare Content Writer Input",
+      "name": "Prepare Content Writer Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        520,
+        280
+      ],
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "const input = $json || {};\nconst raw = (input.body && typeof input.body === 'object') ? input.body : input;\nconst telegramText = raw.message?.text || raw.edited_message?.text || raw.text || '';\nconst telegramChatId = raw.message?.chat?.id || raw.edited_message?.chat?.id || raw.chat?.id || input.telegram_chat_id || '';\nconst isTelegram = Object.prototype.hasOwnProperty.call(raw, 'update_id') || !!telegramChatId;\nconst normalizedText = String(telegramText || '').trim();\nconst replyContextText = String(raw.message?.reply_to_message?.text || raw.edited_message?.reply_to_message?.text || '').trim();\nconst parsingText = [normalizedText, replyContextText].filter(Boolean).join('\\n');\nconst normalizeCmd = (v) => String(v || '').toLowerCase().replace(/[^\\p{L}\\p{N}\\s]/gu, ' ').replace(/\\s+/g, ' ').trim();\nconst commandText = normalizeCmd(normalizedText);\nconst isGenerateCommand = /(?:^|\\s)(confirm|generate|ابدأ|ابدا|تأكيد|اعتماد)(?:\\s+التنفيذ)?(?:\\s|$)/i.test(commandText);\nconst topicFromTelegram = isGenerateCommand ? '' : normalizedText.replace(/^\\/(start|blog|write)\\b/i, '').trim();\nconst approvalFromTelegram = /approved|approve|اعتماد|موافق|موافقة/i.test(normalizedText) ? 'approved' : '';\nconst draftEmailFromTelegram = /send\\s+draft\\s+email|draft\\s+email|مسودة\\s*ايميل|مسودة\\s*بريد/i.test(normalizedText);\nlet topic = raw.topic || raw.title_ar || raw.title_en || topicFromTelegram || raw.company_name || \"موضوع جديد\";\nconst now = new Date();\nconst pad = (n) => String(n).padStart(2, '0');\nconst generatedRequestId = `REQ-${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}-${Math.random().toString(36).slice(2,6).toUpperCase()}`;\nconst requestId = String(raw.request_id || raw.id || generatedRequestId);\nconst intake = {\n  request_id: requestId,\n  row_number: raw.row_number || raw.rowNumber || '',\n  created_at: raw.created_at || raw['created at'] || '',\n  company_name: raw.company_name || raw.company || '',\n  industry: raw.industry || '',\n  target_audience: raw.target_audience || raw.audience || '',\n  company_link: raw.company_link || raw.website || raw.url || ''\n};\nconst parseInterviewPairs = (text) => {\n  const out = {};\n  for (const line of String(text || '').split(/\\n|\\|/)) {\n    const part = String(line || '').trim();\n    if (!part || !part.includes(':')) continue;\n    const [k, ...rest] = part.split(':');\n    const key = String(k || '').trim().toLowerCase();\n    const value = rest.join(':').trim();\n    if (!value) continue;\n    out[key] = value;\n  }\n  return out;\n};\nconst parseInlineFields = (text) => {\n  const t = String(text || '');\n  const c = t.replace(/\\s+/g, ' ').trim();\n  const clean = (v) => String(v || '').trim().replace(/[،,;|]+$/g, '').trim();\n  const pick = (...patterns) => {\n    for (const p of patterns) {\n      const m = t.match(p);\n      if (!m) continue;\n      for (let i = 1; i < m.length; i++) {\n        const v = clean(m[i]);\n        if (v) return v;\n      }\n    }\n    return '';\n  };\n  const website = pick(/((?:https?:\\/\\/|www\\.)[^\\s،,|]+)/i, /([a-z0-9][a-z0-9-]*\\.[a-z]{2,}(?:\\/[^\\s،,|]*)?)/i);\n  const extractByLabelSpan = (sourceText, labelRegexMap) => {\n    const hits = [];\n    for (const row of labelRegexMap) {\n      const re = new RegExp(row.re.source, row.re.flags);\n      let m;\n      while ((m = re.exec(sourceText)) !== null) {\n        hits.push({ key: row.key, idx: m.index, len: String(m[0] || '').length });\n      }\n    }\n    hits.sort((a, b) => a.idx - b.idx);\n    const out = {};\n    for (let i = 0; i < hits.length; i++) {\n      const h = hits[i];\n      if (out[h.key]) continue;\n      const nextIdx = i + 1 < hits.length ? hits[i + 1].idx : sourceText.length;\n      const rawVal = sourceText.slice(h.idx + h.len, nextIdx).replace(/^\\s*[:：\\-]?\\s*/, '');\n      const v = clean(rawVal);\n      if (v) out[h.key] = v;\n    }\n    return out;\n  };\n  const cutBefore = (value, markers) => {\n    const raw = clean(value);\n    if (!raw) return '';\n    let idx = -1;\n    for (const m of markers) {\n      const p = raw.search(m);\n      if (p >= 0 && (idx < 0 || p < idx)) idx = p;\n    }\n    return clean(idx >= 0 ? raw.slice(0, idx) : raw);\n  };\n  const fallbackCompany = (() => {\n    const m = c.match(/(?:اسم\\s*(?:النشاط\\s*\\/\\s*الشركة|النشاط|الشركة)|الشركة)\\s*[:：-]?\\s*(.+)/i);\n    return m ? cutBefore(m[1], [/(?:اسم\\s*القطاع|القطاع|المجال)/i, /(?:الجمهور\\s*المستهدف|الفئة\\s*المستهدفة|الجمهور|الفئة)/i, /(?:رابط\\s*الموقع|الموقع|الرابط)/i, /(?:https?:\\/\\/|www\\.)/i]) : '';\n  })();\n  const fallbackIndustry = (() => {\n    const m = c.match(/(?:اسم\\s*القطاع|القطاع|المجال)\\s*[:：-]?\\s*(.+)/i);\n    return m ? cutBefore(m[1], [/(?:الجمهور\\s*المستهدف|الفئة\\s*المستهدفة|الجمهور|الفئة)/i, /(?:رابط\\s*الموقع|الموقع|الرابط)/i, /(?:https?:\\/\\/|www\\.)/i]) : '';\n  })();\n  const fallbackAudience = (() => {\n    const m = c.match(/(?:الجمهور\\s*المستهدف|الفئة\\s*المستهدفة|الجمهور|الفئة)\\s*[:：-]?\\s*(.+)/i);\n    return m ? cutBefore(m[1], [/(?:رابط\\s*الموقع|الموقع|الرابط)/i, /(?:https?:\\/\\/|www\\.)/i]) : '';\n  })();\n  const labelSpans = extractByLabelSpan(c, [\n    { key: 'company_name', re: /(?:اسم\\s*(?:النشاط\\s*\\/\\s*الشركة|النشاط|الشركة)|الشركة)/gi },\n    { key: 'industry', re: /(?:اسم\\s*القطاع|القطاع|المجال)/gi },\n    { key: 'target_audience', re: /(?:الجمهور\\s*المستهدف|الفئة\\s*المستهدفة|الجمهور|الفئة)/gi },\n    { key: 'company_link', re: /(?:رابط\\s*الموقع|الموقع|الرابط)/gi },\n    { key: 'topic', re: /(?:موضوع\\s*المحتوى|الموضوع|العنوان)/gi },\n  ]);\n  return {\n    company_name: pick(/(?:اسم\\s*(?:النشاط\\s*\\/\\s*الشركة|النشاط|الشركة)|الشركة)\\s*[:：-]?\\s*([^\\n،,|]+)/i) || fallbackCompany || labelSpans.company_name || '',\n    industry: pick(/(?:اسم\\s*القطاع|القطاع|المجال)\\s*[:：-]?\\s*([^\\n،,|]+)/i) || fallbackIndustry || labelSpans.industry || '',\n    target_audience: pick(/(?:الجمهور\\s*المستهدف|الفئة\\s*المستهدفة|الجمهور|الفئة)\\s*[:：-]?\\s*([^\\n،,|]+)/i) || fallbackAudience || labelSpans.target_audience || '',\n    company_link: website || clean(labelSpans.company_link || ''),\n    topic: pick(/(?:موضوع\\s*المحتوى|الموضوع|العنوان)\\s*[:：-]?\\s*([^\\n،,|]+)/i) || clean(labelSpans.topic || ''),\n  };\n};\nconst interviewPairs = isTelegram ? parseInterviewPairs(parsingText) : {};\nconst inlineFields = isTelegram ? parseInlineFields(parsingText) : {};\nconst alias = (keys) => {\n  for (const k of keys) {\n    const v = interviewPairs[String(k).toLowerCase()];\n    if (v) return v;\n  }\n  return '';\n};\nintake.company_name = intake.company_name || alias(['company_name','company','business','اسم الشركة','الشركة','النشاط']) || inlineFields.company_name;\nintake.industry = intake.industry || alias(['industry','sector','القطاع','المجال']) || inlineFields.industry;\nintake.target_audience = intake.target_audience || alias(['target_audience','audience','الجمهور','الفئة']) || inlineFields.target_audience;\nintake.company_link = intake.company_link || alias(['company_link','website','url','الرابط','الموقع']) || inlineFields.company_link;\nconst normalizeUrl = (v) => {\n  const s = String(v || '').trim();\n  if (!s) return '';\n  if (/^https?:\\/\\//i.test(s)) return s;\n  if (/^www\\./i.test(s)) return `https://${s}`;\n  if (/^[a-z0-9][a-z0-9-]*\\.[a-z]{2,}(?:\\/.*)?$/i.test(s)) return `https://${s}`;\n  return s;\n};\nintake.company_link = normalizeUrl(intake.company_link);\ntopic = topic !== 'موضوع جديد' ? topic : (alias(['topic','title','الموضوع']) || inlineFields.topic || topic);\nconst requiredInterview = [\n  { key: 'company_name', label: 'اسم النشاط/الشركة', value: intake.company_name },\n  { key: 'industry', label: 'القطاع', value: intake.industry },\n  { key: 'target_audience', label: 'الجمهور المستهدف', value: intake.target_audience },\n  { key: 'company_link', label: 'رابط الموقع', value: intake.company_link },\n  { key: 'topic', label: 'موضوع المحتوى', value: topic }\n];\nconst missingInterview = requiredInterview.filter((f) => !String(f.value || '').trim()).map((f) => f.key);\nconst nextQuestionMap = {\n  company_name: 'اكتب اسم النشاط/الشركة.',\n  industry: 'وش القطاع بالضبط؟',\n  target_audience: 'مين الجمهور المستهدف؟',\n  company_link: 'ارسل رابط الموقع الرسمي.',\n  topic: 'وش موضوع المحتوى المطلوب الآن؟'\n};\nconst explicitConfirm = isGenerateCommand;\nconst isDetailsCommand = /(?:^|\\s)(summary|ملخص|links|روابط|sheet\\s*summary|ملخص\\s*الشيت|status|حالة|وين\\s*وصلنا|اخر\\s*تحديث|آخر\\s*تحديث|تقرير|report)(?:\\s|$)/i.test(commandText);\nconst isGenerationReady = (!isTelegram ? (missingInterview.length === 0) : (missingInterview.length === 0 && explicitConfirm)) && !isDetailsCommand;\nconst nextQuestion = missingInterview.length ? (nextQuestionMap[missingInterview[0]] || 'اكمل بيانات النشاط المطلوبة.') : '';\nconst summaryText = [\n  'اسم الـWorkflow: Ali Content Writer',\n  'رابط الـWorkflow: ' + (\"\" || 'غير متوفر'),\n  'رابط الشيت: https://docs.google.com/spreadsheets/d/TEST_SHEET_ID/edit',\n  'رابط المستند: ' + (\"\" || 'غير متوفر'),\n  'رابط العرض: ' + (\"\" || 'غير متوفر'),\n  'تقدر تطلب: summary | links | ملخص الشيت'\n].join('\\n');\nconst interviewPrompt = missingInterview.length\n  ? `عشان أبدأ التوليد، باقي: ${missingInterview.map((k) => requiredInterview.find((f) => f.key === k)?.label || k).join('، ')}.\\n${nextQuestion}`\n  : 'البيانات مكتملة. ارسل: تأكيد أو generate للبدء.';\nconst brandContext = raw.brand_context || raw.website_summary || '';\nconst defaultSystemPrompt = \"\\u0623\\u0646\\u062a \\u0643\\u0627\\u062a\\u0628 \\u0645\\u062d\\u062a\\u0648\\u0649 \\u0648\\u0645\\u0633\\u0627\\u0639\\u062f \\u0645\\u0628\\u064a\\u0639\\u0627\\u062a \\u0644\\u0628\\u0631\\u0627\\u0646\\u062f \\u0633\\u0639\\u0648\\u062f\\u064a \\u0627\\u0633\\u0645\\u0647 \\\"\\u0632\\u064a\\u0627\\u062f\\u0629 \\u0633\\u064a\\u0633\\u062a\\u0645\\\"\\u060c \\u0645\\u062a\\u062e\\u0635\\u0635 \\u0641\\u064a \\u0627\\u0644\\u0623\\u062a\\u0645\\u062a\\u0629 \\u0648\\u0627\\u0644\\u0630\\u0643\\u0627\\u0621 \\u0627\\u0644\\u0627\\u0635\\u0637\\u0646\\u0627\\u0639\\u064a \\u0644\\u0644\\u0634\\u0631\\u0643\\u0627\\u062a \\u0641\\u064a \\u0627\\u0644\\u0633\\u0639\\u0648\\u062f\\u064a\\u0629.\\n\\n\\u0627\\u0643\\u062a\\u0628 \\u062f\\u0627\\u0626\\u0645\\u0627\\u064b \\u0628\\u0627\\u0644\\u0639\\u0631\\u0628\\u064a \\u0628\\u0646\\u0641\\u0633 \\u0627\\u0644\\u0631\\u0648\\u062d \\u0627\\u0644\\u062a\\u0627\\u0644\\u064a\\u0629:\\n- \\u0644\\u0647\\u062c\\u0629 \\u0633\\u0639\\u0648\\u062f\\u064a\\u0629 \\u0628\\u064a\\u0636\\u0627\\u0621 \\u0642\\u0631\\u064a\\u0628\\u0629 \\u0645\\u0646 \\u0627\\u0644\\u0646\\u062c\\u062f\\u064a\\u0629 \\u0648\\u0645\\u0641\\u0647\\u0648\\u0645\\u0629 \\u0644\\u0643\\u0644 \\u0645\\u0646\\u0627\\u0637\\u0642 \\u0627\\u0644\\u0645\\u0645\\u0644\\u0643\\u0629.\\n- \\u064a\\u0633\\u0645\\u062d \\u0628\\u0627\\u0644\\u0627\\u0642\\u062a\\u0631\\u0627\\u0628 \\u0645\\u0646 \\u0627\\u0644\\u0641\\u0635\\u062d\\u0649 \\u0639\\u0646\\u062f \\u0627\\u0644\\u062d\\u0627\\u062c\\u0629 \\u0644\\u0644\\u0648\\u0636\\u0648\\u062d \\u0628\\u062f\\u0648\\u0646 \\u0641\\u0642\\u062f\\u0627\\u0646 \\u0627\\u0644\\u0631\\u0648\\u062d \\u0627\\u0644\\u0633\\u0639\\u0648\\u062f\\u064a\\u0629.\\n- \\u062c\\u0645\\u0644 \\u0642\\u0635\\u064a\\u0631\\u0629 \\u0648\\u0645\\u0628\\u0627\\u0634\\u0631\\u0629 \\u0648\\u0648\\u0627\\u0636\\u062d\\u0629.\\n- \\u062a\\u062c\\u0646\\u0628 \\u0627\\u0644\\u0645\\u0635\\u0637\\u0644\\u062d\\u0627\\u062a \\u0627\\u0644\\u0625\\u0646\\u062c\\u0644\\u064a\\u0632\\u064a\\u0629 \\u0642\\u062f\\u0631 \\u0627\\u0644\\u0625\\u0645\\u0643\\u0627\\u0646. \\u0625\\u0630\\u0627 \\u0627\\u062d\\u062a\\u062c\\u062a \\u0645\\u0635\\u0637\\u0644\\u062d\\u0627\\u064b \\u0625\\u0646\\u062c\\u0644\\u064a\\u0632\\u064a\\u0627\\u064b \\u0641\\u0627\\u0634\\u0631\\u064e\\u062d \\u0645\\u0639\\u0646\\u0627\\u0647 \\u0628\\u0627\\u0644\\u0639\\u0631\\u0628\\u064a.\\n- \\u0646\\u0628\\u0631\\u0629 \\u0647\\u0627\\u062f\\u0626\\u0629\\u060c \\u0645\\u062d\\u062a\\u0631\\u0645\\u0629\\u060c \\u0639\\u0645\\u0644\\u064a\\u0629\\u060c \\u0628\\u062f\\u0648\\u0646 \\u0645\\u0628\\u0627\\u0644\\u063a\\u0629 \\u0623\\u0648 \\u062a\\u0647\\u0631\\u064a\\u062c.\\n\\n\\u0634\\u062e\\u0635\\u064a\\u0629 \\u0627\\u0644\\u0643\\u062a\\u0627\\u0628\\u0629:\\n- \\u0645\\u0633\\u062a\\u0634\\u0627\\u0631 \\u0648\\u062f\\u0648\\u062f\\u060c \\u0641\\u0627\\u0647\\u0645 \\u0627\\u0644\\u0633\\u0648\\u0642 \\u0627\\u0644\\u0633\\u0639\\u0648\\u062f\\u064a\\u060c \\u064a\\u062d\\u062a\\u0631\\u0645 \\u0648\\u0642\\u062a \\u0627\\u0644\\u0639\\u0645\\u064a\\u0644.\\n- \\u064a\\u0638\\u0647\\u0631 \\u0627\\u0644\\u062a\\u0639\\u0627\\u0637\\u0641 \\u0645\\u0639 \\u0636\\u063a\\u0637 \\u0627\\u0644\\u0639\\u0645\\u0644 \\u0648\\u0645\\u0634\\u0627\\u0643\\u0644 \\u0627\\u0644\\u0645\\u062a\\u0627\\u0628\\u0639\\u0629.\\n- \\u064a\\u0631\\u0628\\u0637 \\u0627\\u0644\\u0643\\u0644\\u0627\\u0645 \\u0628\\u0646\\u062a\\u0627\\u0626\\u062c \\u0639\\u0645\\u0644\\u064a\\u0629 \\u0642\\u0627\\u0628\\u0644\\u0629 \\u0644\\u0644\\u0642\\u064a\\u0627\\u0633.\\n\\n\\u0627\\u0644\\u0645\\u0634\\u0627\\u0643\\u0644 \\u0627\\u0644\\u0623\\u0633\\u0627\\u0633\\u064a\\u0629 \\u0627\\u0644\\u062a\\u064a \\u0646\\u0631\\u0628\\u0637 \\u0628\\u0647\\u0627 \\u0627\\u0644\\u0645\\u062d\\u062a\\u0648\\u0649:\\n- \\u0636\\u063a\\u0637 \\u0627\\u0644\\u0648\\u0627\\u062a\\u0633\\u0627\\u0628 \\u0648\\u062a\\u0639\\u062f\\u062f \\u0627\\u0644\\u0642\\u0646\\u0648\\u0627\\u062a.\\n- \\u062a\\u0623\\u062e\\u064a\\u0631 \\u0627\\u0644\\u0631\\u062f \\u0648\\u0636\\u064a\\u0627\\u0639 \\u0627\\u0644\\u0639\\u0645\\u0644\\u0627\\u0621.\\n- \\u0641\\u0648\\u0636\\u0649 \\u0627\\u0644\\u0645\\u062a\\u0627\\u0628\\u0639\\u0629 \\u0648\\u0636\\u0639\\u0641 \\u0627\\u0644\\u0631\\u0628\\u0637 \\u0645\\u0639 CRM.\\n\\n\\u0627\\u0644\\u0646\\u062a\\u0627\\u0626\\u062c \\u0627\\u0644\\u062a\\u064a \\u0646\\u0631\\u0643\\u0632 \\u0639\\u0644\\u064a\\u0647\\u0627:\\n- \\u062a\\u0631\\u062a\\u064a\\u0628 \\u0627\\u0644\\u0634\\u063a\\u0644 \\u0648\\u062a\\u062e\\u0641\\u064a\\u0641 \\u0627\\u0644\\u0636\\u063a\\u0637 \\u0639\\u0644\\u0649 \\u0627\\u0644\\u0641\\u0631\\u064a\\u0642.\\n- \\u0639\\u062f\\u0645 \\u0636\\u064a\\u0627\\u0639 \\u0627\\u0644\\u0639\\u0645\\u0644\\u0627\\u0621.\\n- \\u0632\\u064a\\u0627\\u062f\\u0629 \\u0633\\u0631\\u0639\\u0629 \\u0627\\u0644\\u0631\\u062f \\u0648\\u0627\\u0644\\u0645\\u062a\\u0627\\u0628\\u0639\\u0629.\\n- \\u0631\\u0641\\u0639 \\u0627\\u0644\\u0645\\u0628\\u064a\\u0639\\u0627\\u062a \\u0648\\u0627\\u0644\\u062a\\u062d\\u0648\\u064a\\u0644.\\n\\n\\u0643\\u0644\\u0645\\u0627\\u062a \\u0648\\u062a\\u0639\\u0628\\u064a\\u0631\\u0627\\u062a \\u0645\\u0641\\u0636\\u0644\\u0629:\\n- \\u062d\\u0646\\u0627\\u060c \\u064a\\u0639\\u0637\\u064a\\u0643 \\u0627\\u0644\\u0639\\u0627\\u0641\\u064a\\u0629\\u060c \\u0645\\u0627 \\u0642\\u0635\\u0631\\u062a\\u060c \\u064a\\u0627 \\u063a\\u0627\\u0644\\u064a\\u060c \\u0648\\u0644\\u0627 \\u064a\\u0647\\u0645\\u0643\\u060c \\u0623\\u0628\\u0634\\u0631\\u060c \\u0647\\u0646\\u0627 \\u064a\\u062c\\u064a \\u062f\\u0648\\u0631 \\u0627\\u0644\\u0646\\u0638\\u0627\\u0645 \\u062d\\u0642\\u0646\\u0627.\\n\\n\\u062a\\u062c\\u0646\\u0651\\u0628:\\n- \\u0648\\u0639\\u0648\\u062f \\u0645\\u0637\\u0644\\u0642\\u0629 \\u0645\\u062b\\u0644 \\\"\\u0646\\u062a\\u0627\\u0626\\u062c \\u0645\\u0636\\u0645\\u0648\\u0646\\u0629 100%\\\".\\n- \\u062c\\u0645\\u0644 \\u062a\\u0633\\u0648\\u064a\\u0642\\u064a\\u0629 \\u0645\\u0628\\u0627\\u0644\\u063a \\u0641\\u064a\\u0647\\u0627 \\u0623\\u0648 \\u0645\\u0635\\u0637\\u0644\\u062d\\u0627\\u062a \\u0645\\u0639\\u0642\\u062f\\u0629 \\u0628\\u062f\\u0648\\u0646 \\u0634\\u0631\\u062d.\\n- \\u0644\\u0647\\u062c\\u0629 \\u0636\\u064a\\u0642\\u0629 \\u0644\\u0627 \\u064a\\u0641\\u0647\\u0645\\u0647\\u0627 \\u0628\\u0627\\u0642\\u064a \\u0627\\u0644\\u062c\\u0645\\u0647\\u0648\\u0631 \\u0627\\u0644\\u0633\\u0639\\u0648\\u062f\\u064a.\\n\\n\\u0642\\u0648\\u0627\\u0639\\u062f \\u0627\\u0644\\u0625\\u062e\\u0631\\u0627\\u062c:\\n- \\u0627\\u0628\\u062f\\u0623 \\u0628\\u062a\\u062d\\u064a\\u0629 \\u0645\\u0646\\u0627\\u0633\\u0628\\u0629 \\u0644\\u0644\\u0633\\u064a\\u0627\\u0642 \\u0627\\u0644\\u0633\\u0639\\u0648\\u062f\\u064a \\u0639\\u0646\\u062f\\u0645\\u0627 \\u064a\\u0643\\u0648\\u0646 \\u0627\\u0644\\u0633\\u064a\\u0627\\u0642 \\u062a\\u0648\\u0627\\u0635\\u0644\\u064a\\u0627\\u064b.\\n- \\u0648\\u0636\\u0651\\u062d \\u0627\\u0644\\u0645\\u0634\\u0643\\u0644\\u0629 \\u0627\\u0644\\u0648\\u0627\\u0642\\u0639\\u064a\\u0629 \\u0623\\u0648\\u0644\\u0627\\u064b \\u062b\\u0645 \\u0627\\u0644\\u062d\\u0644 \\u062b\\u0645 \\u0627\\u0644\\u0641\\u0627\\u0626\\u062f\\u0629.\\n- \\u0627\\u062e\\u062a\\u0645 \\u062f\\u0627\\u0626\\u0645\\u0627\\u064b \\u0628\\u062f\\u0639\\u0648\\u0629 \\u0628\\u0633\\u064a\\u0637\\u0629 \\u0648\\u0648\\u0627\\u0636\\u062d\\u0629 (\\u062d\\u062c\\u0632 Demo\\u060c \\u0627\\u0644\\u062a\\u0648\\u0627\\u0635\\u0644 \\u0648\\u0627\\u062a\\u0633\\u0627\\u0628\\u060c \\u0623\\u0648 \\u0627\\u0644\\u0631\\u062f \\u0639\\u0644\\u0649 \\u0627\\u0644\\u0631\\u0633\\u0627\\u0644\\u0629).\\n\\n\\u0639\\u0646\\u062f \\u0643\\u062a\\u0627\\u0628\\u0629 \\u0645\\u062d\\u062a\\u0648\\u0649 \\u0642\\u0637\\u0627\\u0639\\u0627\\u062a (\\u0639\\u0642\\u0627\\u0631\\u060c \\u0645\\u0637\\u0627\\u0639\\u0645\\u060c \\u0639\\u064a\\u0627\\u062f\\u0627\\u062a\\u060c \\u0644\\u0648\\u062c\\u0633\\u062a\\u064a\\u0627\\u062a\\u060c \\u0633\\u064a\\u0627\\u0631\\u0627\\u062a\\u060c \\u062e\\u062f\\u0645\\u0627\\u062a):\\n- \\u0627\\u0631\\u0628\\u0637 \\u0627\\u0644\\u0643\\u0644\\u0627\\u0645 \\u0628\\u0645\\u0634\\u0643\\u0644\\u0629 \\u062a\\u0634\\u063a\\u064a\\u0644\\u064a\\u0629 \\u0648\\u0627\\u0642\\u0639\\u064a\\u0629 \\u062f\\u0627\\u062e\\u0644 \\u0627\\u0644\\u0642\\u0637\\u0627\\u0639.\\n- \\u0627\\u0633\\u062a\\u062e\\u062f\\u0645 \\u0645\\u062b\\u0627\\u0644 \\u0645\\u062d\\u0644\\u064a \\u0628\\u0633\\u064a\\u0637.\\n- \\u0627\\u0642\\u062a\\u0631\\u062d \\u062e\\u0637\\u0648\\u0629 \\u062a\\u0646\\u0641\\u064a\\u0630\\u064a\\u0629 \\u0645\\u0628\\u0627\\u0634\\u0631\\u0629.\\n\\n\\u0625\\u0630\\u0627 \\u0637\\u064f\\u0644\\u0628 \\u0645\\u0646\\u0643 \\u0645\\u062d\\u062a\\u0648\\u0649 Reel:\\n- \\u0627\\u0644\\u0645\\u062f\\u0629 \\u0627\\u0644\\u0645\\u0633\\u062a\\u0647\\u062f\\u0641\\u0629 20-45 \\u062b\\u0627\\u0646\\u064a\\u0629.\\n- \\u0627\\u0644\\u0635\\u064a\\u0627\\u063a\\u0629: \\u0647\\u0648\\u0643 \\u0645\\u0634\\u0643\\u0644\\u0629 -> \\u062a\\u0648\\u0633\\u064a\\u0639 \\u0627\\u0644\\u0645\\u0634\\u0643\\u0644\\u0629 -> \\u062f\\u0648\\u0631 \\u0632\\u064a\\u0627\\u062f\\u0629 \\u0633\\u064a\\u0633\\u062a\\u0645 -> CTA \\u0648\\u0627\\u0636\\u062d.\\n\\n\\u0625\\u0630\\u0627 \\u0637\\u064f\\u0644\\u0628 \\u0645\\u0646\\u0643 \\u0633\\u0643\\u0631\\u0628\\u062a \\u0635\\u0648\\u062a\\u064a/\\u0641\\u0648\\u064a\\u0633 \\u0623\\u0648\\u0641\\u0631:\\n- \\u0628\\u062f\\u0627\\u064a\\u0629 \\u062f\\u0627\\u0641\\u0626\\u0629 \\u0648\\u0646\\u0628\\u0631\\u0629 \\u062a\\u0631\\u062d\\u064a\\u0628\\u064a\\u0629.\\n- \\u0639\\u0646\\u062f \\u0627\\u0644\\u0645\\u0634\\u0643\\u0644\\u0629: \\u062a\\u0639\\u0627\\u0637\\u0641 \\u0648\\u0633\\u0631\\u0639\\u0629 \\u0623\\u0628\\u0637\\u0623 \\u0642\\u0644\\u064a\\u0644\\u0627\\u064b.\\n- \\u0639\\u0646\\u062f \\u0627\\u0644\\u062d\\u0644: \\u062b\\u0642\\u0629 \\u0648\\u062a\\u0631\\u062a\\u064a\\u0628 \\u0645\\u0646\\u0637\\u0642\\u064a.\\n- \\u0628\\u0639\\u062f \\u0643\\u0644 \\u0641\\u0643\\u0631\\u0629 \\u0631\\u0626\\u064a\\u0633\\u064a\\u0629 \\u062a\\u0648\\u0642\\u0641 \\u0642\\u0635\\u064a\\u0631 (\\u062d\\u0648\\u0627\\u0644\\u064a \\u0646\\u0635\\u0641 \\u062b\\u0627\\u0646\\u064a\\u0629).\";\nconst companyName = intake.company_name || 'هذه الشركة';\nconst post = raw.post || {\n  title_ar: raw.title_ar || `كيف تطور ${companyName} خدماتها في ${topic}` ,\n  title_en: raw.title_en || `How ${companyName} Improves Services: ${topic}` ,\n  excerpt_ar: raw.excerpt_ar || `محتوى تسويقي وتشغيلي يوضح قيمة ${companyName} وخدماتها في السوق السعودي.`,\n  excerpt_en: raw.excerpt_en || `Operational marketing content that highlights ${companyName} and its service value.`,\n  content_ar: raw.content_ar || \"\",\n  content_en: raw.content_en || \"\",\n  tags: raw.tags || [String(companyName || '').toLowerCase(), String(intake.industry || 'services').toLowerCase(), 'saudi'],\n  author: raw.author || companyName,\n  status: raw.status || \"draft\"\n};\nconst siteGuideline = raw.website_guideline || raw.tone_guideline || raw.brand_guideline || '';\nconst brandServices = raw.services || raw.service_list || raw.core_services || '';\nconst writerTask = raw.writer_task || `اكتب محتوى عربي سعودي احترافي لصالح الشركة التالية فقط: ${intake.company_name || 'غير محدد'}.\nمهم جداً: المحتوى يجب أن يروّج لخدمات هذه الشركة فقط، وممنوع ذكر أو الترويج لأي شركة أخرى.\nبيانات الشركة: الاسم=${intake.company_name || 'غير محدد'} | القطاع=${intake.industry || 'غير محدد'} | الجمهور=${intake.target_audience || 'غير محدد'} | الرابط=${intake.company_link || 'غير متوفر'}.\nسياق الموقع/البراند المتاح: ${brandContext || 'لا يوجد ملخص موقع جاهز'}.\nالخدمات المتاحة (إن وجدت): ${brandServices || 'استخرج الخدمات من رابط الشركة وسياق الموقع قبل الكتابة'}.\nإرشادات النبرة (إن وجدت): ${siteGuideline || 'استخدم نبرة مهنية وودية وواضحة تشبه أسلوب الكتابة المرجعي، بدون نسخ أسماء أو عروضه'}.\nالمخرجات المطلوبة: 1) عنوان قوي 2) 5 Hooks مرتبطة بخدمات الشركة 3) نصوص قنوات اجتماعية 4) مقال موقع يدعم بيع خدمات الشركة 5) CTA واضح للتواصل مع الشركة نفسها.\nالهيكل: المشكلة -> الأثر -> الحل الذي تقدمه الشركة -> دليل/سيناريو تطبيقي -> CTA.\nطبّق هذا على موضوع: ${topic}.\nواربط كل فقرة بمعلومات الشركة والرابط وليس بأي براند آخر.`;\nconst defaultBudgetMode = \"balanced\";\nconst requestedMode = String(raw.budget_mode || raw.priority_mode || raw.mode || '').trim().toLowerCase();\nconst budgetMode = ['lite','balanced','deep'].includes(requestedMode) ? requestedMode : defaultBudgetMode;\nconst budgetProfiles = {\n  lite: {\n    lookback_days: 90, competitors_limit: 5, max_items: 30, max_posts_per_platform: 10,\n    max_posts_per_profile: 8, max_videos_per_profile: 6, trend_pool_size: 8,\n    trend_topics_limit: 8, website_signals_limit: 8, profile_signals_limit: 8,\n    platform_trends_limit: 3, prompt_profile_limit: 4, prompt_trend_limit: 4,\n    prompt_competitor_limit: 4, openai_intel_chars: 3500\n  },\n  balanced: {\n    lookback_days: 90, competitors_limit: 5, max_items: 60, max_posts_per_platform: 20,\n    max_posts_per_profile: 12, max_videos_per_profile: 8, trend_pool_size: 12,\n    trend_topics_limit: 12, website_signals_limit: 12, profile_signals_limit: 12,\n    platform_trends_limit: 5, prompt_profile_limit: 6, prompt_trend_limit: 6,\n    prompt_competitor_limit: 5, openai_intel_chars: 7000\n  },\n  deep: {\n    lookback_days: 90, competitors_limit: 5, max_items: 140, max_posts_per_platform: 40,\n    max_posts_per_profile: 20, max_videos_per_profile: 20, trend_pool_size: 20,\n    trend_topics_limit: 20, website_signals_limit: 24, profile_signals_limit: 24,\n    platform_trends_limit: 8, prompt_profile_limit: 10, prompt_trend_limit: 10,\n    prompt_competitor_limit: 8, openai_intel_chars: 14000\n  }\n};\nconst marketBudget = budgetProfiles[budgetMode] || budgetProfiles.balanced;\nconst draftValue = String(raw.request_email_draft ?? '').trim().toLowerCase();\nconst requestEmailDraft = raw.request_email_draft === true || ['1','true','yes','draft','email_draft','send_draft_email'].includes(draftValue) || draftEmailFromTelegram;\nreturn [{\n  json: { secret: \"ziyada-n8n-2026\", request_id: requestId, topic, intake, post, content_writer: {\n    system_prompt: raw.system_prompt || defaultSystemPrompt,\n    user_prompt: writerTask,\n    language: \"ar-SA\",\n    prompt_version: \"intake-company-tone-v2026-03-20\"\n  },\n  source: isTelegram ? 'telegram' : (raw.source || 'webhook'),\n  telegram_chat_id: telegramChatId,\n  telegram_text: normalizedText,\n  approval_status: raw.approval_status || approvalFromTelegram || 'pending',\n  trigger_status: raw.trigger_status || raw.send_status || raw.workflow_status || raw.status || raw.request_status || '',\n  sent_status: raw.sent_status || raw.delivery_status || 'pending',\n  budget_mode: budgetMode,\n  market_budget: marketBudget,\n  workflow_name: \"Ali Content Writer\",\n  workflow_link: raw.workflow_link || \"\",\n  sheet_link: raw.sheet_link || 'https://docs.google.com/spreadsheets/d/TEST_SHEET_ID/edit',\n  doc_link: raw.doc_link || raw.google_doc_url || \"\",\n  slides_link: raw.slides_link || raw.google_slides_url || \"\",\n  request_details_mode: isDetailsCommand,\n  request_email_draft: requestEmailDraft,\n  is_generation_ready: isGenerationReady,\n  generation_ready_flag: isGenerationReady ? 1 : 0,\n  interview_state: { missing_fields: missingInterview, next_question: nextQuestion, prompt: (isDetailsCommand ? summaryText : interviewPrompt) }\n }\n}];"
+      }
+    },
+    {
+      "id": "Telegram Source Gate",
+      "name": "Telegram Source Gate",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        620,
+        360
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "tg-source-check",
+              "leftValue": "={{ $json.source }}",
+              "rightValue": "telegram",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "Read Chat State Rows",
+      "name": "Read Chat State Rows",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        840,
+        430
+      ],
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "documentId": {
+          "mode": "id",
+          "value": "TEST_SHEET_ID"
+        },
+        "sheetName": {
+          "mode": "name",
+          "value": "Chat State"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "Hydrate Telegram Context",
+      "name": "Hydrate Telegram Context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1060,
+        430
+      ],
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "const base = ($items('Prepare Content Writer Input', 0, 0)?.[0]?.json) || {};\nconst rows = $input.all().map((i) => i.json || {});\nconst chatId = String(base.telegram_chat_id || '').trim();\nconst asText = (v) => String(v || '').trim();\nconst normalizeCmd = (v) => String(v || '').toLowerCase().replace(/[^\\p{L}\\p{N}\\s]/gu, ' ').replace(/\\s+/g, ' ').trim();\nconst looksUrl = (v) => /^(https?:\\/\\/|www\\.|[a-z0-9][a-z0-9-]*\\.[a-z]{2,})/i.test(asText(v));\nconst isControlText = (v) => {\n  const cmd = normalizeCmd(v);\n  return /(?:^|\\s)(confirm|generate|ابدأ|ابدا|تأكيد|اعتماد)(?:\\s+التنفيذ)?(?:\\s|$)/i.test(cmd) || /(?:^|\\s)(summary|ملخص|links|روابط|status|حالة|report|تقرير|hi|hello|هاي)(?:\\s|$)/i.test(cmd);\n};\nconst intake = { ...(base.intake || {}) };\nlet topic = String(base.topic || '').trim();\nif (chatId) {\n  const candidates = rows.filter((r) => String(r.telegram_chat_id || '').trim() === chatId);\n  candidates.sort((a, b) => String(b.created_at || '').localeCompare(String(a.created_at || '')));\n  const pickLatest = (field, opts = {}) => {\n    for (const row of candidates) {\n      const v = asText(row[field]);\n      if (!v) continue;\n      if (opts.mustBeUrl && !looksUrl(v)) continue;\n      if (opts.notUrl && looksUrl(v)) continue;\n      if (opts.notControl && isControlText(v)) continue;\n      return v;\n    }\n    return '';\n  };\n  if (!asText(intake.company_name)) intake.company_name = pickLatest('company_name', { notUrl: true, notControl: true });\n  if (!asText(intake.industry)) intake.industry = pickLatest('industry', { notUrl: true, notControl: true });\n  if (!asText(intake.target_audience)) intake.target_audience = pickLatest('target_audience', { notUrl: true, notControl: true });\n  if (!asText(intake.company_link)) intake.company_link = pickLatest('company_link', { mustBeUrl: true });\n  if (!asText(topic) || isControlText(topic)) topic = pickLatest('topic', { notControl: true });\n}\nif (isControlText(topic)) topic = '';\nconst required = [\n  { key: 'company_name', label: 'اسم النشاط/الشركة', value: intake.company_name },\n  { key: 'industry', label: 'القطاع', value: intake.industry },\n  { key: 'target_audience', label: 'الجمهور المستهدف', value: intake.target_audience },\n  { key: 'company_link', label: 'رابط الموقع', value: intake.company_link },\n  { key: 'topic', label: 'موضوع المحتوى', value: topic }\n];\nconst missingKeys = required.filter((f) => !String(f.value || '').trim()).map((f) => f.key);\nconst qMap = {\n  company_name: 'اكتب اسم النشاط/الشركة.',\n  industry: 'وش القطاع بالضبط؟',\n  target_audience: 'مين الجمهور المستهدف؟',\n  company_link: 'ارسل رابط الموقع الرسمي.',\n  topic: 'وش موضوع المحتوى المطلوب الآن؟'\n};\nconst text = String(base.telegram_text || '').trim();\nconst commandText = normalizeCmd(text);\nconst source = String(base.source || '').toLowerCase();\nconst isDetails = /(?:^|\\s)(summary|ملخص|links|روابط|sheet\\s*summary|ملخص\\s*الشيت|status|حالة|وين\\s*وصلنا|اخر\\s*تحديث|آخر\\s*تحديث|تقرير|report)(?:\\s|$)/i.test(commandText);\nconst explicitConfirm = /(?:^|\\s)(confirm|generate|ابدأ|ابدا|تأكيد|اعتماد)(?:\\s+التنفيذ)?(?:\\s|$)/i.test(commandText);\nconst isReady = (source === 'telegram')\n  ? ((missingKeys.length === 0) && !isDetails && explicitConfirm)\n  : ((missingKeys.length === 0) && !isDetails);\nconst nextQ = missingKeys.length ? (qMap[missingKeys[0]] || 'اكمل بيانات النشاط المطلوبة.') : '';\nconst prompt = missingKeys.length\n  ? `عشان أبدأ التوليد، باقي: ${missingKeys.map((k) => required.find((f) => f.key === k)?.label || k).join('، ')}.\\n${nextQ}`\n  : 'البيانات واضحة. إذا جاهز اكتب: ابدأ التنفيذ.';\nreturn [{ json: {\n  ...base,\n  intake,\n  topic,\n  is_generation_ready: isReady,\n  generation_ready_flag: isReady ? 1 : 0,\n  interview_state: { missing_fields: missingKeys, next_question: nextQ, prompt },\n} }];"
+      }
+    },
+    {
+      "id": "Interview Readiness Gate",
+      "name": "Interview Readiness Gate",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        620,
+        280
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "gen-ready-check",
+              "leftValue": "={{ $json.generation_ready_flag }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "Build Interview Pending Row",
+      "name": "Build Interview Pending Row",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        840,
+        250
+      ],
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "const input = $json || {};\nconst intake = input.intake || {};\nconst interview = input.interview_state || {};\nconst missing = Array.isArray(interview.missing_fields) ? interview.missing_fields.join('|') : '';\nconst detailsMode = !!input.request_details_mode;\nreturn [{ json: {\n  request_id: input.request_id || intake.request_id || '',\n  created_at: new Date().toISOString(),\n  company_name: intake.company_name || '',\n  company_link: intake.company_link || '',\n  industry: intake.industry || '',\n  target_audience: intake.target_audience || '',\n  topic: input.topic || '',\n  approval_status: detailsMode ? 'details_response' : 'interview_pending',\n  workflow_status: detailsMode ? 'details_response' : 'interview_pending',\n  trigger_status: input.trigger_status || 'pending',\n  sent_status: input.sent_status || 'pending',\n  output: interview.prompt || 'البيانات غير مكتملة.',\n  interview_missing_fields: missing,\n  interview_next_question: interview.next_question || '',\n  workflow_name: input.workflow_name || '',\n  workflow_link: input.workflow_link || '',\n  sheet_link: input.sheet_link || '',\n  doc_link: input.doc_link || '',\n  slides_link: input.slides_link || '',\n  telegram_chat_id: input.telegram_chat_id || ''\n} }];"
+      }
+    },
+    {
+      "id": "Append Interview Pending Row",
+      "name": "Append Interview Pending Row",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1040,
+        250
+      ],
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "mode": "id",
+          "value": "TEST_SHEET_ID"
+        },
+        "sheetName": {
+          "mode": "name",
+          "value": "ContentResults"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {}
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "Build Telegram Agent Prompt",
+      "name": "Build Telegram Agent Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1240,
+        250
+      ],
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "const input = $json || {};\nconst idx = typeof $itemIndex === 'number' ? $itemIndex : 0;\nconst prep = ($items('Prepare Content Writer Input', 0, idx)?.[0]?.json) || ($items('Prepare Content Writer Input', 0, 0)?.[0]?.json) || {};\nconst intake = prep.intake || input.intake || {};\nconst missingRaw = String(input.interview_missing_fields || '').trim();\nconst missing = missingRaw ? missingRaw.split('|').filter(Boolean) : [];\nconst userText = String(prep.telegram_text || '').trim();\nconst status = String(input.workflow_status || input.approval_status || 'interview_pending').trim();\nconst businessSnapshot = [\n  `company_name=${intake.company_name || 'N/A'}`,\n  `industry=${intake.industry || 'N/A'}`,\n  `target_audience=${intake.target_audience || 'N/A'}`,\n  `company_link=${intake.company_link || 'N/A'}`,\n  `topic=${input.topic || prep.topic || 'N/A'}`\n].join(' | ');\nconst instruction = [\n  'Return ONLY a JSON object with keys: reply_text, inferred_updates, should_trigger_generation, requested_intent.',\n  'reply_text must be Arabic-first, concise, and directly helpful.',\n  'inferred_updates may include company_name, industry, target_audience, company_link, topic when confidently inferred from user message.',\n  'should_trigger_generation must be true only if all required fields are present or user explicitly confirms generation.',\n  'requested_intent one of: intake_update, status_request, summary_request, links_request, generate_request, revise_request, casual_chat, unknown.'\n].join(' ');\nconst prompt = [\n  `User message: ${userText || '(empty)'}`,\n  `Workflow status: ${status}`,\n  `Missing fields: ${missing.join(', ') || 'none'}`,\n  `Current intake snapshot: ${businessSnapshot}`,\n  instruction\n].join('\\n');\nreturn [{ json: {\n  ...input,\n  ...prep,\n  telegram_agent_enabled: false,\n  telegram_agent_prompt: prompt,\n  telegram_agent_openai_payload: {\n    model: \"gpt-4o-mini\",\n    temperature: 0.2,\n    messages: [\n      { role: 'system', content: \"You are Ali Content Writer Engine 2026 Telegram assistant. Your role: friendly bilingual (Arabic-first) workflow operator. Help user complete intake fields, negotiate tone/edits, and explain execution status clearly. Keep replies concise, practical, and business-focused on intake company only. Never reference unrelated brands. If fields are missing, ask only the next most useful question and accept natural free text.\" },\n      { role: 'user', content: prompt }\n    ]\n  }\n} }];"
+      }
+    },
+    {
+      "id": "Telegram Agent Enabled Gate",
+      "name": "Telegram Agent Enabled Gate",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1440,
+        250
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "tg-agent-check",
+              "leftValue": "={{ $json.telegram_agent_enabled }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "Generate Telegram Agent Reply",
+      "name": "Generate Telegram Agent Reply",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1650,
+        210
+      ],
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer "
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{$json.telegram_agent_openai_payload}}",
+        "options": {}
+      }
+    },
+    {
+      "id": "Parse Telegram Agent Reply",
+      "name": "Parse Telegram Agent Reply",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1860,
+        210
+      ],
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "const idx = typeof $itemIndex === 'number' ? $itemIndex : 0;\nconst base = ($items('Build Telegram Agent Prompt', 0, idx)?.[0]?.json) || ($items('Build Telegram Agent Prompt', 0, 0)?.[0]?.json) || {};\nlet raw = $json?.choices?.[0]?.message?.content || '';\nraw = String(raw || '').trim();\nif (raw.startsWith('```')) raw = raw.replace(/^```[a-zA-Z]*\\n?/, '').replace(/```$/, '').trim();\nlet parsed = {};\ntry { parsed = JSON.parse(raw || '{}'); } catch (e) { parsed = {}; }\nconst reply = String(parsed.reply_text || '').trim();\nconst inferred = parsed.inferred_updates && typeof parsed.inferred_updates === 'object' ? parsed.inferred_updates : {};\nconst intake = { ...(base.intake || {}) };\nfor (const k of ['company_name','industry','target_audience','company_link']) {\n  if (!intake[k] && inferred[k]) intake[k] = String(inferred[k]).trim();\n}\nconst updatedTopic = base.topic || inferred.topic || '';\nconst missing = [\n  ['company_name','اسم النشاط/الشركة'],\n  ['industry','القطاع'],\n  ['target_audience','الجمهور المستهدف'],\n  ['company_link','رابط الموقع'],\n  ['topic','موضوع المحتوى']\n].filter(([k]) => !String(k === 'topic' ? updatedTopic : (intake[k] || '')).trim()).map(([,label]) => label);\nconst fallbackReply = missing.length ? `عشان أبدأ التوليد، باقي: ${missing.join('، ')}.` : 'البيانات واضحة. إذا جاهز اكتب: ابدأ التنفيذ.';\nreturn [{ json: {\n  ...base,\n  intake,\n  topic: updatedTopic,\n  ai_requested_intent: parsed.requested_intent || '',\n  ai_should_trigger_generation: !!parsed.should_trigger_generation,\n  ai_reply_text: reply || fallbackReply,\n  output: reply || fallbackReply,\n  interview_missing_fields: missing.join('|')\n} }];"
+      }
+    },
+    {
+      "id": "Build Telegram Run Summary",
+      "name": "Build Telegram Run Summary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2470,
+        330
+      ],
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "const input = $json || {};\nconst idx = typeof $itemIndex === 'number' ? $itemIndex : 0;\nconst prep = ($items('Prepare Content Writer Input', 0, idx)?.[0]?.json) || ($items('Prepare Content Writer Input', 0, 0)?.[0]?.json) || {};\nconst chatId = input.telegram_chat_id || prep.telegram_chat_id || '';\nif (!chatId) return [];\nconst wfName = input.workflow_name || 'Ali Content Writer Engine 2026';\nconst wfLink = input.workflow_link || 'غير متوفر';\nconst sheetLink = input.sheet_link || 'غير متوفر';\nconst docLink = input.doc_link || 'غير متوفر';\nconst slidesLink = input.slides_link || 'غير متوفر';\nconst status = input.workflow_status || input.approval_status || 'pending';\nconst requestId = input.request_id || '';\nconst summaryBody = input.ai_reply_text || input.output || input.interview_state?.prompt || '';\nconst intel = input.market_intel || {};\nconst businessSummary = [\n  input.intake?.company_name ? `Business: ${input.intake.company_name}` : '',\n  input.intake?.industry ? `Industry: ${input.intake.industry}` : '',\n  input.intake?.target_audience ? `Audience: ${input.intake.target_audience}` : ''\n].filter(Boolean).join(' | ');\nconst apifyDigest = Array.isArray(intel.top_topics) && intel.top_topics.length ? `Apify Digest: ${intel.top_topics.slice(0,3).join(' | ')}` : '';\nconst tokenEstimate = input.generation_reasoning ? `Token Estimate: ~${Math.max(400, Math.ceil(String(input.generation_reasoning || '').length / 4))}` : '';\nconst isInterviewPending = !input.request_details_mode && (String(status).toLowerCase() === 'interview_pending' || !!input.interview_missing_fields || !!input.interview_next_question || /عشان\\s+أبدأ\\s+التوليد/.test(String(summaryBody || '')));\nconst pendingText = summaryBody || 'عشان أبدأ الكتابة، ارسل: اسم النشاط/الشركة: ...';\nconst text = [\n  ...(isInterviewPending ? [String(pendingText).slice(0,1200)] : [\n    `ملخص التنفيذ`,\n    `Workflow: ${wfName}`,\n    `Status: ${status}`,\n    requestId ? `Request ID: ${requestId}` : '',\n    '',\n    `Workflow Link: ${wfLink}`,\n    `Sheet: ${sheetLink}`,\n    `Doc: ${docLink}`,\n    `Slides: ${slidesLink}`,\n    '',\n    businessSummary ? `Business Understanding: ${businessSummary}` : '',\n    apifyDigest,\n    tokenEstimate,\n    summaryBody ? `Details:\\n${String(summaryBody).slice(0,1200)}` : ''\n  ]),\n  \"\\u0645\\u0644\\u0627\\u062d\\u0638\\u0629: \\u0627\\u0631\\u0633\\u0627\\u0644 \\u062a\\u064a\\u0644\\u064a\\u062c\\u0631\\u0627\\u0645 \\u0645\\u0639\\u0637\\u0644 \\u0644\\u0623\\u0646 TELEGRAM_BOT_TOKEN \\u063a\\u064a\\u0631 \\u0645\\u0636\\u0628\\u0648\\u0637 \\u0641\\u064a \\u0628\\u064a\\u0626\\u0629 \\u0627\\u0644\\u0646\\u0634\\u0631.\",\n  ...(isInterviewPending ? [] : [])\n].filter(Boolean).join('\\n');\nreturn [{ json: {\n  ...input,\n  telegram_send_enabled: false,\n  telegram_send_payload: {\n    chat_id: chatId,\n    text,\n    disable_web_page_preview: true\n  }\n} }];"
+      }
+    },
+    {
+      "id": "Build Chat State Row",
+      "name": "Build Chat State Row",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2570,
+        430
+      ],
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "const input = $json || {};\nconst chatId = String(input.telegram_send_payload?.chat_id || input.telegram_chat_id || '').trim();\nif (!chatId) return [];\nconst intake = input.intake || {};\nconst now = new Date().toISOString();\nconst stage = String(input.workflow_status || input.approval_status || 'pending').trim();\nconst businessSummary = [\n  intake.company_name ? `company=${intake.company_name}` : '',\n  intake.industry ? `industry=${intake.industry}` : '',\n  intake.target_audience ? `audience=${intake.target_audience}` : '',\n  intake.company_link ? `link=${intake.company_link}` : ''\n].filter(Boolean).join(' | ');\nreturn [{ json: {\n  created_at: now,\n  telegram_chat_id: chatId,\n  request_id: input.request_id || '',\n  requested_intent: input.ai_requested_intent || '',\n  stage,\n  workflow_status: input.workflow_status || '',\n  approval_status: input.approval_status || '',\n  user_message: input.telegram_text || '',\n  bot_message: input.telegram_send_payload?.text || '',\n  business_summary: businessSummary,\n  company_name: intake.company_name || '',\n  industry: intake.industry || '',\n  target_audience: intake.target_audience || '',\n  company_link: intake.company_link || '',\n  topic: input.topic || '',\n  workflow_link: input.workflow_link || '',\n  sheet_link: input.sheet_link || '',\n  doc_link: input.doc_link || '',\n  slides_link: input.slides_link || ''\n} }];"
+      }
+    },
+    {
+      "id": "Append Chat State Row",
+      "name": "Append Chat State Row",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        2780,
+        430
+      ],
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "mode": "id",
+          "value": "TEST_SHEET_ID"
+        },
+        "sheetName": {
+          "mode": "name",
+          "value": "Chat State"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {}
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "Telegram Send Enabled Gate",
+      "name": "Telegram Send Enabled Gate",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        2570,
+        330
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "tg-send-check",
+              "leftValue": "={{ $json.telegram_send_enabled }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "Send Telegram Run Summary",
+      "name": "Send Telegram Run Summary",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2680,
+        330
+      ],
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.telegram.org/bot/sendMessage",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{$json.telegram_send_payload}}",
+        "options": {}
+      }
+    },
+    {
+      "id": "Run Apify Market Intel",
+      "name": "Run Apify Market Intel",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        700,
+        430
+      ],
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.apify.com/v2/acts/apify~website-content-crawler/run-sync-get-dataset-items?token=&clean=true&format=json",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { companyName: $json.intake?.company_name || '', companyUrl: $json.intake?.company_link || '', startUrls: ($json.intake?.company_link ? [{ url: $json.intake.company_link }] : []), platforms: ['tiktok', 'linkedin', 'twitter', 'instagram'], includeCompetitors: true, competitorsLimit: ($json.market_budget?.competitors_limit || 5), includeTrending: true, lookbackDays: ($json.market_budget?.lookback_days || 90), includeProfiles: true, maxPostsPerProfile: ($json.market_budget?.max_posts_per_profile || 12), maxVideosPerProfile: ($json.market_budget?.max_videos_per_profile || 8), maxItems: ($json.market_budget?.max_items || 60), maxPostsPerPlatform: ($json.market_budget?.max_posts_per_platform || 20), twitterActorId: '61RPP7dywgiy0JPD0', proxyConfiguration: { useApifyProxy: true } } }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "Build Market Research Context",
+      "name": "Build Market Research Context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        900,
+        430
+      ],
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "const idx = typeof $itemIndex === 'number' ? $itemIndex : 0;\nconst base = ($items('Prepare Content Writer Input', 0, idx)?.[0]?.json) || ($items('Prepare Content Writer Input', 0, 0)?.[0]?.json) || {};\nconst intake = base.intake || {};\nconst budget = base.market_budget || {};\nconst topic = base.topic || '';\nconst data = $json;\nconst rows = Array.isArray(data) ? data : (Array.isArray(data?.items) ? data.items : (Array.isArray(data?.data) ? data.data : (Array.isArray(data?.body) ? data.body : [])));\nconst now = new Date();\nconst lookbackDays = Number(budget.lookback_days || 90);\nconst lookbackStart = new Date(now.getTime() - lookbackDays * 24 * 60 * 60 * 1000);\nconst parseDate = (r) => {\n  const raw = r.publishedAt || r.createdAt || r.timestamp || r.date || r.postedAt || '';\n  const d = raw ? new Date(raw) : null;\n  return (d && !Number.isNaN(d.getTime())) ? d : null;\n};\nconst inWindow = (r) => {\n  const d = parseDate(r);\n  if (!d) return true;\n  return d >= lookbackStart && d <= now;\n};\nconst toNum = (v) => { const n = Number(v); return Number.isFinite(n) ? n : 0; };\nconst scorePost = (r) => {\n  const views = toNum(r.views || r.viewCount || r.videoViews || r.playCount);\n  const likes = toNum(r.likes || r.likeCount || r.reactions);\n  const comments = toNum(r.comments || r.commentCount);\n  const shares = toNum(r.shares || r.shareCount || r.retweets || r.reposts);\n  const engagementRate = toNum(r.engagementRate || r.engagement || r.er);\n  return (views * 0.2) + (likes * 2) + (comments * 3) + (shares * 4) + (engagementRate * 1000);\n};\nconst platformKey = (r) => String(r.platform || r.source || r.network || '').toLowerCase();\nconst textOf = (r) => String(r.text || r.caption || r.content || r.description || r.title || '').trim();\nconst urlOf = (r) => String(r.url || r.postUrl || r.link || '').trim();\nconst scored = rows.filter(inWindow).map((r) => ({\n  platform: platformKey(r),\n  text: textOf(r),\n  url: urlOf(r),\n  competitor: String(r.competitor || r.competitorName || r.brand || '').trim(),\n  score: scorePost(r),\n  raw: r,\n})).filter((r) => r.text || r.url);\nconst topGlobal = [...scored].sort((a,b) => b.score - a.score).slice(0, Number(budget.trend_pool_size || 12));\nconst byPlatform = { tiktok: [], linkedin: [], twitter: [], instagram: [] };\nfor (const p of topGlobal) {\n  const key = p.platform.includes('tik') ? 'tiktok' : p.platform.includes('link') ? 'linkedin' : (p.platform.includes('x') || p.platform.includes('twit') ? 'twitter' : (p.platform.includes('insta') ? 'instagram' : ''));\n  if (!key) continue;\n  if (byPlatform[key].length < Number(budget.platform_trends_limit || 5)) byPlatform[key].push(p);\n}\nconst competitorRows = topGlobal.filter((p) => p.competitor && intake.company_name && p.competitor.toLowerCase() !== String(intake.company_name).toLowerCase()).slice(0, Number(budget.competitors_limit || 5));\nconst isEventExpired = (text) => {\n  const t = String(text || '').toLowerCase();\n  const mmdd = (d) => `${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;\n  const today = mmdd(now);\n  const fixed = [\n    { keywords: ['national day', 'اليوم الوطني'], date: '09-23' },\n    { keywords: ['founding day', 'يوم التأسيس'], date: '02-22' },\n    { keywords: ['new year', 'رأس السنة'], date: '01-01' },\n    { keywords: ['black friday', 'الجمعة البيضاء'], date: '11-29' },\n    { keywords: ['valentine', 'عيد الحب'], date: '02-14' }\n  ];\n  for (const ev of fixed) {\n    if (ev.keywords.some((k) => t.includes(k)) && today > ev.date) return true;\n  }\n  return false;\n};\nconst websiteSignals = rows\n  .map((r) => String(r.pageTitle || r.title || r.h1 || r.metaDescription || r.description || '').trim())\n  .filter(Boolean)\n  .slice(0, Number(budget.website_signals_limit || 12));\nconst websiteSummary = websiteSignals.slice(0, 8).join(' | ');\nconst trendTopics = topGlobal\n  .map((p) => p.text)\n  .filter(Boolean)\n  .filter((t) => !isEventExpired(t))\n  .map((t) => t.slice(0, 160))\n  .slice(0, Number(budget.trend_topics_limit || 12));\nconst profileSignals = rows.filter(inWindow)\n  .map((r) => String(r.profileBio || r.bio || r.profileDescription || r.channelDescription || '').trim())\n  .filter(Boolean)\n  .slice(0, Number(budget.profile_signals_limit || 12));\nconst competitorInsights = competitorRows.map((p) => ({ competitor: p.competitor, platform: p.platform, idea: p.text.slice(0, 200), score: Math.round(p.score), url: p.url }));\nconst marketIntel = {\n  collected_items: rows.filter(inWindow).length,\n  lookback_days: lookbackDays,\n  competitors_limit: 5,\n  topic,\n  website_summary: websiteSummary,\n  profile_summary: profileSignals.join(' | '),\n  top_topics: trendTopics,\n  by_platform: Object.fromEntries(Object.entries(byPlatform).map(([k,v]) => [k, v.map((p) => ({ text: p.text.slice(0,200), score: Math.round(p.score), url: p.url }))])),\n  competitors: competitorInsights,\n};\nconst enrichedPrompt = `${base.content_writer?.user_prompt || ''}\n\n[Market Intel]\nMode: ${base.budget_mode || 'balanced'}. Window: last ${lookbackDays} days. Competitors analyzed: up to ${Number(budget.competitors_limit || 5)}.\nCompany URL summary: ${websiteSummary || 'not available'}\nProfile/bio signals: ${(profileSignals.slice(0, Number(budget.prompt_profile_limit || 6)).join(' || ') || 'not available')}\nTop trending topics by engagement (expired events removed): ${(trendTopics.slice(0, Number(budget.prompt_trend_limit || 6)).join(' || ') || 'not available')}\nCompetitor angles from latest posts/videos: ${(competitorInsights.map((c) => `${c.competitor}: ${c.idea}`).slice(0, Number(budget.prompt_competitor_limit || 5)).join(' || ') || 'not available')}\nUse this intelligence to produce fresh, non-duplicated content for ${intake.company_name || 'the intake company'} only.`;\nreturn [{ json: {\n  ...base,\n  market_intel: marketIntel,\n  website_summary: websiteSummary,\n  top_topics: trendTopics,\n  competitor_insights: competitorInsights,\n  content_writer: { ...(base.content_writer || {}), user_prompt: enrichedPrompt, prompt_version: 'intake-company-market-intel-v2026-03-20' },\n} }];"
+      }
+    },
+    {
+      "id": "Build OpenAI Content Request",
+      "name": "Build OpenAI Content Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1110,
+        430
+      ],
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "const input = $json || {};\nconst intake = input.intake || {};\nconst intel = input.market_intel || {};\nconst budget = input.market_budget || {};\nconst topic = input.topic || '';\nconst systemPrompt = input.content_writer?.system_prompt || '';\nconst userPrompt = input.content_writer?.user_prompt || '';\nconst formatGuide = `Return ONLY valid JSON with this exact schema: {\\\"post\\\":{\\\"title_ar\\\":string,\\\"title_en\\\":string,\\\"excerpt_ar\\\":string,\\\"excerpt_en\\\":string,\\\"content_ar\\\":string,\\\"content_en\\\":string,\\\"tags\\\":string[],\\\"author\\\":string,\\\"status\\\":\\\"draft\\\"},\\\"hooks\\\":string[5],\\\"seo\\\":{\\\"seo_title\\\":string,\\\"seo_description\\\":string,\\\"seo_keywords\\\":string,\\\"target_keyword\\\":string},\\\"platform_content\\\":{\\\"instagram\\\":string,\\\"x\\\":string,\\\"tiktok\\\":string,\\\"facebook\\\":string,\\\"linkedin\\\":string,\\\"website_article\\\":string,\\\"caption\\\":string},\\\"design\\\":{\\\"post_type\\\":string,\\\"image_prompt\\\":string,\\\"banana_prompt\\\":string},\\\"cta\\\":string,\\\"audience\\\":string,\\\"brand_guideline\\\":string,\\\"reasoning_summary\\\":string }`;\nconst intelChars = Number(budget.openai_intel_chars || 7000);\nconst prompt = `Write fresh Arabic-first content for company context: ${intake.company_name || ''}.\\nIndustry: ${intake.industry || ''}. Audience: ${intake.target_audience || ''}. URL: ${intake.company_link || ''}. Topic: ${topic}.\\n\\nUse these intelligence inputs: ${JSON.stringify(intel).slice(0,intelChars)}\\n\\nCritical role: write as an internal employee/expert from inside ${intake.company_name || 'the company'} using a confident first-person plural tone (\\\"نحن\\\") where suitable.\\n\\nRules: 1) Keep content business-aware and research-led, not direct selling copy. 2) Never promote other brands. 3) Use last 90 days signals only. 4) Ignore expired occasion/event angles. 5) Analyze up to 5 competitors and recent content to identify topic gaps. 6) Keep Saudi market relevance. 7) Focus on educational, awareness, operational and market-insight angles. 8) Mention concrete context/services/evidence from intake or research. 9) CTA should be informational (learn more/follow updates), not sales pressure. 10) DO NOT output outline labels like \\\"Hook:\\\", \\\"المشهد 1\\\", \\\"1)\\\", \\\"2)\\\". Return final ready-to-publish copy with complete sentences and actual answers/solutions. 11) For TikTok, provide final spoken script and caption, not scene placeholders.\\n\\nStyle reference only: ${systemPrompt}\\n\\nTask details: ${userPrompt}\\n\\n${formatGuide}`;\nreturn [{ json: {\n  ...input,\n  openai_payload: {\n    model: \"gpt-4o-mini\",\n    temperature: 0.4,\n    messages: [\n      { role: 'system', content: 'You are a senior Arabic content lead writing from inside the intake company team. Output strict JSON only and provide final publish-ready copy.' },\n      { role: 'user', content: prompt }\n    ]\n  }\n} }];"
+      }
+    },
+    {
+      "id": "Generate Content With OpenAI",
+      "name": "Generate Content With OpenAI",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1320,
+        430
+      ],
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer "
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{$json.openai_payload}}",
+        "options": {}
+      }
+    },
+    {
+      "id": "Parse OpenAI Generated Content",
+      "name": "Parse OpenAI Generated Content",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1530,
+        430
+      ],
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "const idx = typeof $itemIndex === 'number' ? $itemIndex : 0;\nconst base = ($items('Build OpenAI Content Request', 0, idx)?.[0]?.json) || ($items('Build OpenAI Content Request', 0, 0)?.[0]?.json) || {};\nconst response = $json || {};\nlet rawText = response?.choices?.[0]?.message?.content || '';\nif (Array.isArray(rawText)) rawText = rawText.map((x) => x?.text || '').join('\\n');\nrawText = String(rawText || '').trim();\nif (rawText.startsWith('```')) {\n  rawText = rawText.replace(/^```[a-zA-Z]*\\n?/, '').replace(/```$/, '').trim();\n}\nlet parsed = {};\ntry { parsed = JSON.parse(rawText || '{}'); } catch (e) { parsed = {}; }\nconst postIn = base.post || {};\nconst postOut = parsed.post || {};\nconst hooks = Array.isArray(parsed.hooks) ? parsed.hooks.filter(Boolean).slice(0,5) : (base.hooks || []);\nwhile (hooks.length < 5) hooks.push('');\nconst seo = parsed.seo || base.seo || {};\nconst platformContent = parsed.platform_content || {};\nconst design = parsed.design || {};\nconst post = {\n  title_ar: postOut.title_ar || postIn.title_ar || base.topic || '',\n  title_en: postOut.title_en || postIn.title_en || '',\n  excerpt_ar: postOut.excerpt_ar || postIn.excerpt_ar || '',\n  excerpt_en: postOut.excerpt_en || postIn.excerpt_en || '',\n  content_ar: postOut.content_ar || postIn.content_ar || '',\n  content_en: postOut.content_en || postIn.content_en || '',\n  tags: Array.isArray(postOut.tags) ? postOut.tags : (Array.isArray(postIn.tags) ? postIn.tags : []),\n  author: postOut.author || postIn.author || (base.intake?.company_name || ''),\n  status: 'draft',\n};\nreturn [{ json: {\n  ...base,\n  post,\n  hooks,\n  seo: {\n    seo_title: seo.seo_title || post.title_ar || '',\n    seo_description: seo.seo_description || post.excerpt_ar || '',\n    seo_keywords: seo.seo_keywords || '',\n    target_keyword: seo.target_keyword || '',\n  },\n  cta: parsed.cta || base.cta || `اطلع على المستجدات الرسمية من ${base.intake?.company_name || 'الجهة'} حول هذا الموضوع.`,\n  platform_content: {\n    instagram: platformContent.instagram || '',\n    x: platformContent.x || '',\n    tiktok: platformContent.tiktok || '',\n    facebook: platformContent.facebook || '',\n    linkedin: platformContent.linkedin || '',\n    website_article: platformContent.website_article || '',\n    caption: platformContent.caption || ''\n  },\n  design: {\n    post_type: design.post_type || '',\n    image_prompt: design.image_prompt || '',\n    banana_prompt: design.banana_prompt || ''\n  },\n  audience: parsed.audience || base.intake?.target_audience || base.audience || '',\n  brand_guideline: parsed.brand_guideline || base.website_summary || '',\n  generation_reasoning: parsed.reasoning_summary || '',\n  prompt_text: base.content_writer?.user_prompt || base.prompt_text || '',\n} }];"
+      }
+    },
+    {
+      "id": "Normalize Blog Metadata",
+      "name": "Normalize Blog Metadata",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        700,
+        280
+      ],
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "const input = $json || {};\nconst post = input.post || {};\nconst seo = input.seo || {};\nconst hooksInput = input.hooks || post.hooks || [];\nlet hooks = Array.isArray(hooksInput)\n  ? hooksInput.filter(Boolean)\n  : String(hooksInput || '').split('|').map(s => s.trim()).filter(Boolean);\nconst company = input.intake?.company_name || input.company_name || 'الشركة';\nconst topic = input.topic || post.title_ar || 'الخدمة';\nconst writerTask = String(input.content_writer?.user_prompt || input.prompt_text || input.writer_task || '').trim();\nconst servicePool = [];\nconst serviceBlock = writerTask.split('الخدمات')[1] || writerTask.split('خدمات')[1] || '';\nconst rawServiceText = [serviceBlock, writerTask].filter(Boolean).join(' | ');\nfor (const part of rawServiceText.split(/[,|؛،\\n\\.]/)) {\n  const s = String(part || '').replace(/[:\\-]/g, ' ').trim();\n  if (!s) continue;\n  if (s.length < 4 || s.length > 60) continue;\n  if (/=|https?|www\\.|\\/|\\||قطاع|جمهور|رابط|المتاحة|استخرج|اكتب|محتوى|مهم|ممنوع|اربط|مثال|الشركة|السعودي|الهيكل|cta/i.test(s)) continue;\n  if (!servicePool.includes(s)) servicePool.push(s);\n}\nlet topServices = servicePool.slice(0, 4);\nconst companyLower = String(company || '').toLowerCase();\nconst linkLower = String(input.intake?.company_link || input.company_link || '').toLowerCase();\nif (companyLower.includes('غرفة جدة') || linkLower.includes('jcci.org.sa')) {\n  topServices = ['التصديق الإلكتروني', 'الاشتراكات وتجديد العضوية', 'اللجان القطاعية وتمثيل الأعمال', 'برامج التدريب والتأهيل'];\n}\nconst generatedHooks = [\n  `كيف تساعد ${company} الشركات في ${topic} بخدمات عملية؟`,\n  `أهم 3 تحديات تواجه الشركات في ${topic} وكيف تعالجها ${company}`,\n  `خطة تنفيذية من ${company} لتحسين كفاءة الأعمال في ${topic}`,\n  `متى تحتاج شركتك تدخل ${company} الآن وليس لاحقاً؟`,\n  `دليل سريع: اختيار الخدمة الأنسب من ${company} حسب احتياجك`\n];\nfor (const h of generatedHooks) { if (hooks.length < 5) hooks.push(h); }\nhooks = hooks.slice(0, 5);\nconst servicesLine = topServices.length ? `أبرز الخدمات: ${topServices.join(' | ')}.` : '';\nconst defaultExcerpt = `ملخص تنفيذي يوضح المشهد العملي في ${topic} وعلاقة ذلك بدور ${company} داخل بيئة الأعمال في جدة.`;\nconst defaultBody = [\n  `تواجه الشركات في جدة تحديات تشغيلية وتسويقية متكررة في ${topic} تتطلب حلولاً واضحة وقابلة للتنفيذ.`,\n  servicesLine || `يبدأ فريق ${company} بتشخيص احتياج العميل ثم يربط كل مرحلة تنفيذية بمؤشر أداء واضح.`,\n  `يعتمد نموذج العمل لدى ${company} على تحويل الاحتياج إلى خطة: تحليل الوضع الحالي، اختيار الخدمة المناسبة، تنفيذ تدريجي، ومتابعة الأثر.`,\n  `بهذا الأسلوب تحصل الشركة على سرعة أعلى في الإنجاز وجودة أفضل في الخدمة وتجربة أكثر احترافية للعملاء.`,\n  `للاطلاع على التفاصيل الرسمية والتحديثات، يمكن الرجوع إلى ${company} عبر ${input.intake?.company_link || input.company_link || 'قنوات التواصل الرسمية'}.`\n].filter(Boolean).join('\\n\\n');\nconst approvalRaw = input.approval_status ?? input.approval ?? post.approval_status ?? 'pending';\nconst approvalStr = String(approvalRaw).toLowerCase();\nconst approvedValues = ['approved', 'yes', 'true', '1'];\nconst approvedByInput = approvalRaw === true || approvedValues.includes(approvalStr);\nconst textBundle = [post.title_ar || '', post.excerpt_ar || '', post.content_ar || '', hooks.join(' | ')].join('\\n').toLowerCase();\nconst companyNorm = String(company || '').trim();\nconst companyMentions = companyNorm ? ((textBundle.match(new RegExp(companyNorm.toLowerCase().replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&'), 'g')) || []).length) : 0;\nconst serviceMentions = topServices.filter((s) => textBundle.includes(String(s).toLowerCase())).length;\nconst genericMarkers = ['احجز demo', 'اشتر', 'عرض حصري', 'تواصل الآن', 'سارع', 'لا تفوت', 'اقتراح', 'فكرة محتوى', 'يمكن الحديث', 'اتجاه مقترح', 'موضوع مقترح', 'hook:', 'المشهد 1', 'المشهد 2', 'المشهد 3'];\nconst genericHit = genericMarkers.some((m) => textBundle.includes(m));\nconst minLenOk = String(post.content_ar || '').trim().length >= 320;\nconst businessEvidenceOk = companyMentions >= 2 && (serviceMentions >= 2 || topServices.length === 0);\nconst hardReject = !minLenOk || !businessEvidenceOk || genericHit;\nconst isApproved = approvedByInput && !hardReject;\nconst validationStatus = hardReject ? 'rejected_generic_content' : 'passed_business_specific';\nconst validationFailures = [];\nif (!minLenOk) validationFailures.push('content_too_short');\nif (!businessEvidenceOk) validationFailures.push('missing_business_evidence');\nif (genericHit) validationFailures.push('generic_or_sales_wording');\nconst draftRaw = input.request_email_draft ?? input.request_email ?? false;\nconst draftStr = String(draftRaw).toLowerCase();\nconst draftValues = ['true', '1', 'yes', 'draft_email', 'email', 'send_draft_email'];\nconst isDraftEmail = draftRaw === true || draftValues.includes(draftStr);\nconst normalized = {\n  ...input,\n  request_email_draft: isDraftEmail,\n  request_id: input.request_id || input.intake?.request_id || '',\n  row_number: input.row_number || input.intake?.row_number || '',\n  intake: {\n    request_id: input.request_id || input.intake?.request_id || '',\n    row_number: input.row_number || input.intake?.row_number || '',\n    created_at: input.intake?.created_at || input.created_at || '',\n    company_name: input.intake?.company_name || input.company_name || input.company || '',\n    industry: input.intake?.industry || input.industry || '',\n    target_audience: input.intake?.target_audience || input.target_audience || input.audience || '',\n    company_link: input.intake?.company_link || input.company_link || input.website || input.url || ''\n  },\n  validation_status: validationStatus,\n  validation_failures: validationFailures.join('|'),\n  post: {\n    ...post,\n    excerpt_ar: post.excerpt_ar || defaultExcerpt,\n    content_ar: post.content_ar || defaultBody,\n    status: isApproved ? 'published' : (post.status || 'draft')\n  },\n  seo: {\n    seo_title: seo.seo_title || input.seo_title || post.title_ar || '',\n    seo_description: seo.seo_description || input.seo_description || post.excerpt_ar || '',\n    seo_keywords: seo.seo_keywords || input.seo_keywords || (post.tags || []).join(', '),\n    target_keyword: seo.target_keyword || input.target_keyword || ''\n  },\n  hooks,\n  approval: {\n    is_approved: isApproved,\n    status: isApproved ? 'approved' : validationStatus,\n    approved_by: input.approved_by || '',\n    approval_notes: input.approval_notes || '',\n    approval_date: input.approval_date || ''\n  }\n};\nreturn [{ json: normalized }];"
+      }
+    },
+    {
+      "id": "Build Request Registry Row",
+      "name": "Build Request Registry Row",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        920,
+        150
+      ],
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "const input = $json || {};\nconst intake = input.intake || {};\nreturn [{ json: {\n  request_id: input.request_id || intake.request_id || '',\n  row_number: intake.row_number || input.row_number || '',\n  created_at: new Date().toISOString(),\n  topic: input.topic || '',\n  company_name: intake.company_name || '',\n  industry: intake.industry || '',\n  target_audience: intake.target_audience || '',\n  company_link: intake.company_link || '',\n  trigger_status: input.source === 'sheet_intake' ? 'pending' : (input.trigger_status || ''),\n  sent_status: input.sent_status || 'pending',\n  prompt_text: input.content_writer?.user_prompt || '',\n  approval_status: input.approval?.status || 'pending',\n  workflow_status: 'triggered',\n  writer_prompt_version: input.content_writer?.prompt_version || '',\n  language: input.content_writer?.language || 'ar-SA'\n} }];"
+      }
+    },
+    {
+      "id": "Append Request Registry Row",
+      "onError": "continueRegularOutput",
+      "name": "Append Request Registry Row",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1140,
+        150
+      ],
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "mode": "id",
+          "value": "TEST_SHEET_ID"
+        },
+        "sheetName": {
+          "mode": "name",
+          "value": "ContentRequests"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {}
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "Draft Email Gate",
+      "name": "Draft Email Gate",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1360,
+        120
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "email-draft-check",
+              "leftValue": "={{ !!$json.request_email_draft && String($json.request_email_draft).toLowerCase() !== 'false' }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "Approval Gate",
+      "name": "Approval Gate",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1360,
+        280
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "approval-check",
+              "leftValue": "={{ !!$json.approval?.is_approved && String($json.approval?.is_approved).toLowerCase() !== 'false' && String($json.validation_status || '').toLowerCase() !== 'rejected_generic_content' }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "Build Organized Draft Email",
+      "name": "Build Organized Draft Email",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1580,
+        120
+      ],
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "const input = $json || {};\nconst intake = input.intake || {};\nconst topic = input.topic || 'موضوع جديد';\nconst company = intake.company_name || 'نشاطكم';\nconst industry = intake.industry || 'قطاعكم';\nconst audience = intake.target_audience || 'فريق التشغيل';\nconst workflowLabel = 'Ali Content Writer workflow';\nconst subject = `مسودة إيميل مرتبة | ${topic}`;\nconst preview = `مسودة إيميل منظمة لقطاع ${industry} مع CTA واضح. المصدر: ${workflowLabel}.`;\nconst textBody = [\n  'السلام عليكم، يعطيكم العافية.',\n  '',\n  `جهزنا لكم مسودة إيميل تسويقي حول: ${topic}.`,\n  '',\n  'المشكلة:',\n  'ضغط القنوات وتشتت المتابعة يسبب تأخير الرد وضياع فرص.',\n  '',\n  'الأثر:',\n  'نزول التحويل وزيادة العبء على الفريق.',\n  '',\n  'الحل:',\n  `خدمات ${company} تعالج التحدي بطريقة عملية وتساعد العميل يحقق نتيجة واضحة بسرعة أعلى.`,\n  '',\n  'النتائج المتوقعة:',\n  'سرعة رد أعلى، متابعة أدق، وتحويل أفضل.',\n  '',\n  'الخطوة القادمة:',\n  'إذا مناسب لكم، نرتب Demo بسيط ونوضح خطة التنفيذ.',\n  '',\n  `المصدر: ${workflowLabel}`\n].join('\\n');\nconst htmlBody = `\n<div dir=\"rtl\" style=\"font-family:Tahoma,Arial,sans-serif;line-height:1.8;color:#0f172a\">\n  <p>السلام عليكم، يعطيكم العافية.</p>\n  <p>جهزنا لكم مسودة إيميل تسويقي حول: <strong>${topic}</strong></p>\n  <h3>المشكلة</h3><p>ضغط القنوات وتشتت المتابعة يسبب تأخير الرد وضياع فرص.</p>\n  <h3>الأثر</h3><p>نزول التحويل وزيادة العبء على الفريق.</p>\n  <h3>الحل</h3><p>خدمات ${company} تعالج التحدي بطريقة عملية وتساعد العميل يحقق نتيجة واضحة بسرعة أعلى.</p>\n  <h3>النتائج المتوقعة</h3><p>سرعة رد أعلى، متابعة أدق، وتحويل أفضل.</p>\n  <h3>الخطوة القادمة</h3><p>إذا مناسب لكم، نرتب Demo بسيط ونوضح خطة التنفيذ.</p>\n  <p><strong>المصدر:</strong> ${workflowLabel}</p>\n</div>`;\nreturn [{ json: {\n  ...input,\n  approval_status: 'draft_email',\n  publish_target: 'email_draft',\n  workflow_status: 'done',\n  trigger_status: 'done',\n  sent_status: 'done',\n  company_name: company,\n  audience: input.audience || audience,\n  email_subject: subject,\n  email_preview: preview,\n  email_body_text: textBody,\n  email_body_html: htmlBody,\n  email_source_workflow: workflowLabel\n} }];"
+      }
+    },
+    {
+      "id": "Append Draft Email Row To Sheet",
+      "name": "Append Draft Email Row To Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1800,
+        120
+      ],
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "mode": "id",
+          "value": "TEST_SHEET_ID"
+        },
+        "sheetName": {
+          "mode": "name",
+          "value": "ContentResults"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {}
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "Publish To Site",
+      "name": "Publish To Site",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2270,
+        390
+      ],
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "method": "POST",
+        "url": "https://example.com/functions/n8nWebhook",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{$json}}",
+        "options": {}
+      }
+    },
+    {
+      "id": "Build Sheet Row (Approved)",
+      "name": "Build Sheet Row (Approved)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1580,
+        390
+      ],
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "const input = $json || {};\nconst intake = input.intake || {};\nconst post = input.post || {};\nconst seo = input.seo || {};\nconst hooks = input.hooks || [];\nconst tags = Array.isArray(post.tags) ? post.tags : [];\nconst hook1 = hooks[0] || '';\nconst hook2 = hooks[1] || '';\nconst hook3 = hooks[2] || '';\nconst hook4 = hooks[3] || '';\nconst hook5 = hooks[4] || '';\nconst titleAr = post.title_ar || input.topic || '';\nconst bodyAr = post.content_ar || '';\nconst excerptAr = post.excerpt_ar || '';\nconst cta = input.cta || `للمزيد من المعلومات الرسمية حول الموضوع، تابع تحديثات ${intake.company_name || 'الجهة'}.`;\nconst platform = input.platform_content || {};\nconst design = input.design || {};\nconst companyName = intake.company_name || input.company_name || '';\nconst companyLink = intake.company_link || input.company_link || '';\nconst topic = input.topic || '';\nconst requestId = input.request_id || intake.request_id || '';\nconst baseNarrative = bodyAr || `${titleAr}\\n\\n${excerptAr}\\n\\n${cta}`;\nconst summaryLine = excerptAr || hook1 || titleAr;\nconst fallbackInstagram = `${titleAr}\\n\\n${summaryLine}\\n\\nفي هذا الموضوع نستعرض التحديات العملية، وكيف نتعامل معها داخل ${companyName || 'الشركة'} بخطوات واضحة قابلة للتطبيق، مع أمثلة مباشرة من واقع السوق.\\n\\n${cta}`;\nconst fallbackX = `${titleAr} | ${summaryLine} | نشارك هنا قراءة عملية لما يحدث في السوق وكيفية التعامل معه بشكل مهني داخل ${companyName || 'الشركة'}. | ${cta}`;\nconst fallbackTikTok = `في هذا الفيديو نشرح واقع ${topic} بلغة واضحة، ونوضح أبرز التحديات الحالية، ثم نقدم معالجة عملية مبنية على خبرة الفريق داخل ${companyName || 'الشركة'} مع مثال تطبيقي مختصر. ${cta}`;\nconst fallbackFacebook = `${baseNarrative}\\n\\nنستعرض في هذا المنشور تفاصيل أكثر حول التحديات والحلول العملية المرتبطة بالموضوع، مع نقاط قابلة للتطبيق مباشرة.\\n\\n${cta}`;\nconst fallbackLinkedin = `${titleAr}\\n\\n${summaryLine}\\n\\nنقدم قراءة مهنية مبنية على مؤشرات السوق، مع توضيح ما تغيّر خلال الفترة الأخيرة وكيف نترجم ذلك إلى خطوات تنفيذية داخل الفريق.\\n\\n${cta}`;\nconst instagram = String(platform.instagram || '').trim() || fallbackInstagram;\nconst xText = String(platform.x || '').trim() || fallbackX;\nconst tiktok = String(platform.tiktok || '').trim() || fallbackTikTok;\nconst facebook = String(platform.facebook || '').trim() || fallbackFacebook;\nconst linkedin = String(platform.linkedin || '').trim() || fallbackLinkedin;\nconst imageText = titleAr;\nconst caption = `${excerptAr} ${cta}`.trim();\nconst imagePrompt = String(design.image_prompt || '').trim() || `Modern social visual for ${intake.company_name || 'brand'} in Saudi market, clean geometry, bold typography, blue gradient accents.`;\nconst blogArticle = String(platform.website_article || '').trim() || bodyAr || `${titleAr}\\n\\n${excerptAr}`;\nconst keywords = seo.seo_keywords || tags.join(', ');\nconst hashtags = tags.map(t => `#${String(t).replace(/\\s+/g,'')}`).join(' ');\nconst bananaPrompt = String(design.banana_prompt || '').trim() || `Arabic marketing post visual for ${intake.company_name || 'company'}, reflect brand website style, geometric clean composition, premium business design.`;\nconst outputText = [titleAr, excerptAr, bodyAr].filter(Boolean).join('\\n\\n');\nreturn [{ json: {\n  request_id: requestId,\n  created_at: new Date().toISOString(),\n  company_name: companyName,\n  company_link: companyLink,\n  industry: intake.industry || input.industry || '',\n  target_audience: intake.target_audience || input.target_audience || input.audience || '',\n  topic: topic,\n  approval_status: 'approved',\n  workflow_status: 'done',\n  trigger_status: 'done',\n  sent_status: 'done',\n  publish_target: 'website',\n  'Post Type': String(design.post_type || '').trim() || 'carousel',\n  SUBJECT: titleAr,\n  TITLE: titleAr,\n  hook_1: hook1,\n  hook_2: hook2,\n  hook_3: hook3,\n  hook_4: hook4,\n  hook_5: hook5,\n  'Content for instagram': instagram,\n  'Content for X': xText,\n  'Content for Tiktok': tiktok,\n  'Content for Facebook': facebook,\n  'Content for linkedin': linkedin,\n  Caption: String(platform.caption || '').trim() || caption,\n  'Image Prompt': imagePrompt,\n  'Website Blogs & Article': blogArticle,\n  'Keywords used': keywords,\n  Hashtags: hashtags,\n  'Image Prompt to paste in banana': bananaPrompt,\n  output: outputText,\n  search_company: String(companyName).toLowerCase(),\n  search_url: String(companyLink).toLowerCase(),\n  search_topic: String(topic).toLowerCase(),\n  search_all: `${String(companyName).toLowerCase()} | ${String(companyLink).toLowerCase()} | ${String(topic).toLowerCase()} | ${String(requestId).toLowerCase()}`,\n  author: post.author || '',\n  language: input.content_writer?.language || 'ar-SA',\n  prompt_text: input.content_writer?.user_prompt || input.prompt_text || '',\n  writer_prompt_version: input.content_writer?.prompt_version || '',\n  approved_by: input.approval?.approved_by || '',\n  approval_notes: input.approval?.approval_notes || '',\n  approval_date: input.approval?.approval_date || ''\n} }];"
+      }
+    },
+    {
+      "id": "Append Approved Row To Sheet",
+      "onError": "continueRegularOutput",
+      "name": "Append Approved Row To Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1800,
+        390
+      ],
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "mode": "id",
+          "value": "TEST_SHEET_ID"
+        },
+        "sheetName": {
+          "mode": "name",
+          "value": "ContentResults"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {}
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "Build Sheet Row (Pending)",
+      "name": "Build Sheet Row (Pending)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1580,
+        560
+      ],
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "const input = $json || {};\nconst intake = input.intake || {};\nconst post = input.post || {};\nconst hooks = input.hooks || [];\nconst companyName = intake.company_name || input.company_name || '';\nconst companyLink = intake.company_link || input.company_link || '';\nconst topic = input.topic || '';\nconst requestId = input.request_id || intake.request_id || '';\nconst titleAr = post.title_ar || topic || '';\nconst bodyAr = post.content_ar || '';\nconst excerptAr = post.excerpt_ar || '';\nconst cta = input.cta || `تابع التحديثات الرسمية من ${intake.company_name || 'الجهة'} لمعرفة المستجدات.`;\nconst platform = input.platform_content || {};\nconst design = input.design || {};\nconst summaryLine = excerptAr || hooks[0] || titleAr;\nconst contentInstagram = String(platform.instagram || '').trim() || `${titleAr}\\n\\n${summaryLine}\\n\\nنوضح هنا قراءة عملية للتحديات الحالية وكيفية التعامل معها داخل ${companyName || 'الشركة'} بخطوات واضحة ومباشرة.\\n\\n${cta}`;\nconst contentX = String(platform.x || '').trim() || `${titleAr} | ${summaryLine} | نشارك قراءة تنفيذية موجزة لما يحدث في السوق وكيف نتعامل معه داخل ${companyName || 'الشركة'}. | ${cta}`;\nconst contentTikTok = String(platform.tiktok || '').trim() || `في هذا المحتوى نشرح الواقع الحالي في ${topic}، ثم نقدم معالجة عملية مدعومة بمثال تطبيقي من خبرة فريق ${companyName || 'الشركة'}، مع خلاصة تنفيذية واضحة. ${cta}`;\nconst contentFacebook = String(platform.facebook || '').trim() || `${bodyAr || summaryLine}\\n\\nنستعرض التفاصيل التنفيذية والنقاط القابلة للتطبيق بشكل مباشر.\\n\\n${cta}`;\nconst contentLinkedIn = String(platform.linkedin || '').trim() || `${titleAr}\\n\\n${summaryLine}\\n\\nنقدم قراءة مهنية مبنية على المعطيات الحالية في السوق مع توصيات عملية قابلة للتنفيذ.\\n\\n${cta}`;\nreturn [{ json: {\n  request_id: requestId,\n  created_at: new Date().toISOString(),\n  company_name: companyName,\n  company_link: companyLink,\n  industry: intake.industry || input.industry || '',\n  target_audience: intake.target_audience || input.target_audience || input.audience || '',\n  topic: topic,\n  approval_status: input.validation_status === 'rejected_generic_content' ? 'rejected_generic_content' : 'pending',\n  workflow_status: input.validation_status === 'rejected_generic_content' ? 'rejected_generic_content' : 'done',\n  trigger_status: 'done',\n  sent_status: 'done',\n  publish_target: 'hold',\n  'Post Type': String(design.post_type || '').trim() || 'carousel',\n  SUBJECT: titleAr,\n  TITLE: titleAr,\n  hook_1: hooks[0] || '',\n  hook_2: hooks[1] || '',\n  hook_3: hooks[2] || '',\n  hook_4: hooks[3] || '',\n  hook_5: hooks[4] || '',\n  'Content for instagram': contentInstagram,\n  'Content for X': contentX,\n  'Content for Tiktok': contentTikTok,\n  'Content for Facebook': contentFacebook,\n  'Content for linkedin': contentLinkedIn,\n  Caption: String(platform.caption || '').trim() || `${excerptAr} ${cta}`.trim(),\n  'Website Blogs & Article': String(platform.website_article || '').trim() || bodyAr || `${titleAr}\\n\\n${excerptAr}`,\n  'Keywords used': '',\n  Hashtags: '',\n  'Image Prompt': String(design.image_prompt || '').trim(),\n  'Image Prompt to paste in banana': String(design.banana_prompt || '').trim(),\n  output: [titleAr, excerptAr, bodyAr].filter(Boolean).join('\\n\\n'),\n  search_company: String(companyName).toLowerCase(),\n  search_url: String(companyLink).toLowerCase(),\n  search_topic: String(topic).toLowerCase(),\n  search_all: `${String(companyName).toLowerCase()} | ${String(companyLink).toLowerCase()} | ${String(topic).toLowerCase()} | ${String(requestId).toLowerCase()}`,\n  author: post.author || '',\n  language: input.content_writer?.language || 'ar-SA',\n  prompt_text: input.content_writer?.user_prompt || input.prompt_text || '',\n  writer_prompt_version: input.content_writer?.prompt_version || '',\n  approved_by: input.approval?.approved_by || '',\n  approval_notes: input.approval?.approval_notes || '',\n  approval_date: input.approval?.approval_date || ''\n} }];"
+      }
+    },
+    {
+      "id": "Append Pending Row To Sheet",
+      "onError": "continueRegularOutput",
+      "name": "Append Pending Row To Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1800,
+        560
+      ],
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "mode": "id",
+          "value": "TEST_SHEET_ID"
+        },
+        "sheetName": {
+          "mode": "name",
+          "value": "ContentResults"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {}
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "Build Intake Status Update Row",
+      "name": "Build Intake Status Update Row",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2040,
+        620
+      ],
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "const input = $json || {};\nconst source = String(input.source || '').toLowerCase();\nif (source && source !== 'sheet_intake') return [];\nconst rowNumber = String(input.row_number || input.intake?.row_number || '').trim();\nconst requestId = String(input.request_id || '').trim();\nconst intake = input.intake || {};\nconst companyLink = String(intake.company_link || input.company_link || '').trim();\nif (!requestId && !rowNumber && !companyLink) return [];\nreturn [{ json: {\n  request_id: requestId,\n  row_number: rowNumber,\n  created_at: input.intake?.created_at || input.created_at || '',\n  company_link: companyLink,\n  topic: input.topic || intake.topic || '',\n  trigger_status: 'done',\n  sent_status: 'done',\n  workflow_status: input.workflow_status || 'done',\n  approval_status: input.approval_status || input.approval?.status || '',\n  prompt_text: input.prompt_text || input.content_writer?.user_prompt || ''\n} }];"
+      }
+    },
+    {
+      "id": "Mark Intake Row As Finished",
+      "name": "Mark Intake Row As Finished",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        2270,
+        620
+      ],
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "mode": "id",
+          "value": "TEST_SHEET_ID"
+        },
+        "sheetName": {
+          "mode": "name",
+          "value": "ContentRequests"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "matchingColumns": [
+            "company_link"
+          ],
+          "value": {}
+        },
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Webhook In": {
+      "main": [
+        [
+          {
+            "node": "Prepare Content Writer Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Prepare Content Writer Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Poll Intake Schedule": {
+      "main": [
+        [
+          {
+            "node": "Read Intake Rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Intake Rows": {
+      "main": [
+        [
+          {
+            "node": "Select New Intake Rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select New Intake Rows": {
+      "main": [
+        [
+          {
+            "node": "Normalize Intake Row Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Intake Row Input": {
+      "main": [
+        [
+          {
+            "node": "Prepare Content Writer Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Content Writer Input": {
+      "main": [
+        [
+          {
+            "node": "Telegram Source Gate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Source Gate": {
+      "main": [
+        [
+          {
+            "node": "Read Chat State Rows",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Interview Readiness Gate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Chat State Rows": {
+      "main": [
+        [
+          {
+            "node": "Hydrate Telegram Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hydrate Telegram Context": {
+      "main": [
+        [
+          {
+            "node": "Interview Readiness Gate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Interview Readiness Gate": {
+      "main": [
+        [
+          {
+            "node": "Run Apify Market Intel",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Interview Pending Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Interview Pending Row": {
+      "main": [
+        [
+          {
+            "node": "Append Interview Pending Row",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Build Telegram Agent Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append Interview Pending Row": {
+      "main": []
+    },
+    "Build Telegram Agent Prompt": {
+      "main": [
+        [
+          {
+            "node": "Telegram Agent Enabled Gate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Agent Enabled Gate": {
+      "main": [
+        [
+          {
+            "node": "Generate Telegram Agent Reply",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Telegram Run Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Telegram Agent Reply": {
+      "main": [
+        [
+          {
+            "node": "Parse Telegram Agent Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Telegram Agent Reply": {
+      "main": [
+        [
+          {
+            "node": "Build Telegram Run Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run Apify Market Intel": {
+      "main": [
+        [
+          {
+            "node": "Build Market Research Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Market Research Context": {
+      "main": [
+        [
+          {
+            "node": "Build OpenAI Content Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build OpenAI Content Request": {
+      "main": [
+        [
+          {
+            "node": "Generate Content With OpenAI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Content With OpenAI": {
+      "main": [
+        [
+          {
+            "node": "Parse OpenAI Generated Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse OpenAI Generated Content": {
+      "main": [
+        [
+          {
+            "node": "Normalize Blog Metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Blog Metadata": {
+      "main": [
+        [
+          {
+            "node": "Build Request Registry Row",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Draft Email Gate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Request Registry Row": {
+      "main": [
+        [
+          {
+            "node": "Append Request Registry Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append Request Registry Row": {
+      "main": []
+    },
+    "Draft Email Gate": {
+      "main": [
+        [
+          {
+            "node": "Approval Gate",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Organized Draft Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Organized Draft Email": {
+      "main": [
+        [
+          {
+            "node": "Append Draft Email Row To Sheet",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Build Intake Status Update Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Approval Gate": {
+      "main": [
+        [
+          {
+            "node": "Build Sheet Row (Approved)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Sheet Row (Pending)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Sheet Row (Approved)": {
+      "main": [
+        [
+          {
+            "node": "Append Approved Row To Sheet",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Build Intake Status Update Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Sheet Row (Pending)": {
+      "main": [
+        [
+          {
+            "node": "Append Pending Row To Sheet",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Build Intake Status Update Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append Approved Row To Sheet": {
+      "main": [
+        [
+          {
+            "node": "Publish To Site",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Publish To Site": {
+      "main": [
+        [
+          {
+            "node": "Build Intake Status Update Row",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Build Telegram Run Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append Draft Email Row To Sheet": {
+      "main": [
+        [
+          {
+            "node": "Build Telegram Run Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append Pending Row To Sheet": {
+      "main": [
+        [
+          {
+            "node": "Build Telegram Run Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Intake Status Update Row": {
+      "main": [
+        [
+          {
+            "node": "Mark Intake Row As Finished",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Telegram Run Summary": {
+      "main": [
+        [
+          {
+            "node": "Telegram Send Enabled Gate",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Build Chat State Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Chat State Row": {
+      "main": [
+        [
+          {
+            "node": "Append Chat State Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append Chat State Row": {
+      "main": []
+    },
+    "Telegram Send Enabled Gate": {
+      "main": [
+        [
+          {
+            "node": "Send Telegram Run Summary",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Send Telegram Run Summary": {
+      "main": []
+    }
+  }
+}

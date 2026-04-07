@@ -1,0 +1,9 @@
+CC0 1.0 Universal (CC0 1.0) Public Domain Dedication
+
+The assets in this folder are released under CC0 1.0.
+You can copy, modify, distribute, and use them for any purpose,
+including commercial use, without asking permission.
+
+No warranties are provided.
+
+Reference: https://creativecommons.org/publicdomain/zero/1.0/

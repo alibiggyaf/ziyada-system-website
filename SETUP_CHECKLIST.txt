@@ -1,0 +1,224 @@
+╔════════════════════════════════════════════════════════════════════════════╗
+║                  ZIYADA CHAT WIDGET - SETUP CHECKLIST                      ║
+║                     Using Gemini Flash 2.0 (Cheapest)                      ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+PHASE 1: PRE-SETUP (Before you start)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[  ] Read: START with README_SETUP.md
+[  ] Read: QUICK_REFERENCE.md (for commands)
+[  ] Have browser ready with Google AI Studio tab open
+[  ] Have terminal/shell ready in project directory
+
+
+PHASE 2: GET GEMINI API KEY (5 minutes)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[  ] Go to: https://aistudio.google.com/app/apikey
+[  ] Click: "Create API Key"
+[  ] Copy: Full API key (keep somewhere safe)
+[  ] Verify: Key starts with "AIza" or similar
+
+
+PHASE 3: AUTOMATED SETUP - OPTION A (Easiest - Recommended)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[  ] Terminal: cd /Users/djbiggy/Downloads/Claude\ Code-\ File\ Agents
+[  ] Run: bash setup.sh
+[  ] Follow: On-screen prompts
+[  ] Paste: Your Gemini API key when asked
+[  ] Copy: Your webhook ID from output
+[  ] Skip: Manual setup below (go to Phase 4)
+
+
+PHASE 3B: MANUAL SETUP - OPTION B (If automated fails)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[  ] Read: N8N_CHAT_WORKFLOW_SETUP.md
+[  ] Go to: https://n8n.srv953562.hstgr.cloud
+[  ] Create: New workflow following guide
+[  ] Add: Gemini API key as credential
+[  ] Configure: Chat Trigger webhook at /chat
+[  ] Test: Webhook with curl command in guide
+[  ] Note: Your webhook ID (e.g., 390b23bb-a7e4-48c4-8768-c3b89cc0ef36)
+
+
+PHASE 4: UPDATE ENVIRONMENT FILE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[  ] Open: projects/ziyada-system/app/ziyada-system-website/.env.local
+[  ] Find: VITE_CHATBOT_WEBHOOK=/n8n/webhook/[OLD_ID]/chat
+[  ] Replace: [OLD_ID] with your webhook ID from above
+[  ] Verify: VITE_CHATBOT_ENABLED=true (should be set)
+[  ] Save: File
+
+
+PHASE 5: INSTALL & START SERVER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[  ] Terminal: cd projects/ziyada-system/app/ziyada-system-website
+[  ] Run: npm install (if dependencies not installed)
+[  ] Run: npm run dev
+[  ] Wait: For "Local: http://localhost:5173" message
+[  ] Check: Port 5173 is accessible without errors
+
+
+PHASE 6: TEST IN BROWSER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[  ] Open: http://localhost:5173 in browser
+[  ] Look: For purple glowing chat button in bottom-right
+[  ] Click: The chat button
+[  ] See: "Ziyada Assistant" header appears
+[  ] Type: "Hello, what services do you offer?"
+[  ] Send: Message
+[  ] Wait: 2-3 seconds for response
+[  ] Check: Response appears in chat (not error message)
+[  ] Verify: Uses "gemini-2.0-flash" or similar
+
+
+PHASE 7: VERIFY IN N8N
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[  ] Open: https://n8n.srv953562.hstgr.cloud/workflows
+[  ] Find: "Ziyada Chat Widget - Gemini Flash (Cheapest)"
+[  ] Click: Open workflow
+[  ] Check: Status button shows green (active)
+[  ] Click: "Executions" tab
+[  ] See: Recent execution with timestamp matching your test
+[  ] Check: Execution status shows "success"
+[  ] Click: Execution to see detailed logs
+
+
+PHASE 8: FINAL VERIFICATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[  ] Browser: Open console (F12 or Cmd+Option+I)
+[  ] Check: No red error messages
+[  ] Send: Another test message
+[  ] Watch: Network tab for request to /n8n/webhook/...
+[  ] See: Response is 200 (success)
+[  ] JSON: Check response has "output" field
+
+
+PHASE 9: TROUBLESHOOTING (If something's wrong)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Issue: Chat shows "Assistant currently unavailable"
+[  ] Check: .env.local has correct webhook ID
+[  ] Check: Dev server restarted after .env change
+[  ] Check: Browser DevTools Network tab for error
+[  ] Verify: N8N workflow status is green (active)
+[  ] Test: Direct curl command from QUICK_REFERENCE.md
+
+Issue: "Invalid API key"
+[  ] Go to: https://aistudio.google.com/app/apikey
+[  ] Delete: Old key
+[  ] Create: New key
+[  ] Update: N8N workflow with new key
+[  ] Test: Again
+
+Issue: Blank/empty responses
+[  ] Check: Message is not empty
+[  ] Check: N8N execution shows "success" (not "error")
+[  ] Check: Gemini API rate limits not exceeded
+[  ] Read: CHAT_WIDGET_COMPLETE_GUIDE.md troubleshooting section
+
+Issue: CORS error in console
+[  ] Verify: vite.config.js has proxy setup (should be ok)
+[  ] Restart: Dev server
+[  ] Check: Browser Network tab shows proxy working
+[  ] See: CHAT_WIDGET_COMPLETE_GUIDE.md for detailed CORS fix
+
+
+PHASE 10: SUCCESS! 🎉
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[  ] Chat widget is working
+[  ] Messages send successfully
+[  ] Responses appear in 2-3 seconds
+[  ] N8N shows successful executions
+[  ] No errors in console
+[  ] Cost is ultra-low ($0.02/month)
+[  ] Using cheapest available model (Gemini Flash 2.0)
+
+
+OPTIONAL: NEXT STEPS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[  ] Deploy to production (same setup works)
+[  ] Add session persistence (database)
+[  ] Customize response prompts
+[  ] Add more languages
+[  ] Switch to Claude if needed (update N8N node)
+[  ] Monitor costs on Google Cloud dashboard
+
+
+QUICK COMMAND REFERENCE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# Automated setup (easiest)
+bash setup.sh
+
+# Manual setup
+python3 setup_gemini_chat.py
+
+# Start dev server
+cd projects/ziyada-system/app/ziyada-system-website
+npm run dev
+
+# Test webhook directly
+curl -X POST https://n8n.srv953562.hstgr.cloud/webhook/[WEBHOOK_ID]/chat \
+  -H "Content-Type: application/json" \
+  -d '{"action":"sendMessage","chatInput":"Hi","sessionId":"test"}'
+
+# View N8N logs
+tail -f ~/.n8n/logs/workflow.log
+
+# Check current .env.local
+grep VITE_CHATBOT projects/ziyada-system/app/ziyada-system-website/.env.local
+
+
+IMPORTANT NOTES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✓ Always restart dev server after .env.local changes
+✓ Webhook ID is found in setup script output
+✓ Gemini API key is free, no signup needed
+✓ First request might be slow (model warmup)
+✓ Cost is $0.02/month for typical usage
+✓ Switch models anytime in N8N LLM node
+✓ Sessions persist in browser sessionStorage
+✓ Clear browser data to reset session
+
+
+SUPPORT FILES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+README_SETUP.md                      ← Start here first
+QUICK_REFERENCE.md                  ← Quick commands & tips
+CHAT_WIDGET_COMPLETE_GUIDE.md      ← Detailed implementation
+N8N_CHAT_WORKFLOW_SETUP.md         ← Workflow configuration
+setup.sh                             ← Automated bash script
+setup_gemini_chat.py                ← Automated Python script
+SETUP_CHECKLIST.txt                 ← This file
+
+
+ESTIMATED TIMELINE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Get API key:        5 minutes
+Run setup script:   2 minutes
+Update .env:        1 minute
+Start dev server:   1 minute
+Test in browser:    2 minutes
+Verify in N8N:      2 minutes
+━━━━━━━━━━━━━━━━━━━
+TOTAL:              13 minutes
+
+
+STATUS INDICATORS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🟢 = Ready / Working
+🟡 = In Progress / Check
+🔴 = Error / Not Working
+⚪ = Skipped / Not needed
+
+Current status: 🟢 READY FOR SETUP
+
+═══════════════════════════════════════════════════════════════════════════════
+
+Good luck! You've got this! 🚀
+
+═══════════════════════════════════════════════════════════════════════════════
