@@ -5,6 +5,7 @@ import { queryClientInstance } from '@/lib/query-client'
 import { BrowserRouter as Router, Route, Routes, Navigate, Outlet } from 'react-router-dom';
 import { AdminAuthProvider } from './admin/AdminAuthProvider';
 import PageNotFound from './lib/PageNotFound';
+import { Analytics } from '@vercel/analytics/react';
 
 // Layout
 import ZiyadaLayout from './components/ziyada/Layout';
@@ -128,6 +129,7 @@ function App() {
         <AppRoutes />
       </Router>
       <Toaster />
+      <Analytics />
     </QueryClientProvider>
   )
 }
