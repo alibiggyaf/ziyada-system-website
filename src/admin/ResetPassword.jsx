@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { requestPasswordReset } from '../api/resetPassword'
 
 const L = {
   ar: {
@@ -38,14 +39,8 @@ export default function ResetPassword() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setStatus('idle')
-    try {
-      // Simulate API call to create reset token and send email
-      // In production, POST to /api/reset-password with { email }
-      await new Promise((res) => setTimeout(res, 1200))
-      setStatus('success')
-    } catch {
-      setStatus('error')
-    }
+    const { success } = await requestPasswordReset(email)
+    setStatus(success ? 'success' : 'error')
   }
 
   return (
