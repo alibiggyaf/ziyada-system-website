@@ -33,6 +33,7 @@ import FAQ from './pages/FAQ';
 
 // Admin (lazy-loaded)
 const AdminLogin = lazy(() => import('./admin/AdminLogin'));
+const ResetPassword = lazy(() => import('./admin/ResetPassword'));
 const AdminLayout = lazy(() => import('./admin/AdminLayout'));
 const AdminAuthGuard = lazy(() => import('./admin/AdminAuthGuard'));
 const DashboardHome = lazy(() => import('./admin/pages/DashboardHome'));
@@ -94,6 +95,7 @@ const AppRoutes = () => {
       {/* Admin Panel — wrapped in AdminAuthProvider */}
       <Route element={<Suspense fallback={<AdminFallback />}><AdminAuthProvider><Outlet /></AdminAuthProvider></Suspense>}>
         <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin/reset-password" element={<ResetPassword />} />
         <Route path="/admin" element={<AdminAuthGuard />}>
           <Route element={<AdminLayout />}>
             <Route index element={<DashboardHome />} />

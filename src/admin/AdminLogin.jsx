@@ -193,6 +193,16 @@ export default function AdminLogin() {
                 {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
                 {t.signIn}
               </button>
+
+              {/* Forgot password link */}
+              <div className="text-center mt-3">
+                <a
+                  href="/admin/reset-password"
+                  className="text-blue-400 hover:underline text-sm"
+                >
+                  {isRTL ? 'نسيت كلمة المرور؟' : 'Forgot password?'}
+                </a>
+              </div>
             </form>
           </div>
         </div>
