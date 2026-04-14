@@ -1,0 +1,335 @@
+{
+  "name": "HubSpot CRM Sync — Supabase Lead → Contact + Deal",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "hubspot-sync",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "a1b2c3d4-e5f6-4a8b-9c0d-111111111111",
+      "name": "Webhook - HubSpot Sync",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [200, 400],
+      "webhookId": "hubspot-sync"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"firstname\": \"{{ $json.body.record.name ? $json.body.record.name.split(' ').slice(0, -1).join(' ') || $json.body.record.name : '' }}\",\n  \"lastname\": \"{{ $json.body.record.name ? ($json.body.record.name.split(' ').length > 1 ? $json.body.record.name.split(' ').slice(-1)[0] : '') : '' }}\",\n  \"email\": \"{{ $json.body.record.email || '' }}\",\n  \"phone\": \"{{ $json.body.record.phone || '' }}\",\n  \"company\": \"{{ $json.body.record.company || '' }}\",\n  \"hs_lead_status\": \"NEW\",\n  \"company_size\": \"{{ $json.body.record.company_size || '' }}\",\n  \"industry\": \"{{ $json.body.record.industry || '' }}\",\n  \"challenge\": \"{{ $json.body.record.challenge || '' }}\",\n  \"services_requested\": \"{{ $json.body.record.services_requested || '' }}\",\n  \"budget\": \"{{ $json.body.record.budget || '' }}\",\n  \"timeline\": \"{{ $json.body.record.timeline || '' }}\",\n  \"source\": \"{{ $json.body.record.source || '' }}\",\n  \"language\": \"{{ $json.body.record.language || '' }}\",\n  \"utm_source\": \"{{ $json.body.record.utm_source || '' }}\",\n  \"utm_medium\": \"{{ $json.body.record.utm_medium || '' }}\",\n  \"utm_campaign\": \"{{ $json.body.record.utm_campaign || '' }}\",\n  \"source_page\": \"{{ $json.body.record.source_page || '' }}\",\n  \"supabase_row_id\": \"{{ $json.body.record.id || '' }}\"\n}",
+        "options": {}
+      },
+      "id": "a1b2c3d4-e5f6-4a8b-9c0d-222222222222",
+      "name": "Set - Map to HubSpot Fields",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [440, 400]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.hubapi.com/crm/v3/objects/contacts/search",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"filterGroups\": [\n    {\n      \"filters\": [\n        {\n          \"propertyName\": \"email\",\n          \"operator\": \"EQ\",\n          \"value\": \"{{ $json.email }}\"\n        }\n      ]\n    }\n  ],\n  \"properties\": [\"email\", \"firstname\", \"lastname\", \"hs_lead_status\"],\n  \"limit\": 1\n}",
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "id": "a1b2c3d4-e5f6-4a8b-9c0d-333333333333",
+      "name": "HubSpot - Search Contact by Email",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 400],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "hubspotApi",
+          "name": "hubspotApi"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "condition-contact-exists",
+              "leftValue": "={{ $json.total }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "a1b2c3d4-e5f6-4a8b-9c0d-444444444444",
+      "name": "IF - Contact Exists?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [920, 400]
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://api.hubapi.com/crm/v3/objects/contacts/{{ $('HubSpot - Search Contact by Email').item.json.results[0].id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"properties\": {\n    \"firstname\": \"{{ $('Set - Map to HubSpot Fields').item.json.firstname }}\",\n    \"lastname\": \"{{ $('Set - Map to HubSpot Fields').item.json.lastname }}\",\n    \"phone\": \"{{ $('Set - Map to HubSpot Fields').item.json.phone }}\",\n    \"company\": \"{{ $('Set - Map to HubSpot Fields').item.json.company }}\",\n    \"hs_lead_status\": \"{{ $('Set - Map to HubSpot Fields').item.json.hs_lead_status }}\",\n    \"industry\": \"{{ $('Set - Map to HubSpot Fields').item.json.industry }}\"\n  }\n}",
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "id": "a1b2c3d4-e5f6-4a8b-9c0d-555555555555",
+      "name": "HubSpot - Update Existing Contact",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1200, 260],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "hubspotApi",
+          "name": "hubspotApi"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.hubapi.com/crm/v3/objects/contacts",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"properties\": {\n    \"firstname\": \"{{ $('Set - Map to HubSpot Fields').item.json.firstname }}\",\n    \"lastname\": \"{{ $('Set - Map to HubSpot Fields').item.json.lastname }}\",\n    \"email\": \"{{ $('Set - Map to HubSpot Fields').item.json.email }}\",\n    \"phone\": \"{{ $('Set - Map to HubSpot Fields').item.json.phone }}\",\n    \"company\": \"{{ $('Set - Map to HubSpot Fields').item.json.company }}\",\n    \"hs_lead_status\": \"{{ $('Set - Map to HubSpot Fields').item.json.hs_lead_status }}\",\n    \"industry\": \"{{ $('Set - Map to HubSpot Fields').item.json.industry }}\"\n  }\n}",
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "id": "a1b2c3d4-e5f6-4a8b-9c0d-666666666666",
+      "name": "HubSpot - Create New Contact",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1200, 540],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "hubspotApi",
+          "name": "hubspotApi"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"contactId\": \"{{ $json.id }}\",\n  \"firstname\": \"{{ $('Set - Map to HubSpot Fields').item.json.firstname }}\",\n  \"lastname\": \"{{ $('Set - Map to HubSpot Fields').item.json.lastname }}\",\n  \"email\": \"{{ $('Set - Map to HubSpot Fields').item.json.email }}\",\n  \"company\": \"{{ $('Set - Map to HubSpot Fields').item.json.company }}\",\n  \"budget\": \"{{ $('Set - Map to HubSpot Fields').item.json.budget }}\",\n  \"services_requested\": \"{{ $('Set - Map to HubSpot Fields').item.json.services_requested }}\",\n  \"timeline\": \"{{ $('Set - Map to HubSpot Fields').item.json.timeline }}\",\n  \"source\": \"{{ $('Set - Map to HubSpot Fields').item.json.source }}\",\n  \"source_page\": \"{{ $('Set - Map to HubSpot Fields').item.json.source_page }}\",\n  \"supabase_row_id\": \"{{ $('Set - Map to HubSpot Fields').item.json.supabase_row_id }}\"\n}",
+        "options": {}
+      },
+      "id": "a1b2c3d4-e5f6-4a8b-9c0d-777777777777",
+      "name": "Merge - Normalize Contact ID",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1480, 400]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.hubapi.com/crm/v3/objects/deals",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"properties\": {\n    \"dealname\": \"{{ $json.company || $json.firstname + ' ' + $json.lastname }} — {{ $json.services_requested || 'New Lead' }}\",\n    \"pipeline\": \"default\",\n    \"dealstage\": \"appointmentscheduled\",\n    \"amount\": \"{{ $json.budget || '' }}\",\n    \"closedate\": \"{{ $json.timeline || '' }}\",\n    \"description\": \"Source: {{ $json.source || 'website' }}\\nPage: {{ $json.source_page || '' }}\\nServices: {{ $json.services_requested || '' }}\"\n  }\n}",
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "id": "a1b2c3d4-e5f6-4a8b-9c0d-888888888888",
+      "name": "HubSpot - Create Deal",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1740, 400],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "hubspotApi",
+          "name": "hubspotApi"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://api.hubapi.com/crm/v3/objects/deals/{{ $json.id }}/associations/contacts/{{ $('Merge - Normalize Contact ID').item.json.contactId }}/deal_to_contact",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{}",
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "id": "a1b2c3d4-e5f6-4a8b-9c0d-999999999999",
+      "name": "HubSpot - Associate Deal ↔ Contact",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1980, 400],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "hubspotApi",
+          "name": "hubspotApi"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://nuyscajjlhxviuyrxzyq.supabase.co/rest/v1/leads?id=eq.{{ $('Merge - Normalize Contact ID').item.json.supabase_row_id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "return=representation"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"hubspot_contact_id\": \"{{ $('Merge - Normalize Contact ID').item.json.contactId }}\",\n  \"hubspot_deal_id\": \"{{ $('HubSpot - Create Deal').item.json.id }}\",\n  \"hubspot_synced_at\": \"{{ new Date().toISOString() }}\"\n}",
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "id": "a1b2c3d4-e5f6-4a8b-9c0d-aaaaaaaaaaaa",
+      "name": "Supabase - Update Row with HubSpot IDs",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2240, 400],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "supabaseServiceRole",
+          "name": "supabaseServiceRole"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"success\": true,\n  \"contactId\": \"{{ $('Merge - Normalize Contact ID').item.json.contactId }}\",\n  \"dealId\": \"{{ $('HubSpot - Create Deal').item.json.id }}\",\n  \"supabaseUpdated\": true,\n  \"timestamp\": \"{{ new Date().toISOString() }}\"\n}",
+        "options": {}
+      },
+      "id": "a1b2c3d4-e5f6-4a8b-9c0d-bbbbbbbbbbbb",
+      "name": "Response - Sync Result",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [2500, 400]
+    }
+  ],
+  "connections": {
+    "Webhook - HubSpot Sync": {
+      "main": [
+        [
+          { "node": "Set - Map to HubSpot Fields", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Set - Map to HubSpot Fields": {
+      "main": [
+        [
+          { "node": "HubSpot - Search Contact by Email", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "HubSpot - Search Contact by Email": {
+      "main": [
+        [
+          { "node": "IF - Contact Exists?", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "IF - Contact Exists?": {
+      "main": [
+        [
+          { "node": "HubSpot - Update Existing Contact", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "HubSpot - Create New Contact", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "HubSpot - Update Existing Contact": {
+      "main": [
+        [
+          { "node": "Merge - Normalize Contact ID", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "HubSpot - Create New Contact": {
+      "main": [
+        [
+          { "node": "Merge - Normalize Contact ID", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Merge - Normalize Contact ID": {
+      "main": [
+        [
+          { "node": "HubSpot - Create Deal", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "HubSpot - Create Deal": {
+      "main": [
+        [
+          { "node": "HubSpot - Associate Deal ↔ Contact", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "HubSpot - Associate Deal ↔ Contact": {
+      "main": [
+        [
+          { "node": "Supabase - Update Row with HubSpot IDs", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Supabase - Update Row with HubSpot IDs": {
+      "main": [
+        [
+          { "node": "Response - Sync Result", "type": "main", "index": 0 }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "staticData": null,
+  "meta": {
+    "instanceId": "ziyada-system",
+    "templateCredsSetupCompleted": false
+  },
+  "pinData": {},
+  "tags": ["hubspot", "crm-sync", "supabase", "ziyada", "webhook"]
+}

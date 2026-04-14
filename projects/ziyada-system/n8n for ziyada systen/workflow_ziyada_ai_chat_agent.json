@@ -1,0 +1,211 @@
+{
+  "name": "Ziyada AI Chat Agent — Website",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {
+          "responseMode": "lastNode"
+        },
+        "public": true,
+        "mode": "webhook",
+        "authentication": "none"
+      },
+      "id": "chat-trigger-001",
+      "name": "Chat Trigger",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [240, 400],
+      "webhookId": "3c9f6cb1-a3ce-4302-8260-6748f093520d"
+    },
+    {
+      "parameters": {
+        "agent": "conversationalAgent",
+        "promptType": "define",
+        "text": "={{ $json.chatInput }}",
+        "systemMessage": "أنت مساعد زيادة سيستم الذكي على موقع ziyadasystem.com — مستشار أعمال رقمي متخصص في مساعدة الشركات السعودية على الأتمتة والذكاء الاصطناعي وزيادة المبيعات.\n\n## هويتك\n\nاسمك: مساعد زيادة\nلهجتك: سعودية بيضاء قريبة من النجدية، مفهومة لكل مناطق المملكة\nشخصيتك: مستشار ودود، محترم، عملي، فاهم السوق السعودي — لا تتفلسف ولا تستخدم مصطلحات معقدة بدون شرح\n\n## قواعد اللغة والنبرة\n\n- استخدم دائماً: \"حنا\"، \"يعطيك العافية\"، \"ما قصرت\"، \"يا غالي\"، \"ولا يهمك\"، \"أبشر\"\n- جمل قصيرة ومباشرة\n- إذا استخدمت مصطلح إنجليزي: وضّح المعنى بالعربي مباشرة (مثال: CRM = نظام إدارة العملاء)\n- تجنّب تماماً: \"نتائج مضمونة 100%\"، \"الأفضل على الإطلاق\"، \"حل سحري\"\n- الهدف من كل حديث: فهم مشكلة العميل وربطها بحلول زيادة سيستم وتحويله لحجز استشارة أو طلب عرض\n\n## زيادة سيستم — معلومات كاملة\n\n### ما نحن؟\nزيادة سيستم شركة سعودية متخصصة في الأتمتة والذكاء الاصطناعي للشركات — نساعد الشركات في السعودية ترتّب شغلها وتزيد مبيعاتها باستخدام الأتمتة والذكاء الاصطناعي.\n\n### خدماتنا الستة:\n\n1. **أنظمة أتمتة الأعمال**\n   - نحوّل الأعمال المتكررة إلى أنظمة ذكية تشتغل بسرعة واتساق\n   - توفّر وقت الفريق وتقلّل الأخطاء\n   - مثال: ربط واتساب + Gmail + HubSpot CRM + Google Sheets أوتوماتيك\n   - مناسب لـ: التجزئة، العقارات، الرعاية الصحية، التعليم\n\n2. **أنظمة إدارة العملاء والمبيعات (CRM)**\n   - نظام بيعي يرتّب المتابعة ويقفل الصفقات\n   - من أول تواصل مع العميل لين يصير صفقة\n   - نبني HubSpot مع مسارات مخصصة وأتمتة متابعة لكل مرحلة بيع\n   - مناسب لـ: الخدمات المهنية، التجزئة، B2B\n\n3. **أنظمة اكتساب العملاء (Lead Generation)**\n   - نلقط الفرص ونأهلها وندخلها مسار بيعي واضح\n   - LinkedIn + Google Ads + HubSpot + البريد الإلكتروني\n   - ماكينة توليد عملاء B2B مع أتمتة متابعة\n   - مناسب لـ: التقنية، الاستشارات، الخدمات\n\n4. **التسويق الأدائي والظهور في البحث (SEO/Ads)**\n   - إعلانات + SEO مرتبطة بجودة العملاء مو بس المشاهدات\n   - كل ريال تصرفه يرجع لك بنتيجة واضحة\n   - Google Ads + Meta Ads + تحسين محركات البحث\n   - مناسب لـ: التجارة الإلكترونية، التعليم، العقارات\n\n5. **المواقع الذكية والمنصات الرقمية**\n   - مواقع مربوطة بإدارة العملاء والأتمتة\n   - مو بس واجهة حلوة — موقعك يشتغل لك 24/7\n   - مناسب لـ: جميع القطاعات\n\n6. **أنظمة المحتوى ووسائل التواصل**\n   - منظومة محتوى واضحة من الاستراتيجية للنشر للتقارير\n   - حضورك الرقمي يخدم أهدافك التجارية\n   - مناسب لـ: التجزئة، المطاعم، الرياضة والترفيه\n\n### أرقامنا:\n- 50+ شركة أتمتناها\n- 40% متوسط نمو الإيرادات لعملائنا\n- 80 ساعة توفير شهري لكل عميل\n- 3 أشهر ضمان ما بعد التسليم\n\n### أسعارنا (الباقات):\n\n**باقة أساسية (الأساسية):**\n- مناسبة للشركات الصغيرة والأفراد\n- تشمل: نظام CRM أساسي + أتمتة بسيطة + موقع\n- التواصل للحصول على السعر\n\n**باقة متكاملة (الأكثر طلباً):**\n- مناسبة للشركات المتوسطة\n- تشمل: CRM متكامل + أتمتة شاملة + موقع ذكي + تسويق\n- التواصل للحصول على السعر\n\n**باقة احترافية:**\n- للشركات الكبيرة والمؤسسات\n- تشمل: منظومة متكاملة كاملة + تدريب الفريق + دعم مستمر\n- التواصل للحصول على السعر\n\n### التواصل:\n- الموقع: ziyadasystem.com\n- الإيميل: ziyadasystem@gmail.com\n- حجز استشارة مجانية: ziyadasystem.com/BookMeeting\n\n## قطاعات نشتغل معها:\nالعقارات، المطاعم، العيادات الطبية، التجزئة، التعليم، الخدمات المهنية، التجارة الإلكترونية، اللوجستيات، السيارات\n\n## كيف تسير المحادثة:\n\n### خطوة 1 — الترحيب:\nرحّب بشكل دافئ باللهجة السعودية واسأل عن طبيعة نشاطهم أو مشكلتهم.\n\n### خطوة 2 — فهم المشكلة:\nاسأل أسئلة عملية:\n- \"وش القطاع اللي تشتغل فيه؟\"\n- \"ما هو أكبر تحدٍّ تواجهه الآن في شغلك؟\"\n- \"كم عدد الفريق عندكم؟\"\n\n### خطوة 3 — ربط الحل:\nاربط مشكلتهم بالخدمة المناسبة من زيادة سيستم. استخدم أمثلة واقعية من نفس القطاع.\n\n### خطوة 4 — توليد الليد (Lead Capture):\nبعد فهم المشكلة وعرض الحل، استخدم أداة `capture_lead` لحفظ بيانات الزائر.\n\n### خطوة 5 — الدعوة للاجراء (CTA):\nادعوهم لحجز استشارة مجانية أو إرسال إيميل. مثال:\n\"وش رايك نرتّب لك استشارة مجانية 15 دقيقة نشوف فيها كيف نقدر نساعد نشاطك بالضبط؟ تقدر تحجز مباشرة من ziyadasystem.com/BookMeeting\"\n\n## قواعد مهمة:\n- ردودك قصيرة ومركّزة — لا تكتب فقرات طويلة\n- إذا سألوا عن سعر محدد: قل إنه يعتمد على حجم الشغل والاحتياجات وادعوهم للاستشارة\n- إذا سألوا عن شيء خارج خدماتنا: أجب باختصار وأعِد التركيز على كيف تقدر تساعدهم\n- لا تذكر منافسين بالاسم\n- دائماً أنهِ المحادثة بدعوة للتواصل أو الحجز",
+        "options": {
+          "maxIterations": 5
+        }
+      },
+      "id": "ai-agent-002",
+      "name": "Ziyada AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [540, 400]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "options": {
+          "temperature": 0.7,
+          "maxTokens": 1000
+        }
+      },
+      "id": "openai-model-003",
+      "name": "GPT-4o-mini",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [420, 600],
+      "credentials": {
+        "openAiApi": {
+          "id": "openAiApi",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.sessionId || $json.body?.sessionId || 'default' }}",
+        "contextWindowLength": 15
+      },
+      "id": "memory-004",
+      "name": "Window Buffer Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [540, 620]
+    },
+    {
+      "parameters": {
+        "name": "capture_lead",
+        "description": "Use this tool when the visitor provides their name, phone number, email, or company information, OR when they show interest in a specific service. Saves their data as a lead in Supabase for follow-up. Call this tool as soon as you have at least a name and one contact detail (email or phone).",
+        "workflowId": {
+          "__rl": true,
+          "value": "LEAD_CAPTURE_SUBWORKFLOW_ID",
+          "mode": "id"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "name": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('name', 'Full name of the visitor', 'string') }}",
+            "email": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('email', 'Email address if provided', 'string') }}",
+            "phone": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('phone', 'Phone number if provided', 'string') }}",
+            "company": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('company', 'Company or business name', 'string') }}",
+            "sector": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('sector', 'Industry sector (real estate, restaurant, clinic, retail, etc)', 'string') }}",
+            "challenge": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('challenge', 'Main business challenge or pain point they described', 'string') }}",
+            "service_interest": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('service_interest', 'Which Ziyada service they are interested in', 'string') }}",
+            "source": "chat_widget"
+          }
+        }
+      },
+      "id": "lead-tool-005",
+      "name": "capture_lead",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2,
+      "position": [660, 620]
+    },
+    {
+      "parameters": {
+        "name": "get_services_info",
+        "description": "Use this tool to retrieve detailed information about Ziyada System services, pricing, or case studies when the visitor asks a specific question about a service. Returns structured service details.",
+        "code": "// Returns detailed Ziyada services info based on query\nconst query = $fromAI('query', 'What specific service or information is being asked about', 'string');\n\nconst services = {\n  automation: {\n    ar: 'أنظمة أتمتة الأعمال: نربط واتساب + CRM + إيميل + جداول بيانات في منظومة واحدة. كل رسالة تجيك، كل طلب، كل عميل — يتسجّل ويتابَع أوتوماتيك. نوفّر 80 ساعة شهرياً لكل عميل.',\n    sectors: 'العقارات، المطاعم، العيادات، التجزئة، التعليم',\n    timeline: '2-4 أسابيع للتسليم الأول'\n  },\n  crm: {\n    ar: 'أنظمة إدارة العملاء والمبيعات: نبني HubSpot مخصص لشغلك — مسارات البيع، تذكيرات المتابعة، تصنيف العملاء. ما يضيع لك ولا صفقة.',\n    sectors: 'الخدمات المهنية، الاستشارات، B2B، التجزئة',\n    timeline: '1-3 أسابيع'\n  },\n  leads: {\n    ar: 'اكتساب العملاء: ماكينة توليد عملاء B2B على LinkedIn + Google Ads مع تأهيل أوتوماتيك وإدخالهم HubSpot. نبني لك تدفق عملاء مستمر.',\n    sectors: 'التقنية، الاستشارات، الخدمات المهنية',\n    timeline: '3-6 أسابيع لأول نتائج'\n  },\n  marketing: {\n    ar: 'التسويق الأدائي: Google Ads + Meta Ads + SEO مرتبطة بالنتائج. كل ريال له عائد واضح. ما نشتغل على المشاهدات — نشتغل على العملاء الجادين.',\n    sectors: 'التجارة الإلكترونية، التعليم، العقارات',\n    timeline: 'أول تقرير بعد 2-3 أسابيع'\n  },\n  website: {\n    ar: 'المواقع الذكية: موقعك مو بس واجهة حلوة — مربوط بـ CRM وأتمتة. كل زائر يتحوّل لعميل محتمل أوتوماتيك. بنينا 50+ موقع للشركات السعودية.',\n    sectors: 'جميع القطاعات',\n    timeline: '2-6 أسابيع حسب الحجم'\n  },\n  social: {\n    ar: 'أنظمة المحتوى: من الاستراتيجية للنشر للتقارير — منظومة محتوى تشتغل بدون ضغط عليك. ذكاء اصطناعي يساعد في إنتاج المحتوى، وجدول نشر منتظم.',\n    sectors: 'التجزئة، المطاعم، العلامات التجارية',\n    timeline: 'أول محتوى في الأسبوع الأول'\n  }\n};\n\nreturn { services, query };"
+      },
+      "id": "services-tool-006",
+      "name": "get_services_info",
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.1,
+      "position": [780, 620]
+    },
+    {
+      "parameters": {
+        "name": "book_consultation",
+        "description": "Use this tool when a visitor explicitly says they want to book a consultation, schedule a meeting, or get a demo. Returns the booking link and available options.",
+        "code": "// Returns booking information for the visitor\nconst visitorName = $fromAI('visitor_name', 'Name of the visitor if known', 'string');\n\nreturn {\n  booking_url: 'https://ziyadasystem.com/BookMeeting',\n  message_ar: `أبشر يا ${visitorName || 'غالي'}! تقدر تحجز استشارة مجانية 15 دقيقة مباشرة من:\n\n🔗 ziyadasystem.com/BookMeeting\n\nأو تتواصل معنا على الإيميل:\n📧 ziyadasystem@gmail.com\n\nالفريق سيتواصل معك خلال ساعات.`,\n  message_en: `Sure! You can book a free 15-minute consultation directly at:\n\n🔗 ziyadasystem.com/BookMeeting\n\nOr contact us by email:\n📧 ziyadasystem@gmail.com\n\nThe team will reach out within hours.`\n};"
+      },
+      "id": "booking-tool-007",
+      "name": "book_consultation",
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.1,
+      "position": [900, 620]
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "responseBody": "={{ JSON.stringify({ output: $('Ziyada AI Agent').item.json.output }) }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "id": "respond-008",
+      "name": "Respond to Chat",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [860, 400]
+    }
+  ],
+  "connections": {
+    "Chat Trigger": {
+      "main": [
+        [
+          { "node": "Ziyada AI Agent", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Ziyada AI Agent": {
+      "main": [
+        [
+          { "node": "Respond to Chat", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "GPT-4o-mini": {
+      "ai_languageModel": [
+        [
+          { "node": "Ziyada AI Agent", "type": "ai_languageModel", "index": 0 }
+        ]
+      ]
+    },
+    "Window Buffer Memory": {
+      "ai_memory": [
+        [
+          { "node": "Ziyada AI Agent", "type": "ai_memory", "index": 0 }
+        ]
+      ]
+    },
+    "capture_lead": {
+      "ai_tool": [
+        [
+          { "node": "Ziyada AI Agent", "type": "ai_tool", "index": 0 }
+        ]
+      ]
+    },
+    "get_services_info": {
+      "ai_tool": [
+        [
+          { "node": "Ziyada AI Agent", "type": "ai_tool", "index": 1 }
+        ]
+      ]
+    },
+    "book_consultation": {
+      "ai_tool": [
+        [
+          { "node": "Ziyada AI Agent", "type": "ai_tool", "index": 2 }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "staticData": null,
+  "meta": {
+    "instanceId": "ziyada-system",
+    "templateCredsSetupCompleted": false
+  },
+  "pinData": {},
+  "tags": ["ziyada", "chat", "ai-agent", "lead-generation", "website"]
+}
