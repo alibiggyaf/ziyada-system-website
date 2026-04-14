@@ -1,13 +1,47 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <radialGradient id="g" cx="50%" cy="50%" r="70%">
-      <stop offset="0%" stop-color="#1e3a8a" stop-opacity="0.28"/>
-      <stop offset="100%" stop-color="#0f172a" stop-opacity="1"/>
+    <radialGradient id="glowCenter" cx="50%" cy="45%" r="55%" fx="50%" fy="45%">
+      <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.08"/>
+      <stop offset="35%" stop-color="#8b5cf6" stop-opacity="0.04"/>
+      <stop offset="70%" stop-color="#06b6d4" stop-opacity="0.02"/>
+      <stop offset="100%" stop-color="#0f172a" stop-opacity="0"/>
     </radialGradient>
+    <radialGradient id="glowBR" cx="85%" cy="80%" r="40%">
+      <stop offset="0%" stop-color="#8b5cf6" stop-opacity="0.06"/>
+      <stop offset="100%" stop-color="#0f172a" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowTL" cx="15%" cy="20%" r="35%">
+      <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.05"/>
+      <stop offset="100%" stop-color="#0f172a" stop-opacity="0"/>
+    </radialGradient>
+    <!-- Network dot pattern -->
+    <pattern id="dots" x="0" y="0" width="60" height="60" patternUnits="userSpaceOnUse">
+      <circle cx="30" cy="30" r="1.5" fill="#3b82f6" opacity="0.1"/>
+    </pattern>
+    <!-- Logo watermark -->
+    <g id="logoWatermark" opacity="0.04">
+      <polygon points="256,56 456,176 456,376 256,496 56,376 56,176" fill="none" stroke="#ffffff" stroke-width="2"/>
+      <polyline points="256,120 392,176 392,376 256,440 120,376 120,176 256,120" stroke="#ffffff" stroke-width="3" fill="none"/>
+      <path d="M160 200 L352 200 L160 320 L352 320" stroke="#ffffff" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
   </defs>
-  <rect width="100%" height="100%" fill="#0f172a"/>
-  <rect width="100%" height="100%" fill="url(#g)"/>
-  <circle cx="960" cy="540" r="360" fill="none" stroke="#8b5cf6" stroke-opacity="0.25" stroke-width="2"/>
-  <circle cx="960" cy="540" r="520" fill="none" stroke="#3b82f6" stroke-opacity="0.18" stroke-width="2"/>
-  <circle cx="960" cy="540" r="460" fill="none" stroke="#06b6d4" stroke-opacity="0.20" stroke-width="1"/>
+  <!-- Deep navy base -->
+  <rect width="1920" height="1080" fill="#0f172a"/>
+  <!-- Ambient glows -->
+  <rect width="1920" height="1080" fill="url(#glowCenter)"/>
+  <rect width="1920" height="1080" fill="url(#glowBR)"/>
+  <rect width="1920" height="1080" fill="url(#glowTL)"/>
+  <!-- Subtle dot grid -->
+  <rect width="1920" height="1080" fill="url(#dots)"/>
+  <!-- Logo watermark — bottom right -->
+  <use href="#logoWatermark" x="1540" y="700" width="320" height="320"/>
+  <!-- Bottom gradient bar -->
+  <rect x="0" y="1074" width="1920" height="6" rx="0">
+    <defs><linearGradient id="brandBar" x1="0" y1="0" x2="1920" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#8b5cf6"/>
+      <stop offset="50%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#06b6d4"/>
+    </linearGradient></defs>
+  </rect>
+  <rect x="0" y="1074" width="1920" height="6" fill="url(#brandBar)"/>
 </svg>

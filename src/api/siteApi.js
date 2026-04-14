@@ -202,6 +202,10 @@ const subscribeEmail = async (payload) => {
       .select()
       .single();
 
+    if (!result.error) {
+      triggerHubSpotSync("subscriber", result.data);
+    }
+
     return throwIfError(result);
   }
 
@@ -215,6 +219,10 @@ const subscribeEmail = async (payload) => {
     })
     .select()
     .single();
+
+  if (!result.error) {
+    triggerHubSpotSync("subscriber", result.data);
+  }
 
   return throwIfError(result);
 };
@@ -305,6 +313,35 @@ const n8nWebhook = async (payload) => {
 
 const N8N_BASE = import.meta.env.VITE_N8N_HOST || "";
 
+/** Helper to trigger HubSpot and internal syncs via n8n */
+const triggerHubSpotSync = (type, record) => {
+  const path = "/webhook/hubspot-sync";
+  const url = path.startsWith("http") ? path : `${N8N_BASE}${path}`;
+  
+  // Design-specific context for premium welcome flow & BCC tracking
+  const designContext = {
+    brand_email: "ziyadasystem@gmail.com",
+    bcc_recipient: "ziyadasystem@gmail.com",
+    template_v: "2026-premium-auth",
+    campaign: "New Subscriber Journey"
+  };
+
+  fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ 
+      type, 
+      record, 
+      meta: designContext,
+      hubspot: {
+        lifecyclestage: type === "subscriber" ? "subscriber" : "lead"
+      }
+    }),
+  }).catch((err) => {
+    console.warn("[HubSpot sync] Non-blocking failure:", err.message);
+  });
+};
+
 async function callN8nWebhook(envVar, body) {
   const path = import.meta.env[envVar];
   if (!path) throw new Error(`Missing env var: ${envVar}`);
@@ -329,6 +366,10 @@ const generateCompetitorContent = (intel_id, platform = "all") =>
 /** Publish an approved content suggestion as a blog draft */
 const publishBlogDraft = (suggestion_id) =>
   callN8nWebhook("VITE_N8N_BLOG_PUBLISHER_WEBHOOK", { suggestion_id });
+
+/** Trigger the Ziyada Newsletter & Blog Writer Agent */
+const triggerZiyadaWriter = (query) =>
+  callN8nWebhook("VITE_N8N_NEWSLETTER_WRITER_WEBHOOK", { query, type: "newsletter_and_blog" });
 
 /** Map of function name -> implementation */
 const FUNCTIONS = {
@@ -365,5 +406,6 @@ export const siteApi = {
     triggerCompetitorScrape,
     generateCompetitorContent,
     publishBlogDraft,
+    triggerZiyadaWriter,
   },
 };

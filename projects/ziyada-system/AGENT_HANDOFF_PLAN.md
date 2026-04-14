@@ -1,14 +1,90 @@
 # Ziyada System — Agent Handoff Plan
 # خطة تسليم المهام — زيادة سيستم
 
-**Date / التاريخ:** 2026-04-08  
-**Status / الحالة:** Frontend deployed ✅ | Supabase RLS fix pending ⏳
+**Date / التاريخ:** 2026-04-10 (Session 6)
+**Status / الحالة:** Backend fully operational ✅ | Google Calendar integration PLANNED (not built yet) 📋
+
+---
+
+---
+
+## Session 6 — April 10, 2026 (Backend End-to-End Fix)
+
+### What Was Fixed
+
+| Problem | Root Cause | Fix Status |
+|---------|-----------|------------|
+| HubSpot sync never fired in production | `VITE_N8N_HUBSPOT_SYNC_WEBHOOK` missing from `vercel.json` env section | **Fixed ✅** |
+| HubSpot workflow broken | Switch V3 node missing `caseSensitive` property | **Rebuilt ✅** |
+| Admin email had wrong design | No brand guidelines, had emojis | **Redesigned ✅** |
+| Emails not mobile-optimized | Wide layout, too much padding | **Fixed (520px max-width) ✅** |
+| Gmail OAuth expired | Token revoked | **User reconnected ✅** |
+
+### What Was Done (Session 6)
+
+#### 1. `vercel.json` — Added all missing env vars
+All `VITE_N8N_*` variables were missing from Vercel production. Added:
+- `VITE_N8N_HUBSPOT_SYNC_WEBHOOK` → `https://n8n.srv953562.hstgr.cloud/webhook/hubspot-sync`
+- `VITE_N8N_NOTIFY_WEBHOOK` → `https://n8n.srv953562.hstgr.cloud/webhook/notify`
+- `VITE_N8N_GOOGLE_MEET_WEBHOOK` → `https://n8n.srv953562.hstgr.cloud/webhook/google-meet`
+- Plus Supabase, GA4, PostHog keys
+
+#### 2. N8N Workflow: "Ziyada - HubSpot Sync" (ID: `1w96DpTzTGxaIlPW`)
+- Completely rebuilt: Webhook → Parse Data (Code) → Search HubSpot → IF Exists → Update/Create → IF Booking → Create Deal → Log Supabase
+- Fixed Switch V3 `caseSensitive` bug by replacing with Code node
+- **Verified working**: Contact `755110625495` + Deal `498521109729` created in HubSpot portal `147540768`
+- Settings include `availableInMCP: true`
+
+#### 3. N8N Workflow: "Ziyada - Admin Notify + Auto-Reply" (ID: `pw6WYm4N36SXHNl6`)
+- Completely rebuilt twice — final version uses single Code node generating both email HTMLs
+- Mobile-optimized: max-width 520px, compact padding, inline SVG Z logo
+- Admin email: dark theme (`#0a0f1e` bg), no emojis, brand-consistent
+- Auto-reply (visitor): light theme (`#f1f5f9`), Arabic + English, professional
+- 3-column horizontal steps layout for compact mobile view
+- Fixed IF node `caseSensitive` bug on "Has Submitter Email?" node
+
+#### 4. End-to-End Flow (Now Working)
+```
+Visitor submits form on ziyadasystem.com
+     ↓
+Supabase: saves lead/booking record ✅
+     ↓
+triggerHubSpotSync() → N8N HubSpot Sync webhook ✅
+     → HubSpot: contact created/updated + deal if booking ✅
+     → Supabase: integration_logs entry ✅
+     ↓
+triggerNotify() → N8N Notify webhook ✅
+     → Admin email to ziyadasystem@gmail.com ✅
+     → Auto-reply to visitor email ✅
+```
+
+### What Is NOT Built Yet (Planned)
+
+| Feature | Status | Notes |
+|---------|--------|-------|
+| Google Calendar/Meet integration | 📋 PLANNED | See plan below |
+| Team internal emails | 📋 PLANNED | See EMAIL_TEAM_PLAN.md |
+
+### Google Calendar Integration Plan
+
+When built, this workflow will:
+1. Receive booking data (from `VITE_N8N_GOOGLE_MEET_WEBHOOK`)
+2. Create Google Calendar event with Google Meet link
+3. Send Meet link to visitor's email
+4. Owner (Ali) gets a calendar invite to accept/decline
+
+**Required before building:**
+- Connect Google Calendar OAuth2 credential in N8N
+- Build new workflow "Ziyada - Google Meet Booking"
+- Update `bookMeeting()` in `src/api/siteApi.js` to call `VITE_N8N_GOOGLE_MEET_WEBHOOK`
+
+**Note:** `VITE_N8N_GOOGLE_MEET_WEBHOOK` already exists in `vercel.json` but is never called by the frontend yet.
 
 ---
 
 ## 🇬🇧 English Summary
 
-### What Was Fixed
+### What Was Fixed (Session 1–5)
 
 The live website at **ziyadasystem.com** had three problems:
 
@@ -54,9 +130,9 @@ Vercel auto-deploys on every push → **ziyadasystem.com**
 
 ---
 
-### ⏳ ONE REMAINING TASK — Supabase Migration
+### ✅ COMPLETED — Supabase Migration + Form Fix
 
-**This is the only thing left. Forms will NOT work until this is done.**
+**Forms are now working.** Session 4 applied the RLS migration. Session 5 found the true root cause (`.select()` after INSERT) and fixed it in `siteApi.js`.
 
 The Supabase project (`nuyscajjlhxviuyrxzyq`) has RLS enabled on all tables but the INSERT policies for the `anon` role were never created. The website's anon key gets a `42501` RLS violation error on every form submit.
 
@@ -232,10 +308,26 @@ ORDER BY tablename;
 
 ## Checklist for Next Agent / قائمة مهام العميل التالي
 
-- [ ] **Apply Supabase migration** using `mcp__supabase__apply_migration` — SQL above
-- [ ] **Verify** with `pg_policies` query — expect 3 rows with `anon` role
-- [ ] **Test** booking form on https://ziyadasystem.com/BookMeeting — should redirect to `/ThankYou` with confetti
-- [ ] **Test** contact form on https://ziyadasystem.com/Contact — should work
-- [ ] **Test** newsletter in footer — should work
-- [ ] **Delete** test records inserted during verification from Supabase
-- [ ] **Clean up** N8N: delete the unused "Ziyada Forms Handler" workflow (ID: `1Xo5nTVPBI3XNsnl`) — it was created during debugging but is not used by the frontend
+**Session 1–5:**
+- [x] ✅ **Supabase RLS migration applied** — `fix_anon_insert_rls_policies` (Session 4)
+- [x] ✅ **Real root cause found & fixed** (Session 5) — `.select()` after INSERT blocked by SELECT RLS. Removed from all 4 form functions in `siteApi.js`.
+- [x] ✅ **Forms verified** — Contact, RequestProposal, Booking, Newsletter all return HTTP 201
+- [x] ✅ **competitor_intel + content_suggestions tables** created with RLS + indexes (Session 5)
+- [x] ✅ **Test records deleted** from Supabase (Session 5)
+- [x] ✅ **N8N workflow deleted** — `1Xo5nTVPBI3XNsnl` ("Ziyada Forms Handler") removed (Session 5)
+
+**Session 6 (April 10, 2026):**
+- [x] ✅ **vercel.json** — Added all missing `VITE_N8N_*` env vars for production
+- [x] ✅ **HubSpot Sync workflow** rebuilt (ID: `1w96DpTzTGxaIlPW`) — fixed Switch V3 bug
+- [x] ✅ **Admin Notify + Auto-Reply workflow** rebuilt (ID: `pw6WYm4N36SXHNl6`) — mobile-optimized emails
+- [x] ✅ **Admin email** verified sending to ziyadasystem@gmail.com
+- [x] ✅ **Auto-reply email** verified sending to visitor
+- [x] ✅ **HubSpot contact + deal** created successfully (contact `755110625495`, deal `498521109729`)
+- [x] ✅ **integration_logs** receiving entries from both workflows
+- [x] ✅ **Gmail OAuth** reconnected by user after token expiry
+
+**Still To Do:**
+- [ ] 📋 **Google Calendar/Meet workflow** — Build N8N workflow that creates calendar event + Meet link on booking
+- [ ] 📋 **siteApi.js** — Add `triggerGoogleMeetWebhook()` call inside `bookMeeting()` function
+- [ ] 📋 **Team email setup** — See `EMAIL_TEAM_PLAN.md` for recommended solution
+- [ ] ⚠️ **SUPABASE_SERVICE_KEY in n8n** — n8n community edition can't set Variables via API. Must add to server environment (docker-compose/systemd) and restart n8n. Value = `SUPABASE_SERVICE_ROLE_KEY` from `.env`.

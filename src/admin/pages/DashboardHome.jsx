@@ -3,6 +3,7 @@ import { useOutletContext, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { siteApi } from "@/api/siteApi";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 import StatCard from "@/admin/components/StatCard";
 import DataTable from "@/admin/components/DataTable";
 import StatusBadge from "@/admin/components/StatusBadge";
@@ -16,6 +17,8 @@ import {
   Send,
   Loader2,
   Bot,
+  Sparkles,
+  Zap,
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -34,6 +37,11 @@ const L = {
     recentBookings: "آخر الحجوزات",
     quickActions: "إجراءات سريعة",
     newPost: "مقال جديد",
+    ziyadaWriter: "عميل زيادة الذكي",
+    ziyadaWriterPlaceholder: "أدخل موضوع البحث أو ألصق بيانات المنافسين...",
+    ziyadaWriterSend: "بحث وتوليد",
+    ziyadaWriterSuccess: "تم تفعيل سير العمل! تحقق من مسودة Gmail خلال دقيقتين.",
+    ziyadaWriterError: "فشل تفعيل العميل.",
     viewAllLeads: "عرض جميع العملاء",
     aiAgent: "عميل ذكي",
     aiPlaceholder: "اكتب رسالتك للمساعد...",
@@ -60,6 +68,11 @@ const L = {
     recentBookings: "Recent Bookings",
     quickActions: "Quick Actions",
     newPost: "New Blog Post",
+    ziyadaWriter: "Ziyada Writer Agent",
+    ziyadaWriterPlaceholder: "Enter search topic or paste competitor intel...",
+    ziyadaWriterSend: "Search & Generate",
+    ziyadaWriterSuccess: "Workflow triggered! Check your Gmail draft in 2 mins.",
+    ziyadaWriterError: "Failed to trigger agent.",
     viewAllLeads: "View All Leads",
     aiAgent: "AI Agent",
     aiPlaceholder: "Type a message for the assistant...",
@@ -177,6 +190,27 @@ export default function DashboardHome() {
       ]);
     }
     setChatLoading(false);
+  };
+
+  /* ---- Ziyada Writer Agent ---- */
+  const [writerInput, setWriterInput] = useState("");
+  const [writerLoading, setWriterLoading] = useState(false);
+
+  const triggerWriter = async () => {
+    const text = writerInput.trim();
+    if (!text || writerLoading) return;
+
+    setWriterLoading(true);
+    try {
+      await siteApi.functions.triggerZiyadaWriter(text);
+      toast.success(t.ziyadaWriterSuccess);
+      setWriterInput("");
+    } catch (err) {
+      console.error(err);
+      toast.error(t.ziyadaWriterError);
+    } finally {
+      setWriterLoading(false);
+    }
   };
 
   /* ---- Table columns ---- */
@@ -382,6 +416,59 @@ export default function DashboardHome() {
           >
             <Eye size={16} /> {t.viewAllLeads}
           </Link>
+        </div>
+      </div>
+
+      {/* ---- Ziyada Writer Agent Section ---- */}
+      <div className="mb-8">
+        <h2
+          className={cn(
+            "text-lg font-bold mb-3 flex items-center gap-2",
+            isDark ? "text-white" : "text-gray-900"
+          )}
+        >
+          <Sparkles size={20} className="text-blue-500" />
+          {t.ziyadaWriter}
+        </h2>
+        <div
+          className={cn(
+            "rounded-xl border overflow-hidden p-4",
+            isDark
+              ? "bg-slate-800/60 border-white/10"
+              : "bg-white border-gray-200 shadow-sm"
+          )}
+        >
+          <div className="space-y-4">
+            <textarea
+              value={writerInput}
+              onChange={(e) => setWriterInput(e.target.value)}
+              placeholder={t.ziyadaWriterPlaceholder}
+              rows={4}
+              className={cn(
+                "w-full px-4 py-3 rounded-xl text-sm transition-all focus:ring-2 focus:ring-blue-500 outline-none resize-none",
+                isDark
+                  ? "bg-white/5 border-white/10 text-white placeholder-gray-500"
+                  : "bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-400"
+              )}
+            />
+            <div className="flex justify-end">
+              <button
+                onClick={triggerWriter}
+                disabled={writerLoading || !writerInput.trim()}
+                className={cn(
+                  "inline-flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-bold transition-all disabled:opacity-50",
+                  "bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700"
+                )}
+              >
+                {writerLoading ? (
+                  <Loader2 className="animate-spin" size={18} />
+                ) : (
+                  <Zap size={18} />
+                )}
+                {t.ziyadaWriterSend}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 

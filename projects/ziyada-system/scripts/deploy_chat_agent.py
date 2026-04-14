@@ -22,7 +22,7 @@ import requests
 
 # ─── Config ─────────────────────────────────────────────────────────────────
 N8N_BASE = os.getenv("N8N_BASE_URL", "https://n8n.srv953562.hstgr.cloud")
-N8N_API_KEY = os.getenv("N8N_API_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMTU5ZDRmNC03MTExLTQ4NTAtOGQ5OC0yYWM1MzU1Mjg3ZWUiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwiaWF0IjoxNzczOTM3NjU5LCJleHAiOjE3ODE2NDcyMDB9.57H2mbac54qiRQusl37xQXlnfYYRNvJ3-lm4crYBlqA")
+N8N_API_KEY = os.getenv("N8N_API_KEY", "")
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 WORKFLOWS_DIR = os.path.join(SCRIPT_DIR, "..", "n8n for ziyada systen")
@@ -117,6 +117,10 @@ def patch_workflow_credential(wf_id, node_name, cred_type, cred_id, cred_name):
 def main():
     print("\n=== Ziyada AI Chat Agent Deployment ===\n")
 
+    if not N8N_API_KEY:
+        print("  [ERROR] Missing N8N_API_KEY in the environment")
+        sys.exit(1)
+
     # 1. Check connectivity
     print("1. Checking N8N connection...")
     r = requests.get(f"{N8N_BASE}/healthz", timeout=10)
@@ -132,7 +136,7 @@ def main():
     print("  [A] OpenAI API credential:")
     print("      N8N → Credentials → New → OpenAI API")
     print("      Name: openAiApi")
-    print(f"      API Key: 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")
+    print("      API Key: <load from local .env only>")
     print()
     print("  [B] Supabase Service Role credential:")
     print("      N8N → Credentials → New → HTTP Header Auth")

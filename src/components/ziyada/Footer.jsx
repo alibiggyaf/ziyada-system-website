@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useState } from "react";
 import { siteApi } from "@/api/siteApi";
 import { checkRateLimit } from "@/lib/rateLimit";
+import confetti from 'canvas-confetti';
 
 export default function Footer({ lang }) {
   const [email, setEmail] = useState("");
@@ -28,8 +29,17 @@ export default function Footer({ lang }) {
     setSubStatus("loading");
     try {
       const res = await siteApi.functions.invoke("subscribeEmail", { email, language: lang });
-      setSubStatus(res.data?.success ? "success" : "error");
-      if (!res.data?.success) {
+      if (res.data?.success) {
+        setSubStatus("success");
+        confetti({
+          particleCount: 150,
+          spread: 70,
+          origin: { y: 0.8 },
+          colors: ['#3b82f6', '#8b5cf6', '#06b6d4', '#ec4899'],
+          zIndex: 2000
+        });
+      } else {
+        setSubStatus("error");
         setFormError(isRTL ? "حدث خطأ أثناء الاشتراك. يرجى المحاولة مرة أخرى." : "Something went wrong. Please try again.");
       }
     } catch (err) {
@@ -75,9 +85,16 @@ export default function Footer({ lang }) {
               {isRTL ? "اشترك للحصول على آخر المقالات والأفكار." : "Subscribe for latest articles and insights."}
             </p>
             {subStatus === "success" ? (
-              <p style={{ color: "#22c55e", fontSize: "0.9rem" }}>
-                {isRTL ? "شكراً! تم الاشتراك بنجاح" : "Thank you! Subscribed successfully"}
-              </p>
+              <div style={{ background: "rgba(59,130,246,0.08)", border: "1px solid rgba(59,130,246,0.2)", borderRadius: 16, padding: "20px", animation: "fade-in 0.6s ease-out", backdropFilter: "blur(10px)" }}>
+                <p style={{ color: "#3b82f6", fontWeight: 800, fontSize: "1.1rem", marginBottom: 8, letterSpacing: "-0.01em" }}>
+                  {isRTL ? "بداية رحلة استثنائية مع زيادة سيستم" : "The Beginning of an Extraordinary Journey"}
+                </p>
+                <p style={{ color: "var(--text-secondary)", fontSize: "0.9rem", lineHeight: 1.6, opacity: 0.9 }}>
+                  {isRTL 
+                    ? "انضمامك إلينا يعني أنك الآن جزء من نخبة تسعى لإعادة تعريف النجاح عبر حلول الذكاء الاصطناعي والأتمتة المبتكرة. ترقب بريدك الوارد بدقة؛ فنحن نقوم حالياً بإعداد محتوى حصري واستراتيجيات متقدمة لعام 2026 ستغير قواعد اللعبة لنموك الشخصي والمهني."
+                    : "By joining us, you've stepped into an exclusive circle redefining success through innovative AI and automation. Keep a close watch on your inbox; we are preparing high-value insights and 2026 growth strategies designed to transform your professional and personal trajectory."}
+                </p>
+              </div>
             ) : (
               <form onSubmit={handleSubscribe} style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                 <div style={{ position: "absolute", left: "-9999px", opacity: 0 }} aria-hidden="true">
@@ -92,9 +109,15 @@ export default function Footer({ lang }) {
                 </div>
                 <input type="email" value={email} onChange={e => setEmail(e.target.value)}
                   placeholder={isRTL ? "بريدك الإلكتروني" : "Your email"}
-                  className="form-input-ziyada" style={{ flex: 1, minWidth: 160 }} required />
-                <button type="submit" className="btn-primary-ziyada" style={{ padding: "10px 16px", fontSize: "0.85rem" }}
-                  disabled={subStatus === "loading"}>
+                  className="form-input-ziyada footer-newsletter-input" 
+                  style={{ 
+                    flex: 1, 
+                    minWidth: 160,
+                    background: "#ffffff",
+                    color: "#0f172a",
+                    border: "1px solid rgba(59,130,246,0.3)"
+                  }} required />
+                <button type="submit" className="btn-primary-ziyada" style={{ padding: "10px 16px", fontSize: "0.85rem" }}>
                   {subStatus === "loading" ? "..." : (isRTL ? "اشترك" : "Subscribe")}
                 </button>
                 {formError && <p style={{ color: "#ef4444", fontSize: "0.8rem", width: "100%", marginTop: 4 }}>{formError}</p>}

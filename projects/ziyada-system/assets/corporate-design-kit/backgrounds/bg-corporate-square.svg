@@ -1,13 +1,26 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="2000" height="2000" viewBox="0 0 2000 2000">
+<svg width="1080" height="1080" viewBox="0 0 1080 1080" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <radialGradient id="g" cx="50%" cy="50%" r="70%">
-      <stop offset="0%" stop-color="#1e3a8a" stop-opacity="0.28"/>
-      <stop offset="100%" stop-color="#0f172a" stop-opacity="1"/>
+    <radialGradient id="sqGlow" cx="50%" cy="50%" r="60%">
+      <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.07"/>
+      <stop offset="50%" stop-color="#8b5cf6" stop-opacity="0.03"/>
+      <stop offset="100%" stop-color="#0f172a" stop-opacity="0"/>
     </radialGradient>
+    <radialGradient id="sqGlowTR" cx="80%" cy="20%" r="35%">
+      <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.05"/>
+      <stop offset="100%" stop-color="#0f172a" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="sqDots" x="0" y="0" width="55" height="55" patternUnits="userSpaceOnUse">
+      <circle cx="27" cy="27" r="1.2" fill="#3b82f6" opacity="0.09"/>
+    </pattern>
+    <linearGradient id="sqBar" x1="0" y1="0" x2="1080" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#8b5cf6"/>
+      <stop offset="50%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#06b6d4"/>
+    </linearGradient>
   </defs>
-  <rect width="100%" height="100%" fill="#0f172a"/>
-  <rect width="100%" height="100%" fill="url(#g)"/>
-  <circle cx="1000" cy="1000" r="666" fill="none" stroke="#8b5cf6" stroke-opacity="0.25" stroke-width="2"/>
-  <circle cx="1000" cy="1000" r="980" fill="none" stroke="#3b82f6" stroke-opacity="0.18" stroke-width="2"/>
-  <circle cx="1000" cy="1000" r="920" fill="none" stroke="#06b6d4" stroke-opacity="0.20" stroke-width="1"/>
+  <rect width="1080" height="1080" fill="#0f172a"/>
+  <rect width="1080" height="1080" fill="url(#sqGlow)"/>
+  <rect width="1080" height="1080" fill="url(#sqGlowTR)"/>
+  <rect width="1080" height="1080" fill="url(#sqDots)"/>
+  <rect x="0" y="1074" width="1080" height="6" fill="url(#sqBar)"/>
 </svg>

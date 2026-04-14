@@ -9,7 +9,12 @@
       "Bash(npx vercel:*)",
       "Read(//Users/djbiggy/.local/share/com.vercel.cli/**)",
       "Read(//Users/djbiggy/.vercel/**)",
-      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('Token found:', bool\\(d.get\\('token'\\)\\)\\)\")"
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('Token found:', bool\\(d.get\\('token'\\)\\)\\)\")",
+      "WebFetch(domain:github.com)"
     ]
-  }
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "supabase"
+  ]
 }
