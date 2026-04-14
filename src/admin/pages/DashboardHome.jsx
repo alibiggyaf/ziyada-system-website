@@ -447,7 +447,7 @@ export default function DashboardHome() {
               className={cn(
                 "w-full px-4 py-3 rounded-xl text-sm transition-all focus:ring-2 focus:ring-blue-500 outline-none resize-none",
                 isDark
-                  ? "bg-white/5 border-white/10 text-white placeholder-gray-500"
+                  ? "bg-slate-900 border-white/20 text-white placeholder-gray-500 focus:bg-slate-950"
                   : "bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-400"
               )}
             />
