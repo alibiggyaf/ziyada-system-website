@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>Ziyada System — Social Media Post Templates</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #1e293b;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 48px;
+    padding: 48px;
+    justify-content: center;
+    font-family: 'Noto Kufi Arabic', sans-serif;
+  }
+  .template-group { text-align: center; }
+  .template-label {
+    color: #94a3b8;
+    font-size: 13px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    margin-bottom: 12px;
+    direction: ltr;
+  }
+
+  /* ========== SQUARE POST (1080x1080) scaled to 400x400 ========== */
+  .post-square {
+    width: 400px; height: 400px;
+    background: #0f172a;
+    border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 36px;
+  }
+  .post-square::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 30% 25%, rgba(59,130,246,0.08) 0%, transparent 50%),
+      radial-gradient(circle at 75% 70%, rgba(139,92,246,0.06) 0%, transparent 40%);
+    pointer-events: none;
+  }
+  .post-square::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #8b5cf6, #3b82f6, #06b6d4);
+  }
+  .post-badge {
+    display: inline-block;
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #3b82f6;
+    border: 1px solid rgba(59,130,246,0.3);
+    background: rgba(59,130,246,0.1);
+    margin-bottom: 16px;
+    width: fit-content;
+  }
+  .post-title {
+    font-weight: 900;
+    font-size: 26px;
+    line-height: 1.35;
+    color: #ffffff;
+    margin-bottom: 14px;
+    background: linear-gradient(270deg, #1e3a8a, #3b82f6, #7c3aed, #1e3a8a);
+    background-size: 300% 100%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .post-subtitle {
+    font-size: 13px;
+    color: #94a3b8;
+    line-height: 1.7;
+    margin-bottom: 20px;
+  }
+  /* Glass stats row */
+  .stats-row {
+    display: flex;
+    gap: 10px;
+    direction: ltr;
+  }
+  .stat-chip {
+    flex: 1;
+    padding: 12px 8px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(40,55,110,0.35), rgba(15,20,40,0.55));
+    border: 1px solid rgba(130,150,255,0.12);
+    text-align: center;
+  }
+  .stat-number {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 800;
+    font-size: 20px;
+    color: #3b82f6;
+    display: block;
+  }
+  .stat-label {
+    font-size: 9px;
+    color: #94a3b8;
+    margin-top: 2px;
+  }
+  /* Logo footer */
+  .post-footer {
+    position: absolute;
+    bottom: 14px;
+    left: 36px;
+    right: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    direction: ltr;
+  }
+  .post-footer-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .post-footer-logo svg { width: 24px; height: 24px; }
+  .post-footer-brand {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 800;
+    font-size: 10px;
+    color: #64748b;
+    letter-spacing: -0.02em;
+  }
+  .post-footer-url {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 10px;
+    color: #475569;
+  }
+
+  /* ========== STORY (1080x1920) scaled to 225x400 ========== */
+  .post-story {
+    width: 225px; height: 400px;
+    background: #0f172a;
+    border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+    text-align: center;
+  }
+  .post-story::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 40%, rgba(59,130,246,0.07) 0%, transparent 50%);
+    pointer-events: none;
+  }
+  .post-story::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #8b5cf6, #3b82f6, #06b6d4);
+  }
+  .story-title {
+    font-weight: 900;
+    font-size: 20px;
+    line-height: 1.4;
+    color: #ffffff;
+    margin-bottom: 12px;
+    background: linear-gradient(270deg, #1e3a8a, #3b82f6, #7c3aed, #1e3a8a);
+    background-size: 300% 100%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .story-stat {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 800;
+    font-size: 36px;
+    color: #3b82f6;
+    margin-bottom: 4px;
+  }
+  .story-stat-label {
+    font-size: 12px;
+    color: #94a3b8;
+    margin-bottom: 20px;
+  }
+  .story-cta {
+    padding: 10px 24px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #1e3a8a, #2563eb, #7c3aed);
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 12px;
+    border: none;
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== SQUARE POST ===== -->
+<div class="template-group">
+  <div class="template-label">Square Post — 1080 x 1080</div>
+  <div class="post-square">
+    <div class="post-badge">أتمتة ذكية</div>
+    <div class="post-title">وقّف ضياع العملاء.<br>حوّل 3 أضعاف.</div>
+    <div class="post-subtitle">نظام متكامل يشتغل لك ٢٤/٧ — من أول تواصل لين يصير عميل دائم.</div>
+    <div class="stats-row">
+      <div class="stat-chip">
+        <span class="stat-number">+34%</span>
+        <span class="stat-label">مبيعات</span>
+      </div>
+      <div class="stat-chip">
+        <span class="stat-number">-120h</span>
+        <span class="stat-label">ساعات/شهر</span>
+      </div>
+      <div class="stat-chip">
+        <span class="stat-number">3x</span>
+        <span class="stat-label">عائد استثمار</span>
+      </div>
+    </div>
+    <div class="post-footer">
+      <div class="post-footer-logo">
+        <svg viewBox="0 0 512 512" fill="none"><polygon points="256,56 456,176 456,376 256,496 56,376 56,176" fill="none" stroke="#3b82f6" stroke-width="12"/><path d="M160 200 L352 200 L160 320 L352 320" stroke="#3b82f6" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="post-footer-brand">ZIYADA SYSTEM</span>
+      </div>
+      <span class="post-footer-url">ziyadasystem.com</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===== STORY POST ===== -->
+<div class="template-group">
+  <div class="template-label">Story — 1080 x 1920</div>
+  <div class="post-story">
+    <svg viewBox="0 0 512 512" fill="none" width="40" height="40" style="margin-bottom:20px;opacity:0.3;"><polygon points="256,56 456,176 456,376 256,496 56,376 56,176" fill="none" stroke="#3b82f6" stroke-width="10"/><path d="M160 200 L352 200 L160 320 L352 320" stroke="#3b82f6" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <div class="story-title">الذكاء الاصطناعي يشتغل لك</div>
+    <div class="story-stat">+34%</div>
+    <div class="story-stat-label">زيادة في المبيعات</div>
+    <button class="story-cta">احجز استشارتك المجانية</button>
+    <div style="position:absolute;bottom:14px;font-size:9px;color:#475569;font-family:'Plus Jakarta Sans',sans-serif;">ziyadasystem.com</div>
+  </div>
+</div>
+
+</body>
+</html>

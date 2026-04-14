@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>دليل التحكم في لوحة إدارة زيادة سيستم</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@300;400;500;600;700;800;900&display=swap">
+<style>
+:root {
+  --brand-blue: #3b82f6;
+  --brand-blue-dark: #2563eb;
+  --brand-purple: #8b5cf6;
+  --brand-gradient: linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%);
+  --bg-page: #f8fafc;
+  --bg-card: #ffffff;
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --border-color: #e2e8f0;
+  --accent-blue-light: #eff6ff;
+  --accent-purple-light: #f5f3ff;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Noto Kufi Arabic', sans-serif;
+  background: var(--bg-page);
+  color: var(--text-main);
+  line-height: 1.9;
+  font-size: 16px;
+}
+#conf-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9000;
+  background: rgba(15, 23, 42, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 6px 16px;
+}
+#conf-bar span { color: #94a3b8; font-size: 11px; font-weight: 600; }
+#conf-bar .dot { width: 5px; height: 5px; border-radius: 50%; background: #8b5cf6; }
+body { padding-top: 30px; }
+.header {
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-color);
+  padding: 68px 40px;
+  position: relative;
+  overflow: hidden;
+}
+.header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: var(--brand-gradient);
+}
+.header::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at top right, rgba(139,92,246,0.05) 0%, transparent 60%);
+  pointer-events: none;
+}
+.header-inner { position: relative; max-width: 980px; margin: 0 auto; }
+.badge {
+  display: inline-flex;
+  background: var(--accent-purple-light);
+  color: var(--brand-purple);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 24px;
+  border: 1px solid #e9d5ff;
+}
+.site-logo {
+  width: 72px;
+  height: 72px;
+  border-radius: 20px;
+  background: var(--brand-gradient);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 38px;
+  font-weight: 900;
+  margin-bottom: 24px;
+  box-shadow: 0 10px 30px -5px rgba(139,92,246,0.4);
+}
+.header h1 {
+  font-size: 38px;
+  font-weight: 900;
+  margin-bottom: 10px;
+  background: var(--brand-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  line-height: 1.35;
+}
+.header p { color: var(--text-muted); font-size: 18px; font-weight: 500; }
+.header-meta {
+  margin-top: 28px;
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--border-color);
+  padding-top: 28px;
+}
+.meta-item { color: var(--text-muted); font-size: 14px; }
+.meta-item strong { color: var(--text-main); }
+.container { max-width: 980px; margin: 0 auto; padding: 48px 24px 80px; }
+.toc, .section {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  box-shadow: 0 4px 12px -2px rgba(0,0,0,0.05);
+}
+.toc { padding: 34px 40px; margin-bottom: 40px; }
+.toc-title {
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--brand-blue-dark);
+  margin-bottom: 20px;
+}
+.toc ol { padding-right: 22px; }
+.toc li { margin-bottom: 10px; color: var(--brand-blue); }
+.toc a { color: var(--text-main); text-decoration: none; font-weight: 700; }
+.section { padding: 44px; margin-bottom: 28px; }
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 28px;
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 22px;
+}
+.section-num {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: var(--accent-blue-light);
+  color: var(--brand-blue);
+  font-weight: 900;
+  font-size: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.section h2 { font-size: 26px; font-weight: 900; line-height: 1.3; }
+.section-subtitle { font-size: 14px; color: var(--text-muted); font-weight: 600; margin-top: 4px; }
+.section p { color: var(--text-muted); margin-bottom: 18px; }
+.subsection-title {
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--text-main);
+  margin: 30px 0 14px;
+}
+.alert {
+  border-radius: 14px;
+  padding: 18px 20px;
+  margin: 18px 0;
+  font-size: 15px;
+  line-height: 1.8;
+}
+.alert-info { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; }
+.alert-warn { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; }
+.alert-success { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
+.table-scroll-wrap { width: 100%; overflow-x: auto; margin: 16px 0; border-radius: 12px; }
+table {
+  width: 100%;
+  min-width: 980px;
+  border-collapse: collapse;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  overflow: hidden;
+  table-layout: fixed;
+}
+th {
+  background: var(--accent-blue-light);
+  color: var(--brand-blue-dark);
+  padding: 14px 18px;
+  text-align: right;
+  font-weight: 800;
+  border-bottom: 2px solid #bfdbfe;
+  font-size: 14px;
+  white-space: nowrap;
+}
+td {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border-color);
+  vertical-align: top;
+  line-height: 1.8;
+  word-break: normal;
+  overflow-wrap: anywhere;
+}
+tr:last-child td { border-bottom: none; }
+.en {
+  direction: ltr;
+  text-align: left;
+  font-family: 'Noto Kufi Arabic', sans-serif;
+}
+.tag {
+  display: inline-flex;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.tag-blue { background: #dbeafe; color: #1d4ed8; }
+.tag-green { background: #dcfce7; color: #15803d; }
+.tag-orange { background: #ffedd5; color: #c2410c; }
+.tag-gray { background: #f1f5f9; color: #475569; }
+.grid-two {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+}
+.info-card {
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 20px 22px;
+  background: #fff;
+}
+.info-card h3 { font-size: 16px; font-weight: 800; margin-bottom: 8px; }
+.info-card p { font-size: 14px; margin-bottom: 8px; }
+.inline-link {
+  color: var(--brand-blue-dark);
+  text-decoration: none;
+  font-family: monospace;
+  overflow-wrap: anywhere;
+}
+.list {
+  padding-right: 20px;
+  color: var(--text-muted);
+}
+.list li { margin-bottom: 10px; }
+.footer {
+  text-align: center;
+  padding: 54px 32px;
+  margin-top: 34px;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border-color);
+}
+.footer strong { color: var(--text-main); }
+@media (max-width: 768px) {
+  .header { padding: 34px 16px; }
+  .header h1 { font-size: 24px; }
+  .header p { font-size: 14px; }
+  .container { padding: 24px 14px 60px; }
+  .toc, .section { padding: 22px 16px; }
+  .section-header { gap: 12px; }
+  .section-num { width: 42px; height: 42px; font-size: 18px; }
+  .section h2 { font-size: 20px; }
+  table { min-width: 820px; }
+}
+</style>
+</head>
+<body>
+<div id="conf-bar">
+  <span>ZIYADA SYSTEM</span>
+  <div class="dot"></div>
+  <span>ADMIN CONTROL GUIDE</span>
+</div>
+
+<header class="header">
+  <div class="header-inner">
+    <div class="badge">دليل تشغيلي ثنائي اللغة | Bilingual Operations Guide</div>
+    <div class="site-logo">Z</div>
+    <h1>دليل التحكم في لوحة إدارة زيادة سيستم</h1>
+    <p>Arabic first, English second. A future operator should understand access, triggers, inputs, outputs, and control boundaries.</p>
+    <div class="header-meta">
+      <div class="meta-item"><strong>النسخة:</strong> 1.0</div>
+      <div class="meta-item"><strong>آخر تحديث:</strong> 2026-04-12</div>
+      <div class="meta-item"><strong>عنوان اللوحة:</strong> https://www.ziyadasystem.com/admin</div>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+  <section class="toc">
+    <div class="toc-title">فهرس المحتوى | Table of Contents</div>
+    <ol>
+      <li><a href="#overview">نظرة عامة وحدود النظام | System Overview and Scope</a></li>
+      <li><a href="#access">الوصول والصلاحيات | Access and Roles</a></li>
+      <li><a href="#editable">ما الذي يمكن تعديله من اللوحة؟ | What is editable from admin?</a></li>
+      <li><a href="#noteditable">ما الذي لا يُدار من اللوحة؟ | What is not managed from admin?</a></li>
+      <li><a href="#modules">شرح الأقسام الإدارية | Admin module guide</a></li>
+      <li><a href="#triggers">المحفزات والمدخلات والنتائج | Triggers, inputs, and outcomes</a></li>
+      <li><a href="#security">سياسة الأمان والسرية | Security and confidentiality policy</a></li>
+      <li><a href="#rights">حقوق الشركة والسياسة الداخلية | Company rights and internal policy</a></li>
+    </ol>
+  </section>
+
+  <section class="section" id="overview">
+    <div class="section-header">
+      <div class="section-num">1</div>
+      <div>
+        <h2>نظرة عامة وحدود النظام</h2>
+        <div class="section-subtitle">System overview and operational boundary</div>
+      </div>
+    </div>
+    <p>
+      لوحة التحكم الحالية هي لوحة تشغيل وإدارة محتوى منظم، وليست نظام تحرير شامل لكل صفحات الموقع.
+      يمكنها إدارة البيانات المنظمة مثل الخدمات، المقالات، الأسئلة الشائعة، دراسات الحالة، العملاء المحتملين، الحجوزات، المشتركين، المحادثات، وبعض الإعدادات.
+    </p>
+    <p class="en">
+      The current admin panel is an operations and structured-content panel, not a full CMS for every page on the website.
+      It manages structured data such as services, blog posts, FAQs, case studies, leads, bookings, subscribers, chats, and selected settings.
+    </p>
+    <div class="alert alert-info">
+      إذا سأل أي مشغّل: "كيف أعدل محتوى الموقع من لوحة التحكم؟" فالإجابة الصحيحة هي:
+      <strong>يمكن تعديل المحتوى المنظم فقط من اللوحة، أما الصفحات الثابتة والرسائل الخاصة فتحتاج تحديثاً تقنياً مع إعادة نشر معتمدة من إدارة زيادة سيستم.</strong>
+    </div>
+  </section>
+
+  <section class="section" id="access">
+    <div class="section-header">
+      <div class="section-num">2</div>
+      <div>
+        <h2>الوصول والصلاحيات</h2>
+        <div class="section-subtitle">Authentication and role expectations</div>
+      </div>
+    </div>
+    <div class="grid-two">
+      <div class="info-card">
+        <h3>العربية</h3>
+        <p>الدخول يتم عبر <span class="en">/admin/login</span>.</p>
+        <p>صلاحيات المستخدمين محفوظة في جدول <span class="en">profiles</span>.</p>
+        <p>الأدوار الظاهرة في النظام حالياً: <span class="en">owner</span> و<span class="en">admin</span> و<span class="en">developer</span>.</p>
+      </div>
+      <div class="info-card">
+        <h3 class="en">English</h3>
+        <p class="en">Login happens through <span>/admin/login</span>.</p>
+        <p class="en">User roles are stored in the <span>profiles</span> table.</p>
+        <p class="en">Current visible roles are <span>owner</span>, <span>admin</span>, and <span>developer</span>.</p>
+      </div>
+    </div>
+    <div class="alert alert-warn">
+      إنشاء أو تفعيل أي مستخدم إداري جديد يجب أن يتم فقط من خلال المالك أو المسؤول التقني المخول من زيادة سيستم. لا يجوز لأي موظف منح صلاحية دخول إداري أو مشاركة حسابه الشخصي بدون موافقة صريحة.
+    </div>
+  </section>
+
+  <section class="section" id="editable">
+    <div class="section-header">
+      <div class="section-num">3</div>
+      <div>
+        <h2>ما الذي يمكن تعديله من اللوحة؟</h2>
+        <div class="section-subtitle">Editable areas inside the admin panel</div>
+      </div>
+    </div>
+    <ul class="list">
+      <li>المدونة: إنشاء، تعديل، نشر، إلغاء نشر، حذف المقالات.</li>
+      <li class="en">Blog: create, edit, publish, unpublish, and delete posts.</li>
+      <li>الخدمات: تعديل العناوين والوصف والأيقونة والترتيب وحالة النشر.</li>
+      <li class="en">Services: edit titles, descriptions, icon name, display order, and publish state.</li>
+      <li>دراسات الحالة: تعديل العنوان، العميل، القطاع، التحدي، الحل، الغلاف، الترتيب، وحالة النشر.</li>
+      <li class="en">Case studies: edit title, client, industry, challenge, solution, cover image, order, and publish state.</li>
+      <li>الأسئلة الشائعة: إضافة وتعديل وإعادة ترتيب ونشر وإلغاء نشر.</li>
+      <li class="en">FAQ: add, edit, reorder, publish, and unpublish.</li>
+      <li>العملاء المحتملون: تغيير الحالة بين جديد، تم التواصل، مؤهل، مغلق، مع التصدير والحذف.</li>
+      <li class="en">Leads: change status between new, contacted, qualified, and closed, with export and delete.</li>
+      <li>الحجوزات: تغيير الحالة بين قيد الانتظار، مؤكد، ملغي، وفتح رابط الاجتماع إن وجد.</li>
+      <li class="en">Bookings: change status between pending, confirmed, and cancelled, and open the meet link if available.</li>
+      <li>المشتركون: عرض وتصدير CSV وحذف السجلات.</li>
+      <li class="en">Subscribers: list, export CSV, and delete records.</li>
+      <li>الإعدادات: معلومات الشركة، الروابط الاجتماعية، بعض قيم التكامل المعروضة، وأدوار المستخدمين.</li>
+      <li class="en">Settings: company info, social links, displayed integration values, and user roles.</li>
+      <li>محادثات الشات: عرض الجلسات والرسائل وحذف الجلسة عند الحاجة.</li>
+      <li class="en">Chat conversations: view sessions/messages and delete a session if needed.</li>
+    </ul>
+  </section>
+
+  <section class="section" id="noteditable">
+    <div class="section-header">
+      <div class="section-num">4</div>
+      <div>
+        <h2>ما الذي لا يُدار من اللوحة؟</h2>
+        <div class="section-subtitle">Pages and behaviors still controlled through code and deployment</div>
+      </div>
+    </div>
+    <div class="alert alert-warn">
+      الصفحات التالية ليست جزءاً من محرر إداري كامل، وأي تعديل عليها يتطلب تعديل كود ثم <span class="en">build + deploy</span>.
+    </div>
+    <ul class="list">
+      <li>الصفحة الرئيسية، من نحن، لماذا زيادة، صفحة البروفايل، وصفحات تجربة العلامة.</li>
+      <li class="en">Home, About, Why, Profile, and brand-experience pages.</li>
+      <li>صفحة <span class="en">company-profile</span> المستقلة.</li>
+      <li class="en">The standalone <span>company-profile</span> page.</li>
+      <li>صفحة الشكر <span class="en">ThankYou</span> ورسائل النجاح فيها.</li>
+      <li class="en">The <span>ThankYou</span> page and its success-state copy.</li>
+      <li>صفحة <span class="en">internal-guide.html</span> وآليات الحماية وتتبع الوصول.</li>
+      <li class="en">The <span>internal-guide.html</span> page and its protection/access-tracking logic.</li>
+      <li>تدفقات التكامل والرسائل والربط مع الأنظمة الخارجية.</li>
+      <li class="en">Integration flows, email templates, and external-system connection logic.</li>
+    </ul>
+  </section>
+
+  <section class="section" id="modules">
+    <div class="section-header">
+      <div class="section-num">5</div>
+      <div>
+        <h2>شرح الأقسام الإدارية</h2>
+        <div class="section-subtitle">Per-module control guide</div>
+      </div>
+    </div>
+    <div class="table-scroll-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>القسم</th>
+            <th>المدخلات / Inputs</th>
+            <th>الإجراءات المتاحة / Actions</th>
+            <th>النتيجة / Result</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Dashboard</td>
+            <td>لا توجد مدخلات تحريرية مباشرة. يعرض بيانات مجمعة.</td>
+            <td class="en">Read-only summary widgets and quick navigation.</td>
+            <td>رؤية سريعة لحالة النظام.</td>
+          </tr>
+          <tr>
+            <td>Leads</td>
+            <td>سجلات من النماذج والشات والتكاملات.</td>
+            <td class="en">Filter, search, export CSV, change status, delete.</td>
+            <td>تتبع العملاء المحتملين وتشغيل المتابعة البيعية.</td>
+          </tr>
+          <tr>
+            <td>Bookings</td>
+            <td>سجلات من الحجز المباشر أو company profile.</td>
+            <td class="en">Change status, inspect source page, open meet link, delete.</td>
+            <td>إدارة الاجتماعات والطلبات المؤكدة أو الملغاة.</td>
+          </tr>
+          <tr>
+            <td>Blog</td>
+            <td>عنوان، محتوى، تصنيف، حالة نشر، ميتا مرتبطة بالمقال.</td>
+            <td class="en">Create, edit, publish, unpublish, delete.</td>
+            <td>المقال يظهر أو يختفي من الواجهة العامة والمدونة.</td>
+          </tr>
+          <tr>
+            <td>Cases</td>
+            <td>عنوان، عميل، قطاع، تحدي، حل، صورة، ترتيب.</td>
+            <td class="en">Create, edit, publish, unpublish, delete.</td>
+            <td>دراسة الحالة تظهر في صفحة قصص النجاح.</td>
+          </tr>
+          <tr>
+            <td>FAQ</td>
+            <td>سؤال وإجابة بالعربية والإنجليزية، تصنيف، ترتيب.</td>
+            <td class="en">Create, edit, reorder, publish, unpublish, delete.</td>
+            <td>الأسئلة الشائعة تتحدث في صفحة FAQ.</td>
+          </tr>
+          <tr>
+            <td>Services</td>
+            <td>عنوان، وصف، slug، icon name، display order، publish state.</td>
+            <td class="en">Create, edit, reorder by number, publish, unpublish, delete.</td>
+            <td>تتحدث بطاقات الخدمات والبيانات المنظمة المرتبطة بها.</td>
+          </tr>
+          <tr>
+            <td>Subscribers</td>
+            <td>سجلات بريد من النشرة.</td>
+            <td class="en">List, filter, export CSV, delete.</td>
+            <td>مرجع للمشتركين لاستخدامات التسويق.</td>
+          </tr>
+          <tr>
+            <td>Analytics</td>
+            <td>قراءة من البيانات الداخلية.</td>
+            <td class="en">Read-only review.</td>
+            <td>ملخص أداء داخلي.</td>
+          </tr>
+          <tr>
+            <td>Settings</td>
+            <td>Company info, social links, integration display values, user roles.</td>
+            <td class="en">Save settings and update visible user roles.</td>
+            <td>تحديث بيانات عرض الشركة وإدارة الأدوار.</td>
+          </tr>
+          <tr>
+            <td>Trends / Competitor</td>
+            <td>بيانات تحليلية مجمعة.</td>
+            <td class="en">Operational review and content intelligence actions.</td>
+            <td>دعم قرارات المحتوى والمنافسة.</td>
+          </tr>
+          <tr>
+            <td>Chat</td>
+            <td>جلسات ورسائل مخزنة في <span class="en">chat_sessions</span> و<span class="en">chat_messages</span>.</td>
+            <td class="en">Inspect sessions, inspect messages, delete session.</td>
+            <td>مراجعة محادثات الزوار ومتابعة السلوك.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="section" id="triggers">
+    <div class="section-header">
+      <div class="section-num">6</div>
+      <div>
+        <h2>المحفزات والمدخلات والنتائج</h2>
+        <div class="section-subtitle">Operational trigger map for future users</div>
+      </div>
+    </div>
+    <div class="table-scroll-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>المحفز / Trigger</th>
+            <th>المدخلات / Input</th>
+            <th>ماذا يحدث؟ / What happens?</th>
+            <th>النتيجة النهائية / Final result</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>إرسال نموذج lead/contact</td>
+            <td>الاسم، الإيميل، الهاتف، الشركة، المصدر، الصفحة</td>
+            <td class="en">Saved to Supabase, sent to HubSpot sync, sent to notify workflow.</td>
+            <td>ظهور في Leads، مزامنة HubSpot، بريد إداري، ورد تلقائي إن وجد إيميل.</td>
+          </tr>
+          <tr>
+            <td>إرسال حجز اجتماع</td>
+            <td>الاسم، الإيميل، الموعد، الوقت، الصفحة، المصدر</td>
+            <td class="en">Saved as booking, synced to HubSpot workflow, notify workflow triggered.</td>
+            <td>ظهور في Bookings، بريد إداري، بريد تأكيد تلقائي.</td>
+          </tr>
+          <tr>
+            <td>إرسال company profile</td>
+            <td>الاسم الكامل، الجوال، الإيميل الاختياري، التحدي/الخدمة، source_page</td>
+            <td class="en">Saved to leads and bookings, notify sent, HubSpot sync sent.</td>
+            <td>تسجيل كامل للمصدر، ظهور في Supabase، ظهور في HubSpot، رسالة نجاح للمستخدم.</td>
+          </tr>
+          <tr>
+            <td>ضغط زر واتساب في صفحة الشكر أو company profile</td>
+            <td>الصفحة، الموضع، رقم الواتساب، الرابط</td>
+            <td class="en">GA event fired and notify workflow logs a whatsapp_click event.</td>
+            <td>تتبع في Analytics/Supabase ومعرفة مصدر الدخول إلى واتساب.</td>
+          </tr>
+          <tr>
+            <td>التقاط lead من الشات</td>
+            <td>الاسم، الإيميل، الجوال عند تقديمها داخل المحادثة</td>
+            <td class="en">Lead stored, synced to HubSpot, notify/auto-reply triggered.</td>
+            <td>العميل يظهر في Leads ويتلقى البريد التلقائي إذا قدم الإيميل.</td>
+          </tr>
+          <tr>
+            <td>دخول أو محاولة على internal guide</td>
+            <td>event_type، page_url، referrer، user_agent، بيانات جلسة ومحاولة</td>
+            <td class="en">Guide workflow enriches the record, stores it, and emails the admin alert.</td>
+            <td>سجل أمني في Supabase وبريد تنبيهي للدليل الداخلي.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="alert alert-success">
+      القاعدة الأساسية: أي trigger تشغيلي مهم يجب أن يوضح ثلاثة أمور للمستخدم الإداري المستقبلي:
+      <strong>من أين جاء الإدخال، أين تم تخزينه، وما هي النتيجة التي ظهرت للعميل أو للإدارة.</strong>
+    </div>
+  </section>
+
+  <section class="section" id="security">
+    <div class="section-header">
+      <div class="section-num">7</div>
+      <div>
+        <h2>سياسة الأمان والسرية</h2>
+        <div class="section-subtitle">Internal security and confidentiality expectations for staff users</div>
+      </div>
+    </div>
+    <div class="alert alert-info">
+      حسب سياسة زيادة السيستم، يلتزم كل مستخدم إداري بالمحافظة على سرية بيانات العملاء وبيانات التشغيل والمحتوى الداخلي وعدم نسخها أو مشاركتها أو إعادة استخدامها خارج نطاق العمل المصرح به.
+    </div>
+    <ul class="list">
+      <li>الدخول إلى لوحة الإدارة حق وظيفي مقيد بالمصرح لهم فقط، ويُمنع مشاركة الحسابات أو كلمات المرور أو روابط الدخول مع أي طرف غير مخول.</li>
+      <li class="en">Admin access is restricted to authorized staff only. Sharing accounts, passwords, or login links with unauthorized parties is prohibited.</li>
+      <li>أي بيانات يتم الاطلاع عليها داخل لوحة الإدارة تعتبر معلومات داخلية مملوكة لزيادة سيستم أو لعملائها، ويجب استخدامها لأغراض التشغيل فقط.</li>
+      <li class="en">Any data viewed in the admin panel is internal information belonging to Ziyada System or its clients and may only be used for approved operational work.</li>
+      <li>لا يجوز تنزيل أو نسخ أو تصوير أو إعادة توجيه أي بيانات أو تقارير أو رسائل أو سجلات إلا إذا كان ذلك مطلوباً للعمل وتمت الموافقة عليه.</li>
+      <li class="en">No data, reports, messages, or records may be copied, exported, photographed, or forwarded unless required for work and explicitly approved.</li>
+      <li>أي تعديل على المحتوى أو الصلاحيات أو الإعدادات يجب أن يكون قابلاً للتتبع، ومبنياً على مهمة عمل واضحة أو توجيه إداري مباشر.</li>
+      <li class="en">Any change to content, permissions, or settings must be traceable and tied to a clear task or direct management instruction.</li>
+    </ul>
+    <div class="alert alert-warn">
+      هذا الدليل مخصص للموظفين والمستخدمين الإداريين داخل زيادة سيستم. لا يجوز التعامل معه كوثيقة عامة أو مشاركته خارج الشركة أو استخدامه كمرجع لطرف ثالث.
+    </div>
+  </section>
+
+  <section class="section" id="rights">
+    <div class="section-header">
+      <div class="section-num">8</div>
+      <div>
+        <h2>حقوق الشركة والسياسة الداخلية</h2>
+        <div class="section-subtitle">Company rights, confidentiality, and Saudi-policy notice</div>
+      </div>
+    </div>
+    <div class="alert alert-success">
+      جميع الحقوق التشغيلية والتنظيمية والمعلوماتية المرتبطة بهذا النظام محفوظة لشركة زيادة سيستم. هذا الدليل وما يتصل به من بيانات وروابط وإجراءات مخصص للاستخدام الداخلي فقط.
+    </div>
+    <ul class="list">
+      <li>يُحظر على أي موظف أو مستخدم إداري نشر أو تسريب أو مشاركة أي جزء من هذا الدليل أو البيانات المرتبطة به خارج نطاق العمل الداخلي في زيادة سيستم.</li>
+      <li class="en">No employee or admin user may publish, leak, or share any part of this guide or related operational data outside Ziyada System’s internal work scope.</li>
+      <li>أي استخدام غير مصرح به، أو إفشاء للمعلومات، أو إساءة للصلاحيات، أو محاولة للوصول إلى بيانات أو صفحات خارج حدود المهمة الوظيفية، يُعد مخالفة داخلية جسيمة تستوجب الإجراء الإداري وحفظ حق الشركة في المطالبة القانونية.</li>
+      <li class="en">Any unauthorized use, disclosure, misuse of permissions, or attempt to access data or pages beyond the employee’s role is a serious internal violation and may trigger disciplinary action and preservation of the company’s legal rights.</li>
+      <li>تحتفظ زيادة سيستم بحقها الكامل في تقييد الوصول، وتعليق الحسابات، وسحب الصلاحيات، واتخاذ ما يلزم من إجراءات نظامية وفق الأنظمة واللوائح المعمول بها في المملكة العربية السعودية لحماية بياناتها وحقوقها وحقوق عملائها.</li>
+      <li class="en">Ziyada System reserves the full right to restrict access, suspend accounts, revoke permissions, and take the necessary legal and administrative actions under the laws and regulations applicable in the Kingdom of Saudi Arabia to protect its data, rights, and client interests.</li>
+      <li>استخدام لوحة الإدارة يعني الإقرار بهذه السياسة والالتزام بها من جميع الموظفين والمستخدمين الإداريين.</li>
+      <li class="en">Using the admin panel constitutes acknowledgment and acceptance of this policy by all employees and admin users.</li>
+    </ul>
+  </section>
+
+  <footer class="footer">
+    <p><strong>زيادة سيستم</strong></p>
+    <p>Admin Control Guide for future operators, bilingual, Arabic first.</p>
+  </footer>
+</main>
+<script>
+  document.querySelectorAll('.meta-item').forEach((node) => {
+    const text = node.textContent.trim();
+    const match = text.match(/https:\/\/[^\s]+/);
+    if (!match) return;
+    if (node.querySelector('a')) return;
+    const url = match[0];
+    node.innerHTML = node.innerHTML.replace(url, '<a class="inline-link" href="' + url + '" target="_blank" rel="noopener noreferrer">' + url + '</a>');
+  });
+</script>
+</body>
+</html>

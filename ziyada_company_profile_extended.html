@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ziyada Company Profile Extended</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #18233b;
+        --bg-deep: #111a30;
+        --panel: rgba(255, 255, 255, 0.08);
+        --panel-border: rgba(255, 255, 255, 0.12);
+        --text: #ffffff;
+        --muted: #95a3be;
+        --blue: #4f86ff;
+        --purple: #8d63ff;
+        --pink: #dd59b9;
+        --green: #43d18e;
+        --cyan: #51b8e3;
+        --orange: #ff9744;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Noto Kufi Arabic", sans-serif;
+        background: #0b1020;
+        color: var(--text);
+      }
+
+      .deck {
+        padding: 24px;
+        display: grid;
+        gap: 28px;
+        justify-content: center;
+      }
+
+      .slide {
+        position: relative;
+        width: 1280px;
+        height: 720px;
+        overflow: hidden;
+        border-radius: 24px;
+        background:
+          radial-gradient(circle at 88% 14%, rgba(79, 134, 255, 0.30), transparent 24%),
+          radial-gradient(circle at 64% 72%, rgba(81, 184, 227, 0.18), transparent 20%),
+          radial-gradient(circle at 72% 60%, rgba(221, 89, 185, 0.17), transparent 22%),
+          radial-gradient(circle at 12% 88%, rgba(141, 99, 255, 0.20), transparent 20%),
+          linear-gradient(180deg, #1b2740 0%, #172238 100%);
+        box-shadow: 0 30px 90px rgba(0, 0, 0, 0.35);
+      }
+
+      .grain {
+        position: absolute;
+        inset: 0;
+        opacity: 0.06;
+        background-image: radial-gradient(rgba(255, 255, 255, 0.5) 0.5px, transparent 0.5px);
+        background-size: 20px 20px;
+      }
+
+      .content {
+        position: relative;
+        z-index: 1;
+        padding: 44px 56px;
+        height: 100%;
+      }
+
+      .topline {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 22px;
+      }
+
+      .status {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: var(--muted);
+        font-size: 14px;
+        font-weight: 700;
+      }
+
+      .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        background: var(--green);
+      }
+
+      .dot.red { background: #ff615c; }
+      .dot.blue { background: var(--blue); }
+      .dot.orange { background: var(--orange); }
+      .dot.purple { background: var(--purple); }
+
+      .heading {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+      }
+
+      .iconbox {
+        width: 64px;
+        height: 64px;
+        border-radius: 18px;
+        background: rgba(79, 134, 255, 0.16);
+        border: 1px solid rgba(79, 134, 255, 0.22);
+        display: grid;
+        place-items: center;
+      }
+
+      .iconbox img {
+        width: 30px;
+        height: 30px;
+        opacity: 0.95;
+      }
+
+      .heading h2 {
+        margin: 0;
+        font-size: 24px;
+        line-height: 1.2;
+        font-weight: 900;
+      }
+
+      .heading p {
+        margin: 4px 0 0;
+        color: var(--muted);
+        font-size: 14px;
+        font-weight: 700;
+      }
+
+      .hero-title {
+        font-size: 58px;
+        line-height: 1.22;
+        font-weight: 900;
+        margin: 78px auto 18px;
+        text-align: center;
+        max-width: 1080px;
+      }
+
+      .gradient {
+        background: linear-gradient(90deg, var(--pink) 0%, var(--purple) 45%, var(--blue) 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+
+      .hero-sub {
+        text-align: center;
+        max-width: 980px;
+        margin: 0 auto 26px;
+        font-size: 21px;
+        line-height: 1.8;
+        font-weight: 600;
+        color: var(--muted);
+      }
+
+      .cards-2,
+      .cards-3,
+      .cards-4,
+      .cards-6 {
+        display: grid;
+        gap: 20px;
+      }
+
+      .cards-2 { grid-template-columns: repeat(2, 1fr); }
+      .cards-3 { grid-template-columns: repeat(3, 1fr); }
+      .cards-4 { grid-template-columns: repeat(4, 1fr); }
+      .cards-6 { grid-template-columns: repeat(3, 1fr); }
+
+      .card {
+        min-height: 150px;
+        border-radius: 22px;
+        background: var(--panel);
+        border: 1px solid var(--panel-border);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+        padding: 24px 24px 20px;
+      }
+
+      .card h3 {
+        margin: 0 0 10px;
+        font-size: 25px;
+        line-height: 1.35;
+        font-weight: 900;
+      }
+
+      .card p, .card li {
+        margin: 0;
+        color: var(--muted);
+        font-size: 16px;
+        line-height: 1.75;
+        font-weight: 600;
+      }
+
+      .card ul {
+        margin: 8px 0 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .stat-strip {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        margin-top: 24px;
+      }
+
+      .stat {
+        padding: 18px 16px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.10);
+        text-align: center;
+      }
+
+      .stat .n {
+        color: var(--blue);
+        font-size: 34px;
+        font-weight: 900;
+      }
+
+      .stat .l {
+        margin-top: 6px;
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      .mini-tag {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 800;
+        margin-top: 14px;
+      }
+
+      .tag-blue { background: rgba(79, 134, 255, 0.12); color: var(--blue); }
+      .tag-purple { background: rgba(141, 99, 255, 0.12); color: var(--purple); }
+      .tag-pink { background: rgba(221, 89, 185, 0.12); color: var(--pink); }
+      .tag-green { background: rgba(67, 209, 142, 0.12); color: var(--green); }
+      .tag-orange { background: rgba(255, 151, 68, 0.12); color: var(--orange); }
+      .tag-cyan { background: rgba(81, 184, 227, 0.12); color: var(--cyan); }
+
+      .footer-note {
+        position: absolute;
+        right: 56px;
+        left: 56px;
+        bottom: 40px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: var(--muted);
+        font-size: 14px;
+        font-weight: 700;
+      }
+
+      .footer-note .left,
+      .footer-note .right {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+
+      .flow {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+        margin-top: 46px;
+      }
+
+      .flow .box {
+        border-radius: 20px;
+        background: rgba(255,255,255,0.07);
+        border: 1px solid rgba(255,255,255,0.11);
+        padding: 22px 20px;
+        min-height: 160px;
+        position: relative;
+      }
+
+      .flow .box h4 {
+        margin: 0 0 8px;
+        font-size: 21px;
+        font-weight: 900;
+      }
+
+      .flow .box p {
+        color: var(--muted);
+        font-size: 15px;
+        line-height: 1.7;
+        margin: 0;
+      }
+
+      .flow .arrow {
+        position: absolute;
+        left: -12px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 28px;
+        color: rgba(255,255,255,0.35);
+      }
+
+      .architecture {
+        display: grid;
+        grid-template-columns: 280px 1fr 280px;
+        gap: 28px;
+        align-items: center;
+        margin-top: 50px;
+      }
+
+      .stack-col {
+        display: grid;
+        gap: 18px;
+      }
+
+      .stack-card {
+        border-radius: 22px;
+        background: rgba(255,255,255,0.07);
+        border: 1px solid rgba(255,255,255,0.11);
+        padding: 20px;
+        min-height: 122px;
+      }
+
+      .stack-card h4 {
+        margin: 0 0 8px;
+        font-size: 22px;
+        font-weight: 900;
+      }
+
+      .stack-card p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.7;
+        font-size: 14px;
+        font-weight: 700;
+      }
+
+      .center-orb {
+        width: 210px;
+        height: 210px;
+        margin: 0 auto;
+        border-radius: 999px;
+        background: linear-gradient(180deg, #5576ff, #7d65fb);
+        display: grid;
+        place-items: center;
+        text-align: center;
+        font-size: 36px;
+        font-weight: 900;
+        box-shadow: 0 30px 60px rgba(79, 134, 255, 0.24);
+      }
+
+      .web-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px;
+        margin-top: 42px;
+      }
+
+      .web-card {
+        border-radius: 20px;
+        background: rgba(255,255,255,0.07);
+        border: 1px solid rgba(255,255,255,0.11);
+        padding: 24px 22px;
+        min-height: 168px;
+      }
+
+      .web-card h4 {
+        margin: 0 0 10px;
+        font-size: 22px;
+        font-weight: 900;
+      }
+
+      .web-card p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 15px;
+        line-height: 1.7;
+        font-weight: 700;
+      }
+
+      .support-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+        margin-top: 46px;
+      }
+
+      .support-card {
+        border-radius: 20px;
+        background: rgba(255,255,255,0.07);
+        border: 1px solid rgba(255,255,255,0.11);
+        padding: 24px 18px;
+        min-height: 188px;
+        text-align: center;
+      }
+
+      .support-card h4 {
+        margin: 0 0 10px;
+        font-size: 20px;
+        font-weight: 900;
+      }
+
+      .support-card p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.75;
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="deck">
+      <section class="slide">
+        <div class="grain"></div>
+        <div class="content">
+          <div class="topline">
+            <div class="heading">
+              <div class="iconbox"><img src="public/favicon.svg" alt="Ziyada" /></div>
+              <div>
+                <h2>من نحن</h2>
+                <p>نظرة تنفيذية على الشركة والهوية والمنهج</p>
+              </div>
+            </div>
+            <div class="status"><span class="dot blue"></span><span>ملف شركة شامل</span></div>
+          </div>
+
+          <div class="hero-title"><span class="gradient">نبني أنظمة نمو رقمية متكاملة</span><br />للشركات الطموحة في السعودية</div>
+          <div class="hero-sub">
+            زيادة للأنظمة المتقدمة متخصصة في تصميم وبناء منظومات النمو الرقمية: من الأتمتة والـ CRM
+            إلى اكتساب العملاء، المواقع الذكية، ولوحات القياس المرتبطة بالأثر التجاري الحقيقي.
+          </div>
+
+          <div class="cards-2">
+            <div class="card">
+              <h3>رؤيتنا</h3>
+              <p>أن نكون الشريك التشغيلي المفضل للشركات الطموحة في المنطقة العربية، ونساعدها على بناء أنظمة نمو متكاملة وقابلة للتوسع.</p>
+              <span class="mini-tag tag-blue">رؤية قابلة للتنفيذ</span>
+            </div>
+            <div class="card">
+              <h3>منهجنا</h3>
+              <p>نبدأ بفهم الوضع الحالي، ثم نصمم الحلول المناسبة، وننفذ تدريجيًا مع قياس النتائج في كل مرحلة حتى تصبح المنظومة قابلة للإدارة والتحسين.</p>
+              <span class="mini-tag tag-purple">تشخيص ← تصميم ← تشغيل</span>
+            </div>
+          </div>
+
+          <div class="stat-strip">
+            <div class="stat"><div class="n">50+</div><div class="l">شركة أتمتناها</div></div>
+            <div class="stat"><div class="n">40%</div><div class="l">متوسط نمو الإيرادات</div></div>
+            <div class="stat"><div class="n">80h</div><div class="l">توفير شهري لكل عميل</div></div>
+            <div class="stat"><div class="n">15+</div><div class="l">سنة خبرة للمؤسس</div></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide">
+        <div class="grain"></div>
+        <div class="content">
+          <div class="topline">
+            <div class="heading">
+              <div class="iconbox"><img src="public/favicon.svg" alt="Ziyada" /></div>
+              <div>
+                <h2>خدماتنا</h2>
+                <p>ستة مسارات أساسية لبناء منظومة نمو متكاملة</p>
+              </div>
+            </div>
+            <div class="status"><span class="dot"></span><span>6 خدمات رئيسية</span></div>
+          </div>
+
+          <div class="cards-6" style="margin-top: 38px;">
+            <div class="card"><h3>أنظمة أتمتة الأعمال</h3><p>نحوّل الأعمال المتكررة إلى أنظمة ذكية تعمل بسرعة واتساق وتقلّل الهدر التشغيلي.</p><span class="mini-tag tag-blue">Automation</span></div>
+            <div class="card"><h3>إدارة العملاء والمبيعات</h3><p>نبني نظامًا بيعيًا يرتّب المتابعة ويقفل الصفقات من أول تواصل حتى التحويل.</p><span class="mini-tag tag-purple">CRM</span></div>
+            <div class="card"><h3>أنظمة اكتساب العملاء</h3><p>نلقط الفرص ونؤهلها وندخلها مسارًا بيعيًا واضحًا حتى لا تضيع أي فرصة.</p><span class="mini-tag tag-pink">Lead Gen</span></div>
+            <div class="card"><h3>التسويق الأدائي والبحث</h3><p>إعلانات + SEO مرتبطة بجودة العملاء والعائد، لا بالمشاهدات وحدها.</p><span class="mini-tag tag-orange">Performance</span></div>
+            <div class="card"><h3>المواقع الذكية والمنصات</h3><p>مواقع مربوطة بإدارة العملاء والأتمتة والقياس، وليست مجرد واجهة عرض.</p><span class="mini-tag tag-cyan">Web Platforms</span></div>
+            <div class="card"><h3>أنظمة المحتوى والسوشيال</h3><p>منظومة واضحة من الاستراتيجية إلى النشر والتقارير بحيث يخدم المحتوى أهداف النمو.</p><span class="mini-tag tag-green">Content System</span></div>
+          </div>
+
+          <div class="footer-note">
+            <div class="left"><span>القطاعات: التجزئة، العقار، التعليم، الرعاية الصحية، الخدمات، B2B</span></div>
+            <div class="right"><span>كل خدمة قابلة للربط مع بقية المنظومة</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide">
+        <div class="grain"></div>
+        <div class="content">
+          <div class="topline">
+            <div class="heading">
+              <div class="iconbox"><img src="public/favicon.svg" alt="Ziyada" /></div>
+              <div>
+                <h2>المنظومة الرقمية التي نبنيها</h2>
+                <p>طبقات مترابطة تجمع الواجهة، البيانات، التشغيل، والقياس</p>
+              </div>
+            </div>
+            <div class="status"><span class="dot cyan"></span><span>6 طبقات مترابطة</span></div>
+          </div>
+
+          <div class="architecture">
+            <div class="stack-col">
+              <div class="stack-card"><h4>واجهة الموقع</h4><p>موقع ثنائي اللغة، صفحات خدمات، نماذج تواصل وطلب عرض وحجز اجتماع.</p><span class="mini-tag tag-blue">Frontend</span></div>
+              <div class="stack-card"><h4>لوحة الإدارة</h4><p>إدارة العملاء، الحجوزات، المقالات، الخدمات، دراسات الحالة، والإعدادات.</p><span class="mini-tag tag-purple">Admin</span></div>
+              <div class="stack-card"><h4>التحليلات</h4><p>GA4 وPostHog وHotjar/Contentsquare مع تتبع UTM ومسارات التحويل.</p><span class="mini-tag tag-green">Analytics</span></div>
+            </div>
+
+            <div class="center-orb">زيادة<br />سيستم</div>
+
+            <div class="stack-col">
+              <div class="stack-card"><h4>Supabase</h4><p>قاعدة البيانات، المصادقة، وحفظ النماذج والعملاء المحتملين والحجوزات.</p><span class="mini-tag tag-cyan">Database</span></div>
+              <div class="stack-card"><h4>n8n Workflows</h4><p>روبوت محادثة، إشعارات بريد، مزامنة HubSpot، ونشر المدونة تلقائيًا.</p><span class="mini-tag tag-orange">Automation</span></div>
+              <div class="stack-card"><h4>HubSpot + Email</h4><p>تحديث جهات الاتصال، حفظ بيانات المصدر، وإشعارات فورية لفريق المبيعات.</p><span class="mini-tag tag-pink">CRM Sync</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide">
+        <div class="grain"></div>
+        <div class="content">
+          <div class="topline">
+            <div class="heading">
+              <div class="iconbox"><img src="public/favicon.svg" alt="Ziyada" /></div>
+              <div>
+                <h2>صفحات وتجارب الويب</h2>
+                <p>الموقع ليس صفحة تعريفية فقط؛ بل واجهة تشغيل ونمو متصلة</p>
+              </div>
+            </div>
+            <div class="status"><span class="dot purple"></span><span>6 صفحات/تجارب أساسية</span></div>
+          </div>
+
+          <div class="web-grid">
+            <div class="web-card"><h4>الصفحة الرئيسية</h4><p>رسالة القيمة، إبراز المنظومة، الخدمات، والدعوات الرئيسية لاتخاذ الإجراء.</p></div>
+            <div class="web-card"><h4>من نحن</h4><p>توضيح خبرة الفريق، الرؤية، القيم، وبناء الثقة قبل مرحلة البيع.</p></div>
+            <div class="web-card"><h4>صفحات الخدمات</h4><p>شرح تفصيلي لكل خدمة وربطها بنتيجة تجارية واضحة وقطاع مناسب.</p></div>
+            <div class="web-card"><h4>المدونة والمحتوى</h4><p>مسار نشر مقالات، تحسين SEO، ودعم الظهور البحثي وبناء المصداقية.</p></div>
+            <div class="web-card"><h4>دراسات الحالة والأعمال</h4><p>عرض النتائج، القطاعات، أمثلة التنفيذ، وإثبات القدرة التشغيلية.</p></div>
+            <div class="web-card"><h4>النماذج والتحويل</h4><p>تواصل، طلب عرض سعر، حجز اجتماع، مع حفظ البيانات وربطها بسير العمل.</p></div>
+          </div>
+
+          <div class="footer-note">
+            <div class="left"><span>تجربة ثنائية اللغة مع RTL/LTR</span></div>
+            <div class="right"><span>كل صفحة تخدم هدفًا تجاريًا واضحًا</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide">
+        <div class="grain"></div>
+        <div class="content">
+          <div class="topline">
+            <div class="heading">
+              <div class="iconbox"><img src="public/favicon.svg" alt="Ziyada" /></div>
+              <div>
+                <h2>التشغيل والتتبع والحوكمة</h2>
+                <p>كيف تنتقل البيانات من النموذج إلى القرار التنفيذي</p>
+              </div>
+            </div>
+            <div class="status"><span class="dot orange"></span><span>مسار تشغيل واضح</span></div>
+          </div>
+
+          <div class="flow">
+            <div class="box">
+              <div class="arrow">‹</div>
+              <h4>النماذج والالتقاط</h4>
+              <p>التواصل، طلب العرض، وحجز الاجتماع مع حماية Honeypot وتحديد المعدل والتقاط UTM.</p>
+              <span class="mini-tag tag-blue">Input Layer</span>
+            </div>
+            <div class="box">
+              <div class="arrow">‹</div>
+              <h4>Supabase</h4>
+              <p>تخزين السجلات والحالات والملفات الأساسية وتحديث profile / lead / booking داخل قاعدة واحدة.</p>
+              <span class="mini-tag tag-cyan">Source of Truth</span>
+            </div>
+            <div class="box">
+              <div class="arrow">‹</div>
+              <h4>n8n + الإشعارات</h4>
+              <p>تشغيل الـ webhooks، إرسال البريد، تهيئة المقالات، وتفعيل روبوت المحادثة والمهام المساندة.</p>
+              <span class="mini-tag tag-purple">Workflow Engine</span>
+            </div>
+            <div class="box">
+              <h4>HubSpot + Analytics</h4>
+              <p>مزامنة جهة الاتصال، تتبع المصدر، وقراءة الأداء عبر GA4 وPostHog وHotjar.</p>
+              <span class="mini-tag tag-green">Decision Layer</span>
+            </div>
+          </div>
+
+          <div class="cards-4" style="margin-top: 26px;">
+            <div class="card" style="min-height: 120px;"><h3>GA4</h3><p>page_view, form_submit, cta_click, conversion.</p></div>
+            <div class="card" style="min-height: 120px;"><h3>PostHog</h3><p>session replay, funnels, identity after form submission.</p></div>
+            <div class="card" style="min-height: 120px;"><h3>Hotjar / CS</h3><p>heatmaps + recordings لفهم السلوك وتحسين التحويل.</p></div>
+            <div class="card" style="min-height: 120px;"><h3>Admin Governance</h3><p>لوحة إدارة محمية مع حالات واضحة للـ leads والمحتوى والخدمات.</p></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide">
+        <div class="grain"></div>
+        <div class="content">
+          <div class="topline">
+            <div class="heading">
+              <div class="iconbox"><img src="public/favicon.svg" alt="Ziyada" /></div>
+              <div>
+                <h2>ما بعد الإطلاق</h2>
+                <p>القيمة لا تتوقف عند التسليم؛ بل تبدأ منه</p>
+              </div>
+            </div>
+            <div class="status"><span class="dot"></span><span>تشغيل مستمر</span></div>
+          </div>
+
+          <div class="hero-title" style="font-size: 48px; margin-top: 84px;">
+            <span class="gradient">نسلّم منظومة قابلة للإدارة والتحسين</span><br />
+            وليست مجرد ملفات أو صفحات
+          </div>
+
+          <div class="support-grid">
+            <div class="support-card"><h4>نقل المعرفة</h4><p>تمكين الفريق الداخلي من إدارة الأدوات والصفحات وسير العمل اليومي.</p><span class="mini-tag tag-cyan">Enablement</span></div>
+            <div class="support-card"><h4>إدارة المحتوى</h4><p>محرر مدونة، إدارة خدمات، FAQ، ودراسات حالة داخل لوحة واحدة.</p><span class="mini-tag tag-purple">Content Ops</span></div>
+            <div class="support-card"><h4>قياس وتحسين</h4><p>قراءة الأداء بوضوح ثم تطوير الصفحات والمسارات والنماذج بناءً على البيانات.</p><span class="mini-tag tag-green">Optimization</span></div>
+            <div class="support-card"><h4>جاهزية للتوسع</h4><p>إضافة حملات، خدمات، عمليات، وقطاعات جديدة دون إعادة بناء النظام من الصفر.</p><span class="mini-tag tag-orange">Scalable</span></div>
+          </div>
+
+          <div class="footer-note">
+            <div class="left"><span>النتيجة: موقع + إدارة + أتمتة + قياس + مسار نمو واضح</span></div>
+            <div class="right"><span>الشراكة الحقيقية تبدأ بعد الإطلاق لا قبله فقط</span></div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </body>
+</html>

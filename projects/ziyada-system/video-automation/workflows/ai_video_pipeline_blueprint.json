@@ -1,0 +1,395 @@
+{
+  "meta": {
+    "name": "AI Video Pipeline Blueprint",
+    "version": "1.0.0",
+    "description": "Structured blueprint for a production-grade n8n Airtable-controlled AI video generation pipeline.",
+    "notes": [
+      "This file is a workflow blueprint, not a direct n8n export.",
+      "Each workflow block lists the exact node sequence, expected inputs, outputs, payloads, and code node logic references."
+    ]
+  },
+  "env": [
+    "AIRTABLE_API_KEY",
+    "AIRTABLE_BASE_ID",
+    "AIRTABLE_PROJECTS_TABLE",
+    "AIRTABLE_SCENES_TABLE",
+    "AIRTABLE_FINAL_TABLE",
+    "KIE_API_KEY",
+    "KIE_BASE_URL",
+    "ELEVENLABS_API_KEY",
+    "ELEVENLABS_VOICE_ID",
+    "SUNO_API_KEY",
+    "SUNO_BASE_URL",
+    "STORAGE_OUTPUT_DIR",
+    "TEMP_ASSETS_DIR",
+    "N8N_WEBHOOK_BASE_URL"
+  ],
+  "workflows": [
+    {
+      "id": "WF01",
+      "name": "Project Prompt Orchestrator",
+      "trigger_conditions": [
+        "Projects.trigger_generate_prompts = true"
+      ],
+      "nodes": [
+        {
+          "name": "Airtable Trigger - Projects Prompt Request",
+          "type": "airtableTrigger",
+          "purpose": "Watch Projects table for prompt generation requests."
+        },
+        {
+          "name": "Normalize Project Input",
+          "type": "code",
+          "purpose": "Normalize Airtable fields and infer creative mode.",
+          "code_ref": "README.md#normalize-project-and-infer-creative-mode"
+        },
+        {
+          "name": "Build Prompt Builder Payload",
+          "type": "code",
+          "purpose": "Compose the LLM brief using video-prompt-builder style shot logic."
+        },
+        {
+          "name": "LLM - Generate Concept Package",
+          "type": "httpRequest",
+          "purpose": "Generate structured concept JSON."
+        },
+        {
+          "name": "Parse Concept JSON",
+          "type": "code",
+          "purpose": "Validate concept payload and reject malformed scene arrays."
+        },
+        {
+          "name": "Build Scene Records",
+          "type": "code",
+          "purpose": "Convert concept scenes into Airtable-ready scene records.",
+          "code_ref": "README.md#parse-scene-json-into-airtable-records"
+        },
+        {
+          "name": "Airtable - Create Scenes",
+          "type": "httpRequest",
+          "purpose": "Bulk create Scene records."
+        },
+        {
+          "name": "Airtable - Update Project Outputs",
+          "type": "httpRequest",
+          "purpose": "Write generated concept back to the project."
+        }
+      ],
+      "expected_output_fields": [
+        "concept_idea",
+        "video_style",
+        "voiceover_master_script",
+        "music_prompt",
+        "scene_count"
+      ]
+    },
+    {
+      "id": "WF02",
+      "name": "Scene Image Generator",
+      "trigger_conditions": [
+        "Scenes.trigger_generate_images = true",
+        "Scenes.approved_prompt = true"
+      ],
+      "nodes": [
+        {
+          "name": "Airtable Trigger - Scene Image Request",
+          "type": "airtableTrigger",
+          "purpose": "Watch Scenes table for image generation."
+        },
+        {
+          "name": "Fetch Scene + Parent Project",
+          "type": "httpRequest",
+          "purpose": "Get the scene record and project context."
+        },
+        {
+          "name": "HTTP - Nano Banana Start Frame",
+          "type": "httpRequest",
+          "purpose": "Generate first frame.",
+          "payload_ref": "nano_banana_generate"
+        },
+        {
+          "name": "Poll Nano Banana Start Frame",
+          "type": "loop+httpRequest+wait+code",
+          "purpose": "Poll until start frame is ready.",
+          "code_ref": "README.md#polling-loop-result-parser"
+        },
+        {
+          "name": "HTTP - Nano Banana End Frame",
+          "type": "httpRequest",
+          "purpose": "Generate last frame.",
+          "payload_ref": "nano_banana_generate"
+        },
+        {
+          "name": "Poll Nano Banana End Frame",
+          "type": "loop+httpRequest+wait+code",
+          "purpose": "Poll until end frame is ready.",
+          "code_ref": "README.md#polling-loop-result-parser"
+        },
+        {
+          "name": "Airtable - Update Scene Images",
+          "type": "httpRequest",
+          "purpose": "Persist image URLs and mark image completion."
+        }
+      ]
+    },
+    {
+      "id": "WF03",
+      "name": "Scene Video Generator",
+      "trigger_conditions": [
+        "Scenes.trigger_generate_video = true",
+        "Scenes.approved_images = true"
+      ],
+      "nodes": [
+        {
+          "name": "Airtable Trigger - Scene Video Request",
+          "type": "airtableTrigger",
+          "purpose": "Watch Scenes table for video generation."
+        },
+        {
+          "name": "Build Veo Payload",
+          "type": "code",
+          "purpose": "Assemble scene start/end frame and transition instructions."
+        },
+        {
+          "name": "HTTP - Veo 3.1 Generate",
+          "type": "httpRequest",
+          "purpose": "Generate scene video clip.",
+          "payload_ref": "veo_generate"
+        },
+        {
+          "name": "Poll Veo Job",
+          "type": "loop+httpRequest+wait+code",
+          "purpose": "Poll until clip is finished.",
+          "code_ref": "README.md#polling-loop-result-parser"
+        },
+        {
+          "name": "Airtable - Update Scene Video",
+          "type": "httpRequest",
+          "purpose": "Persist scene video URL."
+        }
+      ]
+    },
+    {
+      "id": "WF04",
+      "name": "Scene Voice Generator",
+      "trigger_conditions": [
+        "Scenes.trigger_generate_voice = true",
+        "Scenes.approved_video = true"
+      ],
+      "nodes": [
+        {
+          "name": "Airtable Trigger - Scene Voice Request",
+          "type": "airtableTrigger",
+          "purpose": "Watch Scenes table for voice generation."
+        },
+        {
+          "name": "Build ElevenLabs Payload",
+          "type": "code",
+          "purpose": "Set Saudi Najdi-inspired voice settings and script."
+        },
+        {
+          "name": "HTTP - ElevenLabs TTS",
+          "type": "httpRequest",
+          "purpose": "Create scene voiceover.",
+          "payload_ref": "elevenlabs_tts"
+        },
+        {
+          "name": "Store Voice File",
+          "type": "binaryStorage",
+          "purpose": "Store audio output to local or cloud destination."
+        },
+        {
+          "name": "Airtable - Update Scene Voice",
+          "type": "httpRequest",
+          "purpose": "Persist voiceover URL."
+        }
+      ]
+    },
+    {
+      "id": "WF05",
+      "name": "Scene Music Generator",
+      "trigger_conditions": [
+        "Scenes.trigger_generate_music = true",
+        "Scenes.approved_video = true"
+      ],
+      "nodes": [
+        {
+          "name": "Airtable Trigger - Scene Music Request",
+          "type": "airtableTrigger",
+          "purpose": "Watch Scenes table for music generation."
+        },
+        {
+          "name": "Build Suno Prompt",
+          "type": "code",
+          "purpose": "Merge project music prompt with per-scene cue."
+        },
+        {
+          "name": "HTTP - Suno Generate",
+          "type": "httpRequest",
+          "purpose": "Generate scene music variants.",
+          "payload_ref": "suno_generate"
+        },
+        {
+          "name": "Poll Suno Job",
+          "type": "loop+httpRequest+wait+code",
+          "purpose": "Poll until music is ready.",
+          "code_ref": "README.md#polling-loop-result-parser"
+        },
+        {
+          "name": "Airtable - Update Scene Music",
+          "type": "httpRequest",
+          "purpose": "Persist music URLs."
+        }
+      ]
+    },
+    {
+      "id": "WF06",
+      "name": "Final Render Orchestrator",
+      "trigger_conditions": [
+        "Final Outputs.trigger_final_render = true",
+        "Final Outputs.approved_for_final_render = true"
+      ],
+      "nodes": [
+        {
+          "name": "Airtable Trigger - Final Render Request",
+          "type": "airtableTrigger",
+          "purpose": "Watch Final Outputs table for render requests."
+        },
+        {
+          "name": "Fetch Project + Scenes",
+          "type": "httpRequest",
+          "purpose": "Load all scenes and project metadata."
+        },
+        {
+          "name": "Sort Scenes By Order",
+          "type": "code",
+          "purpose": "Validate and sort the scene set before rendering.",
+          "code_ref": "README.md#final-render-scene-sort-and-validation"
+        },
+        {
+          "name": "Build Render Manifest",
+          "type": "code",
+          "purpose": "Create the JSON manifest passed to the local render script."
+        },
+        {
+          "name": "Execute Local Render Script",
+          "type": "executeCommand",
+          "purpose": "Run FFmpeg merge/render via helper script."
+        },
+        {
+          "name": "Airtable - Update Final Output",
+          "type": "httpRequest",
+          "purpose": "Write final video URL and render status."
+        }
+      ]
+    },
+    {
+      "id": "WF07",
+      "name": "Publish Scaffold",
+      "trigger_conditions": [
+        "Final Outputs.trigger_publish = true",
+        "Final Outputs.approved_for_posting = true"
+      ],
+      "nodes": [
+        {
+          "name": "Router - Platform Target",
+          "type": "switch",
+          "purpose": "Future routing to social publishers."
+        },
+        {
+          "name": "Prepare Caption Package",
+          "type": "code",
+          "purpose": "Normalize title, caption, hashtags, link tracking."
+        },
+        {
+          "name": "Future - Publish Platform Nodes",
+          "type": "placeholder",
+          "purpose": "Reserved for Instagram, TikTok, YouTube Shorts, LinkedIn."
+        }
+      ]
+    }
+  ],
+  "http_payloads": {
+    "nano_banana_generate": {
+      "method": "POST",
+      "url": "={{$env.KIE_BASE_URL}}/api/v1/images/generate",
+      "headers": {
+        "Authorization": "=Bearer {{$env.KIE_API_KEY}}",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "model": "nano-banana-pro",
+        "input": {
+          "prompt": "={{ $json.start_image_prompt || $json.end_image_prompt }}",
+          "aspect_ratio": "9:16",
+          "quality": "high",
+          "safety_filter": "standard",
+          "reference_images": [
+            "={{ $json.core_character_board }}",
+            "={{ $json.setting_board }}",
+            "={{ $json.product_board }}"
+          ]
+        }
+      }
+    },
+    "veo_generate": {
+      "method": "POST",
+      "url": "={{$env.KIE_BASE_URL}}/api/v1/veo/generate",
+      "headers": {
+        "Authorization": "=Bearer {{$env.KIE_API_KEY}}",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "model": "veo-3.1",
+        "generationType": "FIRST_AND_LAST_FRAMES_2_VIDEO",
+        "aspect_ratio": "9:16",
+        "prompt": "={{ $json.video_prompt }}",
+        "imageUrls": [
+          "={{ $json.start_image_url }}",
+          "={{ $json.end_image_url }}"
+        ],
+        "metadata": {
+          "scene_id": "={{ $json.scene_id }}",
+          "project_id": "={{ $json.project_id }}"
+        }
+      }
+    },
+    "elevenlabs_tts": {
+      "method": "POST",
+      "url": "=https://api.elevenlabs.io/v1/text-to-speech/{{$env.ELEVENLABS_VOICE_ID}}",
+      "headers": {
+        "xi-api-key": "={{$env.ELEVENLABS_API_KEY}}",
+        "Content-Type": "application/json",
+        "Accept": "audio/mpeg"
+      },
+      "body": {
+        "text": "={{ $json.voiceover_segment }}",
+        "model_id": "eleven_multilingual_v2",
+        "voice_settings": {
+          "stability": 0.45,
+          "similarity_boost": 0.8,
+          "style": 0.2,
+          "use_speaker_boost": true
+        }
+      }
+    },
+    "suno_generate": {
+      "method": "POST",
+      "url": "={{$env.SUNO_BASE_URL}}/v1/generate",
+      "headers": {
+        "Authorization": "=Bearer {{$env.SUNO_API_KEY}}",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "prompt": "={{ $json.combined_music_prompt }}",
+        "instrumental": true,
+        "duration_sec": "={{ $json.scene_duration_sec || 8 }}",
+        "num_variants": 2,
+        "metadata": {
+          "scene_id": "={{ $json.scene_id }}",
+          "project_id": "={{ $json.project_id }}"
+        }
+      }
+    }
+  }
+}

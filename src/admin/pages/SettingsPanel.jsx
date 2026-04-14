@@ -165,7 +165,7 @@ export default function SettingsPanel() {
 
   /* ---- Integration keys (display-only) ---- */
   const [integrations, setIntegrations] = useState({
-    ga4_id: "",
+    ga4_id: "G-SD3PE755EP",
     posthog_key: "",
     hotjar_id: "",
   });
@@ -205,7 +205,23 @@ export default function SettingsPanel() {
       .catch(() => setUsersLoading(false));
   }, []);
 
+  const [integrationsSaved, setIntegrationsSaved] = useState(false);
+  const [integrationsSaving, setIntegrationsSaving] = useState(false);
+
   /* ---- Handlers ---- */
+  const handleSaveIntegrations = useCallback(async () => {
+    setIntegrationsSaving(true);
+    setIntegrationsSaved(false);
+    try {
+      await saveSetting("integrations", integrations);
+      setIntegrationsSaved(true);
+      setTimeout(() => setIntegrationsSaved(false), 2000);
+    } catch (err) {
+      console.error("Failed to save integration settings:", err);
+    }
+    setIntegrationsSaving(false);
+  }, [integrations]);
+
   const handleSaveCompany = useCallback(async () => {
     setCompanySaving(true);
     setCompanySaved(false);
@@ -463,7 +479,7 @@ export default function SettingsPanel() {
       </div>
 
       {/* ============================================================ */}
-      {/*  Integration Keys (read-only, masked)                         */}
+      {/*  Integration Keys (Editable, masked)                          */}
       {/* ============================================================ */}
       <div className={sectionCls}>
         {sectionTitle(
@@ -471,26 +487,25 @@ export default function SettingsPanel() {
           t.integrationKeys
         )}
         <div className="flex items-center gap-2 mb-4">
-          <span className={cn("text-xs", isDark ? "text-gray-500" : "text-gray-400")}>
-            {t.readOnly}
-          </span>
           <button
             onClick={() => setShowKeys(!showKeys)}
             className={cn(
-              "rounded-lg p-1.5 transition-colors",
-              isDark ? "hover:bg-white/10 text-gray-400" : "hover:bg-gray-100 text-gray-500"
+              "rounded-lg p-1.5 transition-colors flex items-center gap-1.5",
+              isDark ? "hover:bg-white/10 text-gray-400 font-semibold text-xs" : "hover:bg-gray-100 text-gray-500 font-semibold text-xs"
             )}
           >
             {showKeys ? <EyeOff size={14} /> : <Eye size={14} />}
+            {showKeys ? t.masked : t.showKeys || "Show Keys"}
           </button>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
           <div>
             <label className={labelCls}>{t.ga4Id}</label>
             <input
               value={showKeys ? (integrations.ga4_id || "") : maskValue(integrations.ga4_id)}
-              readOnly
-              className={cn(inputCls, "cursor-default opacity-70")}
+              onChange={(e) => setIntegrations(prev => ({ ...prev, ga4_id: e.target.value }))}
+              placeholder="G-XXXXXXX"
+              className={inputCls}
               dir="ltr"
             />
           </div>
@@ -498,8 +513,9 @@ export default function SettingsPanel() {
             <label className={labelCls}>{t.posthogKey}</label>
             <input
               value={showKeys ? (integrations.posthog_key || "") : maskValue(integrations.posthog_key)}
-              readOnly
-              className={cn(inputCls, "cursor-default opacity-70")}
+              onChange={(e) => setIntegrations(prev => ({ ...prev, posthog_key: e.target.value }))}
+              placeholder="phc_XXXXXXX"
+              className={inputCls}
               dir="ltr"
             />
           </div>
@@ -507,12 +523,25 @@ export default function SettingsPanel() {
             <label className={labelCls}>{t.hotjarId}</label>
             <input
               value={showKeys ? (integrations.hotjar_id || "") : maskValue(integrations.hotjar_id)}
-              readOnly
-              className={cn(inputCls, "cursor-default opacity-70")}
+              onChange={(e) => setIntegrations(prev => ({ ...prev, hotjar_id: e.target.value }))}
+              placeholder="XXXXXXX"
+              className={inputCls}
               dir="ltr"
             />
           </div>
         </div>
+        <button
+          onClick={handleSaveIntegrations}
+          disabled={integrationsSaving}
+          className={saveBtnCls(integrationsSaving, integrationsSaved)}
+        >
+          {integrationsSaving ? (
+            <Loader2 size={16} className="animate-spin" />
+          ) : (
+            <Save size={16} />
+          )}
+          {integrationsSaving ? t.saving : integrationsSaved ? t.saved : t.save}
+        </button>
       </div>
 
       {/* ============================================================ */}

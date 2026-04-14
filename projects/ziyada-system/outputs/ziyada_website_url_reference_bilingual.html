@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>مرجع روابط موقع زيادة سيستم</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@300;400;500;600;700;800;900&display=swap">
+<style>
+:root {
+  --brand-blue: #3b82f6;
+  --brand-blue-dark: #2563eb;
+  --brand-purple: #8b5cf6;
+  --brand-gradient: linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%);
+  --bg-page: #f8fafc;
+  --bg-card: #ffffff;
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --border-color: #e2e8f0;
+  --accent-blue-light: #eff6ff;
+  --accent-purple-light: #f5f3ff;
+  --accent-green-light: #f0fdf4;
+  --accent-orange-light: #fffbeb;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Noto Kufi Arabic', sans-serif;
+  background: var(--bg-page);
+  color: var(--text-main);
+  line-height: 1.9;
+  font-size: 16px;
+}
+#conf-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9000;
+  background: rgba(15, 23, 42, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 6px 16px;
+}
+#conf-bar span { color: #94a3b8; font-size: 11px; font-weight: 600; }
+#conf-bar .dot { width: 5px; height: 5px; border-radius: 50%; background: #8b5cf6; }
+body { padding-top: 30px; }
+.header {
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-color);
+  padding: 68px 40px;
+  position: relative;
+  overflow: hidden;
+}
+.header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: var(--brand-gradient);
+}
+.header::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at top right, rgba(139,92,246,0.05) 0%, transparent 60%);
+  pointer-events: none;
+}
+.header-inner {
+  position: relative;
+  max-width: 980px;
+  margin: 0 auto;
+}
+.badge {
+  display: inline-flex;
+  align-items: center;
+  background: var(--accent-purple-light);
+  color: var(--brand-purple);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 24px;
+  border: 1px solid #e9d5ff;
+}
+.site-logo {
+  width: 72px;
+  height: 72px;
+  border-radius: 20px;
+  background: var(--brand-gradient);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 38px;
+  font-weight: 900;
+  margin-bottom: 24px;
+  box-shadow: 0 10px 30px -5px rgba(139,92,246,0.4);
+}
+.header h1 {
+  font-size: 38px;
+  font-weight: 900;
+  margin-bottom: 10px;
+  background: var(--brand-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  line-height: 1.35;
+}
+.header p { color: var(--text-muted); font-size: 18px; font-weight: 500; }
+.header-meta {
+  margin-top: 28px;
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--border-color);
+  padding-top: 28px;
+}
+.meta-item { color: var(--text-muted); font-size: 14px; }
+.meta-item strong { color: var(--text-main); }
+.container { max-width: 980px; margin: 0 auto; padding: 48px 24px 80px; }
+.toc, .section {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  box-shadow: 0 4px 12px -2px rgba(0,0,0,0.05);
+}
+.toc { padding: 34px 40px; margin-bottom: 40px; }
+.toc-title {
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--brand-blue-dark);
+  margin-bottom: 20px;
+}
+.toc ol { padding-right: 22px; }
+.toc li { margin-bottom: 10px; color: var(--brand-blue); }
+.toc a { color: var(--text-main); text-decoration: none; font-weight: 700; }
+.section { padding: 44px; margin-bottom: 28px; }
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 28px;
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 22px;
+}
+.section-num {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: var(--accent-blue-light);
+  color: var(--brand-blue);
+  font-weight: 900;
+  font-size: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.section h2 { font-size: 26px; font-weight: 900; line-height: 1.3; }
+.section-subtitle { font-size: 14px; color: var(--text-muted); font-weight: 600; margin-top: 4px; }
+.section p { color: var(--text-muted); margin-bottom: 18px; }
+.subsection-title {
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--text-main);
+  margin: 30px 0 14px;
+}
+.alert {
+  border-radius: 14px;
+  padding: 18px 20px;
+  margin: 18px 0;
+  font-size: 15px;
+  line-height: 1.8;
+}
+.alert-info { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; }
+.alert-warn { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; }
+.alert-success { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
+.quick-grid, .link-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 14px;
+  margin-top: 18px;
+}
+.link-card {
+  display: block;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 18px 22px;
+  text-decoration: none;
+  color: var(--text-main);
+  transition: all 0.2s ease;
+}
+.link-card:hover {
+  border-color: var(--brand-blue);
+  box-shadow: 0 8px 20px -3px rgba(59,130,246,0.12);
+  transform: translateY(-2px);
+}
+.link-card .label { font-weight: 800; font-size: 16px; margin-bottom: 4px; }
+.link-card .sub { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; }
+.link-card .url {
+  font-size: 12px;
+  color: var(--brand-blue-dark);
+  font-family: monospace;
+  overflow-wrap: anywhere;
+}
+.url-link {
+  color: var(--brand-blue-dark);
+  text-decoration: none;
+  font-family: monospace;
+  overflow-wrap: anywhere;
+  display: inline-block;
+  max-width: 100%;
+}
+.table-scroll-wrap { width: 100%; overflow-x: auto; margin: 16px 0; border-radius: 12px; }
+table {
+  width: 100%;
+  min-width: 880px;
+  border-collapse: collapse;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  overflow: hidden;
+  table-layout: fixed;
+}
+th {
+  background: var(--accent-blue-light);
+  color: var(--brand-blue-dark);
+  padding: 14px 18px;
+  text-align: right;
+  font-weight: 800;
+  border-bottom: 2px solid #bfdbfe;
+  font-size: 14px;
+  white-space: nowrap;
+}
+td {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border-color);
+  vertical-align: top;
+  line-height: 1.8;
+  word-break: normal;
+  overflow-wrap: anywhere;
+}
+tr:last-child td { border-bottom: none; }
+.en {
+  direction: ltr;
+  text-align: left;
+  font-family: 'Noto Kufi Arabic', sans-serif;
+}
+.tag {
+  display: inline-flex;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.tag-blue { background: #dbeafe; color: #1d4ed8; }
+.tag-green { background: #dcfce7; color: #15803d; }
+.tag-orange { background: #ffedd5; color: #c2410c; }
+.tag-gray { background: #f1f5f9; color: #475569; }
+.footer {
+  text-align: center;
+  padding: 54px 32px;
+  margin-top: 34px;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border-color);
+}
+.footer strong { color: var(--text-main); }
+@media (max-width: 768px) {
+  .header { padding: 34px 16px; }
+  .header h1 { font-size: 24px; }
+  .header p { font-size: 14px; }
+  .container { padding: 24px 14px 60px; }
+  .toc, .section { padding: 22px 16px; }
+  .section-header { gap: 12px; }
+  .section-num { width: 42px; height: 42px; font-size: 18px; }
+  .section h2 { font-size: 20px; }
+  table { min-width: 760px; }
+}
+</style>
+</head>
+<body>
+<div id="conf-bar">
+  <span>ZIYADA SYSTEM</span>
+  <div class="dot"></div>
+  <span>REFERENCE DOCUMENT</span>
+</div>
+
+<header class="header">
+  <div class="header-inner">
+    <div class="badge">مرجع تشغيلي | Operational Reference</div>
+    <div class="site-logo">Z</div>
+    <h1>مرجع روابط موقع زيادة سيستم ولوحة التحكم</h1>
+    <p>Website, admin, guide, and operational URLs with a short explanation for each route.</p>
+    <div class="header-meta">
+      <div class="meta-item"><strong>النسخة:</strong> 1.0</div>
+      <div class="meta-item"><strong>آخر تحديث:</strong> 2026-04-12</div>
+      <div class="meta-item"><strong>النطاق الرئيسي:</strong> https://www.ziyadasystem.com</div>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+  <section class="toc">
+    <div class="toc-title">فهرس المحتوى | Table of Contents</div>
+    <ol>
+      <li><a href="#quick">روابط الوصول السريع | Quick Access</a></li>
+      <li><a href="#public">روابط الموقع العامة | Public Website URLs</a></li>
+      <li><a href="#admin">روابط لوحة التحكم | Admin Panel URLs</a></li>
+      <li><a href="#special">الصفحات التشغيلية الخاصة | Standalone Operational Pages</a></li>
+      <li><a href="#notes">ملاحظات تشغيلية | Operating Notes</a></li>
+    </ol>
+  </section>
+
+  <section class="section" id="quick">
+    <div class="section-header">
+      <div class="section-num">1</div>
+      <div>
+        <h2>روابط الوصول السريع</h2>
+        <div class="section-subtitle">Quick operational links for daily use</div>
+      </div>
+    </div>
+    <p>
+      هذا القسم يجمع أهم الروابط التي يحتاجها مدير الموقع أو فريق التشغيل بشكل يومي.
+    </p>
+    <p class="en">
+      This section groups the most important links used daily by the website owner or operations team.
+    </p>
+    <div class="quick-grid">
+      <a class="link-card" href="https://www.ziyadasystem.com" target="_blank" rel="noopener noreferrer">
+        <div class="label">الموقع الرئيسي</div>
+        <div class="sub en">Main website</div>
+        <div class="url">https://www.ziyadasystem.com</div>
+      </a>
+      <a class="link-card" href="https://www.ziyadasystem.com/admin" target="_blank" rel="noopener noreferrer">
+        <div class="label">لوحة التحكم</div>
+        <div class="sub en">Admin dashboard</div>
+        <div class="url">https://www.ziyadasystem.com/admin</div>
+      </a>
+      <a class="link-card" href="https://www.ziyadasystem.com/company-profile" target="_blank" rel="noopener noreferrer">
+        <div class="label">صفحة الملف التعريفي</div>
+        <div class="sub en">Company profile form</div>
+        <div class="url">https://www.ziyadasystem.com/company-profile</div>
+      </a>
+      <a class="link-card" href="https://www.ziyadasystem.com/internal-guide.html" target="_blank" rel="noopener noreferrer">
+        <div class="label">الدليل الداخلي</div>
+        <div class="sub en">Internal guide with access tracking</div>
+        <div class="url">https://www.ziyadasystem.com/internal-guide.html</div>
+      </a>
+    </div>
+  </section>
+
+  <section class="section" id="public">
+    <div class="section-header">
+      <div class="section-num">2</div>
+      <div>
+        <h2>روابط الموقع العامة</h2>
+        <div class="section-subtitle">Public-facing pages and marketing routes</div>
+      </div>
+    </div>
+    <div class="alert alert-info">
+      الصفحة الرئيسية الفعلية للموقع هي النطاق الرئيسي، بينما المسار <span class="en">/Home</span> موجود أيضاً ويستخدم داخلياً في التطبيق.
+    </div>
+    <div class="table-scroll-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>الصفحة</th>
+            <th>URL</th>
+            <th>الوصف بالعربية</th>
+            <th class="en">Description in English</th>
+            <th>الوصول</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>الموقع الرئيسي</td><td class="en">https://www.ziyadasystem.com</td><td>الدخول العام للموقع، ويعيد التوجيه إلى تجربة الصفحة الرئيسية.</td><td class="en">Primary public entry to the website and the effective home experience.</td><td><span class="tag tag-green">عام</span></td></tr>
+          <tr><td>الصفحة الرئيسية</td><td class="en">https://www.ziyadasystem.com/Home</td><td>نسخة المسار المباشر للصفحة الرئيسية داخل التطبيق.</td><td class="en">Direct routed version of the home page inside the SPA.</td><td><span class="tag tag-green">عام</span></td></tr>
+          <tr><td>الخدمات</td><td class="en">https://www.ziyadasystem.com/Services</td><td>صفحة نظرة عامة على خدمات زيادة سيستم.</td><td class="en">Overview page for Ziyada System services.</td><td><span class="tag tag-green">عام</span></td></tr>
+          <tr><td>خدمة الأتمتة</td><td class="en">https://www.ziyadasystem.com/Services/automation</td><td>صفحة خدمة الأتمتة والعمليات.</td><td class="en">Automation and operations service page.</td><td><span class="tag tag-green">عام</span></td></tr>
+          <tr><td>خدمة CRM</td><td class="en">https://www.ziyadasystem.com/Services/crm</td><td>صفحة أنظمة CRM وإدارة العملاء.</td><td class="en">CRM and customer management service page.</td><td><span class="tag tag-green">عام</span></td></tr>
+          <tr><td>توليد العملاء المحتملين</td><td class="en">https://www.ziyadasystem.com/Services/lead-generation</td><td>صفحة جذب العملاء المحتملين.</td><td class="en">Lead generation service page.</td><td><span class="tag tag-green">عام</span></td></tr>
+          <tr><td>التسويق</td><td class="en">https://www.ziyadasystem.com/Services/marketing</td><td>صفحة التسويق والنمو.</td><td class="en">Marketing and growth service page.</td><td><span class="tag tag-green">عام</span></td></tr>
+          <tr><td>تطوير المواقع</td><td class="en">https://www.ziyadasystem.com/Services/web-development</td><td>صفحة تصميم وتطوير المواقع.</td><td class="en">Website design and development service page.</td><td><span class="tag tag-green">عام</span></td></tr>
+          <tr><td>السوشال ميديا</td><td class="en">https://www.ziyadasystem.com/Services/social-media</td><td>صفحة إدارة السوشال ميديا.</td><td class="en">Social media management service page.</td><td><span class="tag tag-green">عام</span></td></tr>
+          <tr><td>من نحن</td><td class="en">https://www.ziyadasystem.com/About</td><td>صفحة التعريف بالشركة.</td><td class="en">About page.</td><td><span class="tag tag-green">عام</span></td></tr>
+          <tr><td>لماذا زيادة</td><td class="en">https://www.ziyadasystem.com/Why</td><td>صفحة تشرح عرض القيمة.</td><td class="en">Value proposition page.</td><td><span class="tag tag-green">عام</span></td></tr>
+          <tr><td>قصص النجاح</td><td class="en">https://www.ziyadasystem.com/Cases</td><td>صفحة دراسات الحالة المنشورة.</td><td class="en">Published case studies page.</td><td><span class="tag tag-green">عام</span></td></tr>
+          <tr><td>المدونة</td><td class="en">https://www.ziyadasystem.com/Blog</td><td>قائمة المقالات المنشورة.</td><td class="en">Published blog listing.</td><td><span class="tag tag-green">عام</span></td></tr>
+          <tr><td>مقال المدونة</td><td class="en">https://www.ziyadasystem.com/blog/{slug}</td><td>صفحة المقال الفردي بحسب الرابط المختصر.</td><td class="en">Individual blog post route by slug.</td><td><span class="tag tag-green">عام</span></td></tr>
+          <tr><td>احجز اجتماع</td><td class="en">https://www.ziyadasystem.com/BookMeeting</td><td>صفحة حجز اجتماع مع الفريق.</td><td class="en">Meeting booking page.</td><td><span class="tag tag-green">عام</span></td></tr>
+          <tr><td>طلب عرض سعر</td><td class="en">https://www.ziyadasystem.com/RequestProposal</td><td>صفحة طلب عرض سعر.</td><td class="en">Proposal request page.</td><td><span class="tag tag-green">عام</span></td></tr>
+          <tr><td>اتصل بنا</td><td class="en">https://www.ziyadasystem.com/Contact</td><td>صفحة التواصل العامة.</td><td class="en">General contact page.</td><td><span class="tag tag-green">عام</span></td></tr>
+          <tr><td>الأسئلة الشائعة</td><td class="en">https://www.ziyadasystem.com/FAQ</td><td>صفحة الأسئلة الشائعة.</td><td class="en">FAQ page.</td><td><span class="tag tag-green">عام</span></td></tr>
+          <tr><td>الملف التعريفي</td><td class="en">https://www.ziyadasystem.com/Profile</td><td>صفحة بروفايل الشركة داخل التطبيق.</td><td class="en">Company profile page inside the app.</td><td><span class="tag tag-green">عام</span></td></tr>
+          <tr><td>الهوية / البراند</td><td class="en">https://www.ziyadasystem.com/Brand</td><td>صفحة البراند هب أو عرض الهوية.</td><td class="en">Brand hub page.</td><td><span class="tag tag-green">عام</span></td></tr>
+          <tr><td>سياسة الخصوصية</td><td class="en">https://www.ziyadasystem.com/Privacy</td><td>صفحة سياسة الخصوصية.</td><td class="en">Privacy policy page.</td><td><span class="tag tag-green">عام</span></td></tr>
+          <tr><td>الشروط والأحكام</td><td class="en">https://www.ziyadasystem.com/Terms</td><td>صفحة الشروط والأحكام.</td><td class="en">Terms page.</td><td><span class="tag tag-green">عام</span></td></tr>
+          <tr><td>صفحة الشكر</td><td class="en">https://www.ziyadasystem.com/ThankYou</td><td>صفحة ما بعد الإرسال وفيها زر واتساب المباشر.</td><td class="en">Post-submit thank-you page with the WhatsApp CTA.</td><td><span class="tag tag-green">عام</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="section" id="admin">
+    <div class="section-header">
+      <div class="section-num">3</div>
+      <div>
+        <h2>روابط لوحة التحكم</h2>
+        <div class="section-subtitle">Authenticated routes for operations and content management</div>
+      </div>
+    </div>
+    <div class="alert alert-warn">
+      جميع المسارات تحت <span class="en">/admin</span> تتطلب تسجيل دخول. الروابط أدناه مخصصة للمستخدمين المخولين فقط.
+    </div>
+    <div class="table-scroll-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>القسم</th>
+            <th>URL</th>
+            <th>الوصف بالعربية</th>
+            <th class="en">Description in English</th>
+            <th>الوصول</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>تسجيل الدخول</td><td class="en">https://www.ziyadasystem.com/admin/login</td><td>بوابة الدخول إلى لوحة التحكم.</td><td class="en">Admin login page.</td><td><span class="tag tag-orange">مقيد</span></td></tr>
+          <tr><td>إعادة تعيين كلمة المرور</td><td class="en">https://www.ziyadasystem.com/admin/reset-password</td><td>طلب إعادة تعيين كلمة المرور.</td><td class="en">Password reset request page.</td><td><span class="tag tag-orange">مقيد</span></td></tr>
+          <tr><td>تأكيد إعادة التعيين</td><td class="en">https://www.ziyadasystem.com/admin/reset-password-confirm</td><td>صفحة استكمال تغيير كلمة المرور.</td><td class="en">Password reset confirmation page.</td><td><span class="tag tag-orange">مقيد</span></td></tr>
+          <tr><td>اللوحة الرئيسية</td><td class="en">https://www.ziyadasystem.com/admin</td><td>ملخص تشغيلي للحجوزات والعملاء والمدونة والمشتركين.</td><td class="en">Operational dashboard summary.</td><td><span class="tag tag-orange">مقيد</span></td></tr>
+          <tr><td>العملاء المحتملون</td><td class="en">https://www.ziyadasystem.com/admin/leads</td><td>عرض العملاء المحتملين وتحديث الحالة وتصدير CSV.</td><td class="en">View leads, change status, export CSV.</td><td><span class="tag tag-orange">مقيد</span></td></tr>
+          <tr><td>الحجوزات</td><td class="en">https://www.ziyadasystem.com/admin/bookings</td><td>عرض الحجوزات، تحديث الحالة، وفتح رابط الاجتماع.</td><td class="en">View bookings, update status, open meeting link.</td><td><span class="tag tag-orange">مقيد</span></td></tr>
+          <tr><td>المدونة</td><td class="en">https://www.ziyadasystem.com/admin/blog</td><td>إدارة المقالات: مسودات، نشر، تعديل، حذف.</td><td class="en">Manage blog posts, draft/publish/edit/delete.</td><td><span class="tag tag-orange">مقيد</span></td></tr>
+          <tr><td>مقال جديد</td><td class="en">https://www.ziyadasystem.com/admin/blog/new</td><td>إنشاء مقال جديد.</td><td class="en">Create a new blog post.</td><td><span class="tag tag-orange">مقيد</span></td></tr>
+          <tr><td>دراسات الحالة</td><td class="en">https://www.ziyadasystem.com/admin/cases</td><td>إدارة دراسات الحالة المنشورة وغير المنشورة.</td><td class="en">Manage case studies and publish state.</td><td><span class="tag tag-orange">مقيد</span></td></tr>
+          <tr><td>الأسئلة الشائعة</td><td class="en">https://www.ziyadasystem.com/admin/faq</td><td>إضافة وتعديل وترتيب الأسئلة الشائعة.</td><td class="en">Add, edit, publish, and reorder FAQs.</td><td><span class="tag tag-orange">مقيد</span></td></tr>
+          <tr><td>الخدمات</td><td class="en">https://www.ziyadasystem.com/admin/services</td><td>إدارة بطاقات الخدمات وترتيبها ونشرها.</td><td class="en">Manage services, order, copy, and publish state.</td><td><span class="tag tag-orange">مقيد</span></td></tr>
+          <tr><td>المشتركون</td><td class="en">https://www.ziyadasystem.com/admin/subscribers</td><td>قائمة مشتركي النشرة وتصديرها أو حذف السجلات.</td><td class="en">Newsletter subscribers list and CSV export.</td><td><span class="tag tag-orange">مقيد</span></td></tr>
+          <tr><td>التحليلات</td><td class="en">https://www.ziyadasystem.com/admin/analytics</td><td>ملخص تحليلي داخلي.</td><td class="en">Internal analytics summary page.</td><td><span class="tag tag-orange">مقيد</span></td></tr>
+          <tr><td>الإعدادات</td><td class="en">https://www.ziyadasystem.com/admin/settings</td><td>إعدادات الشركة، الروابط الاجتماعية، وبعض مفاتيح التكامل المعروضة، وإدارة أدوار المستخدمين.</td><td class="en">Company settings, social links, displayed integration values, and admin roles.</td><td><span class="tag tag-orange">مقيد</span></td></tr>
+          <tr><td>التوجهات</td><td class="en">https://www.ziyadasystem.com/admin/trends</td><td>واجهة اتجاهات المحتوى.</td><td class="en">Content trends dashboard.</td><td><span class="tag tag-orange">مقيد</span></td></tr>
+          <tr><td>تحليل المنافسين</td><td class="en">https://www.ziyadasystem.com/admin/competitor</td><td>لوحة ذكاء المنافسين والإشارات.</td><td class="en">Competitor intelligence dashboard.</td><td><span class="tag tag-orange">مقيد</span></td></tr>
+          <tr><td>محادثات الشات</td><td class="en">https://www.ziyadasystem.com/admin/chat</td><td>عرض جلسات ورسائل الشات وحذف الجلسات عند الحاجة.</td><td class="en">View chat sessions/messages and delete sessions if needed.</td><td><span class="tag tag-orange">مقيد</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="section" id="special">
+    <div class="section-header">
+      <div class="section-num">4</div>
+      <div>
+        <h2>الصفحات التشغيلية الخاصة</h2>
+        <div class="section-subtitle">Standalone pages with separate operational logic</div>
+      </div>
+    </div>
+    <div class="link-grid">
+      <a class="link-card" href="https://www.ziyadasystem.com/company-profile" target="_blank" rel="noopener noreferrer">
+        <div class="label">صفحة الملف التعريفي المستقلة</div>
+        <div class="sub en">Standalone company profile landing page</div>
+        <div class="url">https://www.ziyadasystem.com/company-profile</div>
+      </a>
+      <a class="link-card" href="https://www.ziyadasystem.com/internal-guide.html" target="_blank" rel="noopener noreferrer">
+        <div class="label">الدليل الداخلي المحمي</div>
+        <div class="sub en">Internal guide with access tracking</div>
+        <div class="url">https://www.ziyadasystem.com/internal-guide.html</div>
+      </a>
+      <a class="link-card" href="https://www.ziyadasystem.com/ThankYou" target="_blank" rel="noopener noreferrer">
+        <div class="label">صفحة الشكر والتوجيه</div>
+        <div class="sub en">Thank-you page used after submissions</div>
+        <div class="url">https://www.ziyadasystem.com/ThankYou</div>
+      </a>
+    </div>
+    <div class="alert alert-info">
+      هذه الصفحات تختلف في سلوكها التشغيلي عن الصفحات العامة الأخرى. بعضها مرتبط بالإرسال أو التتبع أو بوصول داخلي خاص، لكن هذا لا يعني أن كل صفحة منها محمية من الزيارة المباشرة.
+    </div>
+  </section>
+
+  <section class="section" id="notes">
+    <div class="section-header">
+      <div class="section-num">5</div>
+      <div>
+        <h2>ملاحظات تشغيلية</h2>
+        <div class="section-subtitle">Important notes for future operators</div>
+      </div>
+    </div>
+    <div class="alert alert-info">
+      الروابط العامة يمكن زيارتها مباشرة، أما روابط لوحة التحكم فتحتاج حساباً مسجلاً وصلاحية مناسبة داخل النظام.
+    </div>
+    <div class="alert alert-warn">
+      ليس كل محتوى الموقع قابلاً للتعديل من لوحة التحكم. الصفحات العامة الثابتة مثل <span class="en">Home</span> و<span class="en">About</span> و<span class="en">Why</span> و<span class="en">ThankYou</span> و<span class="en">company-profile</span> و<span class="en">internal-guide</span> تُدار حالياً من الكود وتتطلب تحديثاً وإعادة نشر.
+    </div>
+    <div class="alert alert-info">
+      صفحة <span class="en">ThankYou</span> مخصصة لتجربة ما بعد الإرسال، لكن فتح الرابط مباشرة لا يجب أن يُسجل lead أو conversion فعلي بدون إرسال نموذج حقيقي.
+    </div>
+    <div class="alert alert-success">
+      يوصى دائماً باستخدام هذا المرجع مع دليل التحكم الإداري الثنائي اللغة لفهم ما الذي يمكن تعديله من اللوحة وما الذي يعتمد على التطوير والنشر.
+    </div>
+  </section>
+
+  <footer class="footer">
+    <p><strong>زيادة سيستم</strong></p>
+    <p>Website URL Reference for future operators and administrators.</p>
+  </footer>
+</main>
+<script>
+  document.querySelectorAll('td.en, .meta-item, .link-card .url').forEach((node) => {
+    const text = node.textContent.trim();
+    if (!text.startsWith('https://')) return;
+    if (node.querySelector('a')) return;
+    node.innerHTML = '<a class="url-link" href="' + text + '" target="_blank" rel="noopener noreferrer">' + text + '</a>';
+  });
+</script>
+</body>
+</html>

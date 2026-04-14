@@ -1,0 +1,223 @@
+<!-- ============================================================
+     ZIYADA SYSTEM — VISITOR AUTO-REPLY EMAIL
+     Paste the BODY content into N8N Gmail node (Expression mode)
+     Dynamic vars: {{ $json.name }} {{ $json.email }} {{ $json.type }}
+     ============================================================ -->
+<div style="margin:0;padding:0;background:#f1f5f9;font-family:'Segoe UI',Arial,sans-serif;" dir="rtl">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:32px 16px;">
+<tr><td align="center">
+<table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+
+  <!-- ── HERO ─────────────────────────────────────────── -->
+  <tr><td style="background:linear-gradient(150deg,#0f172a 0%,#1e3a8a 45%,#2563eb 100%);border-radius:20px 20px 0 0;padding:48px 40px 0;text-align:center;">
+
+    <!-- Logo mark inline SVG -->
+    <div style="margin:0 auto 24px;width:72px;height:72px;">
+      <svg width="72" height="72" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="256,56 456,176 456,376 256,496 56,376 56,176" fill="none" stroke="#ffffff" stroke-width="2" stroke-opacity="0.2"/>
+        <circle cx="256" cy="120" r="12" fill="#ffffff"/>
+        <circle cx="392" cy="176" r="10" fill="#ffffff"/>
+        <circle cx="392" cy="376" r="10" fill="#ffffff"/>
+        <circle cx="256" cy="440" r="12" fill="#ffffff"/>
+        <circle cx="120" cy="376" r="10" fill="#ffffff"/>
+        <circle cx="120" cy="176" r="10" fill="#ffffff"/>
+        <polyline points="256,120 392,176 392,376 256,440 120,376 120,176 256,120" stroke="#ffffff" stroke-width="4" fill="none" stroke-opacity="0.5"/>
+        <path d="M160 200 L352 200 L160 320 L352 320" stroke="#ffffff" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+
+    <p style="color:#93c5fd;font-size:11px;letter-spacing:3px;margin:0 0 12px;text-transform:uppercase;">Ziyada System · زيادة سيستم</p>
+    <h1 style="color:#ffffff;font-size:30px;font-weight:800;margin:0 0 12px;line-height:1.3;">
+      {{ $json.type === 'booking' ? 'تم استلام طلب اجتماعك' : $json.type === 'newsletter' ? 'مرحباً في مجتمع زيادة' : 'شكراً لتواصلك معنا' }}
+    </h1>
+    <p style="color:#bfdbfe;font-size:15px;margin:0 0 40px;line-height:1.6;">
+      {{ $json.type === 'booking' ? 'Your meeting request has been received successfully' : $json.type === 'newsletter' ? 'You\'ve joined the Ziyada community' : 'We\'ve received your message' }}
+    </p>
+
+    <!-- Confirmation badge -->
+    <div style="display:inline-block;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:50px;padding:10px 28px;margin-bottom:-1px;">
+      <table cellpadding="0" cellspacing="0"><tr>
+        <td style="padding-left:10px;vertical-align:middle;">
+          <!-- Check icon SVG -->
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="12" r="10" fill="#22c55e"/>
+            <path d="M8 12l3 3 5-6" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </td>
+        <td style="vertical-align:middle;color:#ffffff;font-size:14px;font-weight:600;padding-right:4px;">
+          {{ $json.type === 'booking' ? 'الطلب مؤكد' : 'تم الاستلام' }}
+        </td>
+      </tr></table>
+    </div>
+  </td></tr>
+
+  <!-- Wave -->
+  <tr><td style="background:linear-gradient(150deg,#0f172a 0%,#1e3a8a 45%,#2563eb 100%);line-height:0;">
+    <svg viewBox="0 0 600 50" style="display:block;width:100%;" preserveAspectRatio="none">
+      <path d="M0,50 C100,10 300,40 600,15 L600,50 Z" fill="#ffffff"/>
+    </svg>
+  </td></tr>
+
+  <!-- ── GREETING ───────────────────────────────────────── -->
+  <tr><td style="background:#ffffff;padding:40px 40px 0;">
+    <p style="color:#64748b;font-size:14px;margin:0 0 4px;">مرحباً،</p>
+    <h2 style="color:#0f172a;font-size:22px;font-weight:700;margin:0 0 20px;">{{ $json.name }}</h2>
+    <div style="background:#f8fafc;border-radius:12px;padding:24px;border-right:4px solid #2563eb;">
+      <p style="color:#334155;font-size:15px;line-height:1.9;margin:0;">
+        {{ $json.type === 'booking' ? 'تم استلام طلب حجز اجتماعك بنجاح. سيراجع فريقنا التفاصيل ويرسل لك رابط Google Meet مع تأكيد الموعد خلال وقت قصير.' : $json.type === 'newsletter' ? 'أهلاً بك في مجتمع زيادة سيستم! ستصلك أحدث رؤانا ونصائحنا حول أتمتة الأعمال والنمو الرقمي في السوق السعودي.' : 'استلمنا رسالتك بنجاح وسيتواصل معك أحد متخصصينا خلال 24 ساعة من أيام العمل للرد على استفساراتك.' }}
+      </p>
+    </div>
+  </td></tr>
+
+  <!-- ── WHAT'S NEXT ────────────────────────────────────── -->
+  <tr><td style="background:#ffffff;padding:32px 40px 0;">
+    <h3 style="color:#0f172a;font-size:16px;font-weight:700;margin:0 0 20px;padding-bottom:12px;border-bottom:1px solid #e2e8f0;">ما الذي يحدث الآن؟</h3>
+
+    <!-- Step 1 -->
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:16px;">
+      <tr>
+        <td style="width:44px;vertical-align:top;padding-top:2px;">
+          <div style="width:36px;height:36px;background:#dbeafe;border-radius:10px;text-align:center;line-height:36px;">
+            <!-- Doc icon -->
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="vertical-align:middle;" xmlns="http://www.w3.org/2000/svg">
+              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="#2563eb" stroke-width="2" stroke-linejoin="round"/>
+              <polyline points="14,2 14,8 20,8" stroke="#2563eb" stroke-width="2" stroke-linejoin="round"/>
+              <line x1="16" y1="13" x2="8" y2="13" stroke="#2563eb" stroke-width="2" stroke-linecap="round"/>
+              <line x1="16" y1="17" x2="8" y2="17" stroke="#2563eb" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+        </td>
+        <td style="padding-right:14px;vertical-align:top;">
+          <p style="color:#0f172a;font-size:14px;font-weight:700;margin:0 0 3px;">{{ $json.type === 'booking' ? 'مراجعة التفاصيل' : 'استلام رسالتك' }}</p>
+          <p style="color:#64748b;font-size:13px;margin:0;line-height:1.6;">{{ $json.type === 'booking' ? 'يراجع فريقنا طلبك وتفاصيل الاجتماع' : 'قرأ فريقنا رسالتك وجاهزون للرد' }}</p>
+        </td>
+      </tr>
+    </table>
+
+    <!-- Step 2 -->
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:16px;">
+      <tr>
+        <td style="width:44px;vertical-align:top;padding-top:2px;">
+          <div style="width:36px;height:36px;background:#ede9fe;border-radius:10px;text-align:center;line-height:36px;">
+            <!-- Users/team icon -->
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="vertical-align:middle;" xmlns="http://www.w3.org/2000/svg">
+              <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" stroke="#7c3aed" stroke-width="2" stroke-linecap="round"/>
+              <circle cx="9" cy="7" r="4" stroke="#7c3aed" stroke-width="2"/>
+              <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke="#7c3aed" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+        </td>
+        <td style="padding-right:14px;vertical-align:top;">
+          <p style="color:#0f172a;font-size:14px;font-weight:700;margin:0 0 3px;">{{ $json.type === 'booking' ? 'تأكيد الموعد' : 'تحضير الإجابة' }}</p>
+          <p style="color:#64748b;font-size:13px;margin:0;line-height:1.6;">{{ $json.type === 'booking' ? 'سنرسل رابط Google Meet لإيميلك' : 'يُعدّ متخصصونا ردًا مخصصًا لاحتياجك' }}</p>
+        </td>
+      </tr>
+    </table>
+
+    <!-- Step 3 -->
+    <table width="100%" cellpadding="0" cellspacing="0">
+      <tr>
+        <td style="width:44px;vertical-align:top;padding-top:2px;">
+          <div style="width:36px;height:36px;background:#dcfce7;border-radius:10px;text-align:center;line-height:36px;">
+            <!-- Zap/lightning icon -->
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="vertical-align:middle;" xmlns="http://www.w3.org/2000/svg">
+              <polygon points="13,2 3,14 12,14 11,22 21,10 12,10 13,2" stroke="#16a34a" stroke-width="2" stroke-linejoin="round" fill="none"/>
+            </svg>
+          </div>
+        </td>
+        <td style="padding-right:14px;vertical-align:top;">
+          <p style="color:#0f172a;font-size:14px;font-weight:700;margin:0 0 3px;">{{ $json.type === 'booking' ? 'اجتماعنا' : 'التواصل معك' }}</p>
+          <p style="color:#64748b;font-size:13px;margin:0;line-height:1.6;">{{ $json.type === 'booking' ? 'نلتقي ونبني خطة نمو منشأتك الرقمية' : 'سنرد خلال 24 ساعة من أيام العمل' }}</p>
+        </td>
+      </tr>
+    </table>
+  </td></tr>
+
+  <!-- ── SERVICES STRIP ─────────────────────────────────── -->
+  <tr><td style="background:#ffffff;padding:36px 40px 0;">
+    <div style="background:linear-gradient(135deg,#0f172a,#1e3a8a);border-radius:16px;padding:28px 24px;">
+      <p style="color:#93c5fd;font-size:12px;letter-spacing:2px;text-align:center;margin:0 0 20px;text-transform:uppercase;">خدماتنا · Our Services</p>
+      <table width="100%" cellpadding="0" cellspacing="0"><tr>
+
+        <!-- Automation -->
+        <td width="33%" style="text-align:center;padding:0 8px;">
+          <div style="margin:0 auto 10px;width:40px;height:40px;background:rgba(37,99,235,0.3);border-radius:10px;text-align:center;line-height:40px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="vertical-align:middle;" xmlns="http://www.w3.org/2000/svg">
+              <rect x="2" y="3" width="20" height="14" rx="2" stroke="#60a5fa" stroke-width="2"/>
+              <path d="M8 21h8M12 17v4" stroke="#60a5fa" stroke-width="2" stroke-linecap="round"/>
+              <path d="M9 8l2 2 4-4" stroke="#60a5fa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <p style="color:#f1f5f9;font-size:12px;font-weight:600;margin:0 0 3px;">أتمتة الأعمال</p>
+          <p style="color:#64748b;font-size:11px;margin:0;">Automation</p>
+        </td>
+
+        <!-- CRM -->
+        <td width="33%" style="text-align:center;padding:0 8px;border-right:1px solid rgba(255,255,255,0.08);border-left:1px solid rgba(255,255,255,0.08);">
+          <div style="margin:0 auto 10px;width:40px;height:40px;background:rgba(124,58,237,0.3);border-radius:10px;text-align:center;line-height:40px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="vertical-align:middle;" xmlns="http://www.w3.org/2000/svg">
+              <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" stroke="#a78bfa" stroke-width="2" stroke-linecap="round"/>
+              <circle cx="9" cy="7" r="4" stroke="#a78bfa" stroke-width="2"/>
+              <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke="#a78bfa" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <p style="color:#f1f5f9;font-size:12px;font-weight:600;margin:0 0 3px;">CRM ذكي</p>
+          <p style="color:#64748b;font-size:11px;margin:0;">Smart CRM</p>
+        </td>
+
+        <!-- Growth -->
+        <td width="33%" style="text-align:center;padding:0 8px;">
+          <div style="margin:0 auto 10px;width:40px;height:40px;background:rgba(22,163,74,0.3);border-radius:10px;text-align:center;line-height:40px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="vertical-align:middle;" xmlns="http://www.w3.org/2000/svg">
+              <polyline points="22,7 13.5,15.5 8.5,10.5 2,17" stroke="#4ade80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <polyline points="16,7 22,7 22,13" stroke="#4ade80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <p style="color:#f1f5f9;font-size:12px;font-weight:600;margin:0 0 3px;">نمو رقمي</p>
+          <p style="color:#64748b;font-size:11px;margin:0;">Digital Growth</p>
+        </td>
+
+      </tr></table>
+    </div>
+  </td></tr>
+
+  <!-- ── CTA ───────────────────────────────────────────── -->
+  <tr><td style="background:#ffffff;padding:32px 40px;">
+    <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">
+      <a href="https://ziyadasystem.com" style="display:inline-block;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;padding:16px 52px;border-radius:50px;letter-spacing:0.5px;">زر موقعنا · ziyadasystem.com</a>
+    </td></tr></table>
+  </td></tr>
+
+  <!-- ── FOOTER ─────────────────────────────────────────── -->
+  <tr><td style="background:#0f172a;border-radius:0 0 20px 20px;padding:32px 40px;text-align:center;">
+
+    <!-- Logo small -->
+    <div style="margin:0 auto 16px;width:40px;height:40px;">
+      <svg width="40" height="40" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M160 200 L352 200 L160 320 L352 320" stroke="#3b82f6" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+
+    <p style="color:#f8fafc;font-size:16px;font-weight:700;margin:0 0 4px;">زيادة سيستم · Ziyada System</p>
+    <p style="color:#475569;font-size:12px;margin:0 0 20px;">نبني منظومتك الرقمية المتكاملة</p>
+
+    <table cellpadding="0" cellspacing="0" style="margin:0 auto 20px;"><tr>
+      <td style="padding:0 12px;">
+        <a href="https://ziyadasystem.com" style="color:#3b82f6;font-size:12px;text-decoration:none;font-weight:600;">الموقع</a>
+      </td>
+      <td style="color:#334155;font-size:12px;">·</td>
+      <td style="padding:0 12px;">
+        <a href="mailto:info@ziyadasystem.com" style="color:#3b82f6;font-size:12px;text-decoration:none;font-weight:600;">info@ziyadasystem.com</a>
+      </td>
+      <td style="color:#334155;font-size:12px;">·</td>
+      <td style="padding:0 12px;">
+        <a href="https://ziyadasystem.com/privacy" style="color:#3b82f6;font-size:12px;text-decoration:none;font-weight:600;">سياسة الخصوصية</a>
+      </td>
+    </tr></table>
+
+    <p style="color:#334155;font-size:11px;margin:0;">© 2026 Ziyada System. All rights reserved. المملكة العربية السعودية.</p>
+  </td></tr>
+
+</table>
+</td></tr></table>
+</div>

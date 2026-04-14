@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>Ziyada System — Presentation Slide Templates</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #1e293b;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 48px;
+    padding: 48px;
+    font-family: 'Noto Kufi Arabic', sans-serif;
+  }
+  .slide-label {
+    color: #94a3b8;
+    font-size: 13px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    margin-bottom: 8px;
+    direction: ltr;
+    text-align: center;
+  }
+  .slide {
+    width: 960px;
+    height: 540px;
+    background: #0f172a;
+    border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+  }
+  /* Dot pattern background */
+  .slide::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle, rgba(59,130,246,0.06) 1px, transparent 1px);
+    background-size: 30px 30px;
+    pointer-events: none;
+  }
+  /* Brand bar bottom */
+  .slide::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #8b5cf6, #3b82f6, #06b6d4);
+  }
+  /* Ambient glows */
+  .glow-center {
+    position: absolute; inset: 0;
+    background: radial-gradient(circle at 50% 45%, rgba(59,130,246,0.06) 0%, transparent 50%);
+    pointer-events: none;
+  }
+  .glow-corner {
+    position: absolute; inset: 0;
+    background: radial-gradient(circle at 85% 80%, rgba(139,92,246,0.04) 0%, transparent 35%);
+    pointer-events: none;
+  }
+  /* Logo watermark */
+  .slide-watermark {
+    position: absolute;
+    bottom: 20px;
+    left: 24px;
+    opacity: 0.04;
+    width: 48px; height: 48px;
+  }
+  .slide-page-num {
+    position: absolute;
+    bottom: 20px;
+    right: 24px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 11px;
+    color: #475569;
+    direction: ltr;
+  }
+
+  /* ========== SLIDE 1: TITLE ========== */
+  .slide-title-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    text-align: center;
+    padding: 60px;
+  }
+  .slide-logo-main {
+    width: 72px; height: 72px;
+    margin-bottom: 24px;
+  }
+  .slide-h1 {
+    font-weight: 900;
+    font-size: 36px;
+    line-height: 1.3;
+    background: linear-gradient(270deg, #1e3a8a, #3b82f6, #7c3aed, #1e3a8a);
+    background-size: 300% 100%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 12px;
+  }
+  .slide-subtitle {
+    font-size: 16px;
+    color: #94a3b8;
+    font-weight: 400;
+    max-width: 560px;
+    line-height: 1.7;
+  }
+  .slide-brand-footer {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 11px;
+    color: #475569;
+    direction: ltr;
+  }
+
+  /* ========== SLIDE 2: CONTENT + ICONS ========== */
+  .slide-content-layout {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 48px 60px;
+  }
+  .slide-section-title {
+    font-weight: 800;
+    font-size: 28px;
+    color: #ffffff;
+    margin-bottom: 8px;
+  }
+  .slide-section-subtitle {
+    font-size: 13px;
+    color: #64748b;
+    margin-bottom: 28px;
+  }
+  .feature-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+    flex: 1;
+  }
+  .feature-card {
+    padding: 20px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, rgba(40,55,110,0.3), rgba(15,20,40,0.5));
+    border: 1px solid rgba(130,150,255,0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .feature-icon {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .feature-icon svg {
+    width: 18px; height: 18px;
+    stroke: #ffffff;
+    stroke-width: 2;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .feature-title {
+    font-weight: 700;
+    font-size: 14px;
+    color: #ffffff;
+  }
+  .feature-desc {
+    font-size: 11px;
+    color: #94a3b8;
+    line-height: 1.6;
+  }
+
+  /* ========== SLIDE 3: STATS ========== */
+  .stats-layout {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 48px;
+    text-align: center;
+  }
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 24px;
+    margin-top: 32px;
+  }
+  .stat-block {
+    padding: 28px 20px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(40,55,110,0.3), rgba(15,20,40,0.5));
+    border: 1px solid rgba(130,150,255,0.1);
+    min-width: 200px;
+  }
+  .stat-value {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 900;
+    font-size: 40px;
+    color: #3b82f6;
+    margin-bottom: 4px;
+  }
+  .stat-desc {
+    font-size: 13px;
+    color: #94a3b8;
+  }
+
+  /* ========== SLIDE 4: CTA / CLOSING ========== */
+  .cta-layout {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    text-align: center;
+    padding: 60px;
+  }
+  .cta-heading {
+    font-weight: 900;
+    font-size: 32px;
+    color: #ffffff;
+    margin-bottom: 12px;
+  }
+  .cta-sub {
+    font-size: 15px;
+    color: #94a3b8;
+    margin-bottom: 28px;
+    max-width: 480px;
+    line-height: 1.7;
+  }
+  .cta-button {
+    padding: 14px 40px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #1e3a8a, #2563eb, #7c3aed, #1e3a8a);
+    background-size: 300% auto;
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 16px;
+    border: none;
+    margin-bottom: 20px;
+    box-shadow: 0 0 30px rgba(59,130,246,0.3);
+  }
+  .cta-contact {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 13px;
+    color: #64748b;
+    direction: ltr;
+  }
+  .cta-contact a { color: #3b82f6; text-decoration: none; }
+</style>
+</head>
+<body>
+
+<!-- ===== SLIDE 1: TITLE ===== -->
+<div>
+  <div class="slide-label">Slide 1 — Title / Cover</div>
+  <div class="slide">
+    <div class="glow-center"></div>
+    <div class="glow-corner"></div>
+    <div class="slide-title-content">
+      <svg class="slide-logo-main" viewBox="0 0 512 512" fill="none">
+        <defs><linearGradient id="slg" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse"><stop stop-color="#3b82f6"/><stop offset="0.5" stop-color="#8b5cf6"/><stop offset="1" stop-color="#06b6d4"/></linearGradient></defs>
+        <polygon points="256,56 456,176 456,376 256,496 56,376 56,176" fill="#0f172a"/>
+        <circle cx="256" cy="120" r="12" fill="#3b82f6"/><circle cx="392" cy="176" r="10" fill="#8b5cf6"/><circle cx="392" cy="376" r="10" fill="#06b6d4"/><circle cx="256" cy="440" r="12" fill="#3b82f6"/><circle cx="120" cy="376" r="10" fill="#8b5cf6"/><circle cx="120" cy="176" r="10" fill="#06b6d4"/>
+        <polyline points="256,120 392,176 392,376 256,440 120,376 120,176 256,120" stroke="#e2e8f0" stroke-width="4" fill="none"/>
+        <path d="M160 200 L352 200 L160 320 L352 320" stroke="url(#slg)" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M352 220 Q256 256 352 292 Q256 328 160 292" stroke="#e2e8f0" stroke-width="20" fill="none"/>
+      </svg>
+      <h1 class="slide-h1">منظومة النمو الذكي لأعمالك</h1>
+      <p class="slide-subtitle">أتمتة متكاملة وتسويق مدعوم بالذكاء الاصطناعي — مصمم خصيصاً للسوق السعودي.</p>
+    </div>
+    <div class="slide-brand-footer">ZIYADA SYSTEM | ziyadasystem.com</div>
+  </div>
+</div>
+
+<!-- ===== SLIDE 2: CONTENT + ICONS ===== -->
+<div>
+  <div class="slide-label">Slide 2 — Features / Services</div>
+  <div class="slide">
+    <div class="glow-center"></div>
+    <div class="slide-content-layout">
+      <h2 class="slide-section-title">خدماتنا</h2>
+      <p class="slide-section-subtitle">حلول متكاملة من البداية للنهاية</p>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-icon"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10"/></svg></div>
+          <div class="feature-title">أتمتة ذكية</div>
+          <div class="feature-desc">نأتمت العمليات المتكررة ونوفر ١٢٠+ ساعة شهرياً.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></div>
+          <div class="feature-title">نظام CRM</div>
+          <div class="feature-desc">إدارة العملاء من أول تواصل لين يصير عميل دائم.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><svg viewBox="0 0 24 24"><line x1="4" y1="21" x2="4" y2="14"/><line x1="12" y1="21" x2="12" y2="8"/><line x1="20" y1="21" x2="20" y2="3"/></svg></div>
+          <div class="feature-title">تحليلات وتقارير</div>
+          <div class="feature-desc">لوحات بيانات حيّة تعطيك الصورة الكاملة.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+          <div class="feature-title">تسويق رقمي</div>
+          <div class="feature-desc">حملات مستهدفة تحقق عائد استثمار ملموس.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg></div>
+          <div class="feature-title">تطوير مواقع</div>
+          <div class="feature-desc">مواقع احترافية سريعة ومتوافقة مع الجوال.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></div>
+          <div class="feature-title">سوشال ميديا</div>
+          <div class="feature-desc">إدارة حسابات احترافية وجدولة ذكية.</div>
+        </div>
+      </div>
+    </div>
+    <svg class="slide-watermark" viewBox="0 0 512 512" fill="none"><polygon points="256,56 456,176 456,376 256,496 56,376 56,176" fill="none" stroke="#fff" stroke-width="4"/><path d="M160 200 L352 200 L160 320 L352 320" stroke="#fff" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <div class="slide-page-num">02</div>
+  </div>
+</div>
+
+<!-- ===== SLIDE 3: STATS ===== -->
+<div>
+  <div class="slide-label">Slide 3 — Statistics / Results</div>
+  <div class="slide">
+    <div class="glow-center"></div>
+    <div class="stats-layout">
+      <h2 class="slide-section-title" style="margin-bottom:4px;">نتائجنا تتكلم</h2>
+      <p class="slide-section-subtitle">أرقام حقيقية من عملاء حقيقيين</p>
+      <div class="stats-grid">
+        <div class="stat-block">
+          <div class="stat-value">+34%</div>
+          <div class="stat-desc">زيادة في المبيعات</div>
+        </div>
+        <div class="stat-block">
+          <div class="stat-value">120+</div>
+          <div class="stat-desc">ساعة عمل موفّرة شهرياً</div>
+        </div>
+        <div class="stat-block">
+          <div class="stat-value">3x</div>
+          <div class="stat-desc">عائد الاستثمار</div>
+        </div>
+      </div>
+    </div>
+    <svg class="slide-watermark" viewBox="0 0 512 512" fill="none"><polygon points="256,56 456,176 456,376 256,496 56,376 56,176" fill="none" stroke="#fff" stroke-width="4"/><path d="M160 200 L352 200 L160 320 L352 320" stroke="#fff" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <div class="slide-page-num">03</div>
+  </div>
+</div>
+
+<!-- ===== SLIDE 4: CTA / CLOSING ===== -->
+<div>
+  <div class="slide-label">Slide 4 — Call to Action / Closing</div>
+  <div class="slide">
+    <div class="glow-center"></div>
+    <div class="glow-corner"></div>
+    <div class="cta-layout">
+      <h2 class="cta-heading">جاهز تبدأ رحلة النمو؟</h2>
+      <p class="cta-sub">احجز استشارة مجانية لمدة ١٥ دقيقة ونوريك كيف ممكن نزيد مبيعاتك بالذكاء الاصطناعي.</p>
+      <button class="cta-button">احجز استشارتك المجانية الآن</button>
+      <div class="cta-contact">
+        <a href="mailto:ziyadasystem@gmail.com">ziyadasystem@gmail.com</a> &nbsp;|&nbsp; ziyadasystem.com
+      </div>
+    </div>
+    <svg class="slide-watermark" viewBox="0 0 512 512" fill="none"><polygon points="256,56 456,176 456,376 256,496 56,376 56,176" fill="none" stroke="#fff" stroke-width="4"/><path d="M160 200 L352 200 L160 320 L352 320" stroke="#fff" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <div class="slide-page-num">04</div>
+  </div>
+</div>
+
+</body>
+</html>
