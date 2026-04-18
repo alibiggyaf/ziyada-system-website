@@ -4,10 +4,15 @@ import { MessageCircle, X, Send, Loader2 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
+import { siteApi } from "@/api/siteApi";
+import { getChatSessionId, getKnownIdentity, setKnownIdentity } from "@/lib/contactIdentity";
+import { getLandingPageUrl, getPageUrl, getReferrerUrl, getSourcePage, getUTMParams } from "@/lib/utm";
+
+const ALLOWED_LINK_HOSTS = new Set(["ziyadasystem.com", "www.ziyadasystem.com"]);
 
 const L = {
   ar: {
-    name: "مساعد زيادة",
+    name: "Website Chat",
     role: "مستشار أعمال رقمي",
     welcome: "أهلاً! أنا مساعد زيادة سيستم. كيف أقدر أساعدك اليوم؟",
     placeholder: "اكتب رسالتك...",
@@ -21,7 +26,7 @@ const L = {
     error: "عذراً، حصل خطأ. حاول مرة ثانية.",
   },
   en: {
-    name: "Ziyada Assistant",
+    name: "Website Chat",
     role: "Digital Business Consultant",
     welcome: "Hi! I'm the Ziyada Systems assistant. How can I help you today?",
     placeholder: "Type your message...",
@@ -50,6 +55,158 @@ export default function FloatingChatWidget({ lang = "ar", theme = "dark" }) {
   const webhookUrl = import.meta.env.VITE_CHATBOT_WEBHOOK;
   const enabled = import.meta.env.VITE_CHATBOT_ENABLED !== "false";
 
+  const buildLeadFingerprint = (lead) => {
+    return [lead.email || "", lead.phone || "", lead.challenge || ""].join("|");
+  };
+
+  const persistLeadCapture = async (lead) => {
+    if (!lead || (!lead.email && !lead.phone) || !lead.challenge) return;
+
+    const fingerprint = buildLeadFingerprint(lead);
+    const cacheKey = `ziyada_chat_lead_${fingerprint}`;
+    if (typeof window !== "undefined" && window.sessionStorage.getItem(cacheKey)) return;
+
+    if (lead.email || lead.phone || lead.name) {
+      setKnownIdentity({
+        email: lead.email || undefined,
+        phone: lead.phone || undefined,
+        name: lead.name || undefined,
+      });
+    }
+
+    const utmParams = getUTMParams();
+    const sourcePage = getSourcePage();
+    const pageUrl = getPageUrl();
+    const landingPageUrl = getLandingPageUrl();
+    const referrerUrl = getReferrerUrl();
+
+    await siteApi.functions.invoke("submitLead", {
+      name: lead.name || "Website Chat Visitor",
+      email: lead.email || "",
+      phone: lead.phone || "",
+      company: lead.company || "",
+      challenge: lead.challenge,
+      services_requested: lead.service_interest || "",
+      source: "website_chat",
+      language: lead.language || lang,
+      source_page: sourcePage,
+      page_url: pageUrl,
+      landing_page_url: landingPageUrl,
+      referrer_url: referrerUrl,
+      entry_point: "website_chat_widget",
+      ...utmParams,
+    });
+
+    if (typeof window !== "undefined") {
+      window.sessionStorage.setItem(cacheKey, "1");
+    }
+  };
+
+  const normalizeHref = (raw) => {
+    if (!raw) return null;
+
+    if (raw.startsWith("/")) {
+      return raw;
+    }
+
+    try {
+      const url = new URL(raw);
+      if (ALLOWED_LINK_HOSTS.has(url.hostname.toLowerCase())) {
+        return url.toString();
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  };
+
+  const renderMessageContent = (text) => {
+    const content = String(text || "").trim();
+
+    // Render a single line: handles **bold**, inline links (ziyadasystem only), plain text
+    const renderInline = (str, keyPrefix) => {
+      // Split on **bold** markers
+      const boldParts = str.split(/(\*\*[^*\n]+\*\*)/g);
+      return boldParts.map((chunk, ci) => {
+        if (!chunk) return null;
+
+        if (chunk.startsWith("**") && chunk.endsWith("**")) {
+          return (
+            <strong key={`${keyPrefix}-b${ci}`} style={{ fontWeight: 700 }}>
+              {chunk.slice(2, -2)}
+            </strong>
+          );
+        }
+
+        // Within non-bold chunk: handle links
+        const urlPattern = /(https?:\/\/[^\s،,،\u0021-\u002F\u003A-\u0040\u005B-\u0060\u007B-\u007E]+|\/[A-Za-z0-9\-_/]+)/g;
+        const urlParts = chunk.split(urlPattern);
+        return urlParts.map((sub, ui) => {
+          if (!sub) return null;
+          const looksLikeUrl = /^https?:\/\//i.test(sub) || /^\/[A-Za-z]/.test(sub);
+          if (looksLikeUrl) {
+            const href = normalizeHref(sub);
+            if (!href) return null; // hide all non-ziyadasystem links silently
+            return (
+              <a
+                key={`${keyPrefix}-l${ci}-${ui}`}
+                href={href}
+                target={href.startsWith("http") ? "_blank" : undefined}
+                rel={href.startsWith("http") ? "noreferrer noopener" : undefined}
+                style={{ color: "inherit", textDecoration: "underline", fontWeight: 600 }}
+              >
+                {sub}
+              </a>
+            );
+          }
+          return <span key={`${keyPrefix}-t${ci}-${ui}`}>{sub}</span>;
+        });
+      });
+    };
+
+    // Split into paragraphs on double newlines
+    const paragraphs = content.split(/\n{2,}/);
+
+    return (
+      <>
+        {paragraphs.map((para, pi) => {
+          const lines = para.split("\n");
+          return (
+            <div
+              key={`p${pi}`}
+              style={{ marginBottom: pi < paragraphs.length - 1 ? "10px" : 0 }}
+            >
+              {lines.map((line, li) => (
+                <div key={`p${pi}l${li}`} style={{ marginBottom: li < lines.length - 1 ? "3px" : 0 }}>
+                  {renderInline(line, `p${pi}l${li}`)}
+                </div>
+              ))}
+            </div>
+          );
+        })}
+      </>
+    );
+  };
+
+  // Allow external code to open the chat widget
+  useEffect(() => {
+    const handleExternalOpen = (e) => {
+      setOpen(true);
+      // Optionally pre-send a message passed via the event
+      if (e?.detail?.message) {
+        setTimeout(() => sendMessage(e.detail.message), 400);
+      }
+    };
+    window.addEventListener("ziyada-chat-open", handleExternalOpen);
+    // Also expose a global for simple onclick calls
+    window.__ziyadaOpenChat = (msg) =>
+      window.dispatchEvent(new CustomEvent("ziyada-chat-open", msg ? { detail: { message: msg } } : {}));
+    return () => {
+      window.removeEventListener("ziyada-chat-open", handleExternalOpen);
+      delete window.__ziyadaOpenChat;
+    };
+  }, []);
+
   useEffect(() => {
     if (open && messages.length === 0) {
       setMessages([{ role: "assistant", content: l.welcome }]);
@@ -66,6 +223,29 @@ export default function FloatingChatWidget({ lang = "ar", theme = "dark" }) {
     }
   }, [open]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    document.body.dataset.ziyadaChatOpen = open ? "1" : "0";
+    window.dispatchEvent(
+      new CustomEvent("ziyada-chat-visibility", {
+        detail: { open },
+      })
+    );
+  }, [open]);
+
+  useEffect(() => {
+    return () => {
+      if (typeof window === "undefined") return;
+      document.body.dataset.ziyadaChatOpen = "0";
+      window.dispatchEvent(
+        new CustomEvent("ziyada-chat-visibility", {
+          detail: { open: false },
+        })
+      );
+    };
+  }, []);
+
   const sendMessage = async (text) => {
     if (!text.trim()) return;
     const userMsg = { role: "user", content: text.trim() };
@@ -80,13 +260,29 @@ export default function FloatingChatWidget({ lang = "ar", theme = "dark" }) {
     }
 
     try {
+      const messageId = crypto.randomUUID();
+      const chatInput = text.trim();
+      const identity = getKnownIdentity();
       const res = await fetch(webhookUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "sendMessage",
-          chatInput: text.trim(),
-          sessionId: getSessionId(),
+          chatInput,
+          sessionId: getChatSessionId(),
+          channel: "website_chat",
+          source_label: "website_chat",
+          direction: "inbound",
+          event_ts: new Date().toISOString(),
+          message_id: messageId,
+          email: identity.email,
+          phone_e164: identity.phone_e164,
+          source_page: getSourcePage(),
+          page_url: getPageUrl(),
+          landing_page_url: getLandingPageUrl(),
+          referrer_url: getReferrerUrl(),
+          entry_point: "website_chat_widget",
+          ...getUTMParams(),
         }),
       });
 
@@ -98,6 +294,12 @@ export default function FloatingChatWidget({ lang = "ar", theme = "dark" }) {
         return;
       }
       const data = await res.json();
+      if (data?.lead_capture?.captured) {
+        persistLeadCapture(data.lead_capture).catch((error) => {
+          console.warn("Chat lead capture failed:", error);
+        });
+      }
+
       // Support multiple response formats: Gemini Flash, OpenAI, Claude, etc.
       let reply = data.output ||
                   data.text ||
@@ -131,18 +333,18 @@ export default function FloatingChatWidget({ lang = "ar", theme = "dark" }) {
       {/* Floating button with glow + label */}
       <AnimatePresence>
         {!open && (
-          <motion.div
+            <motion.div
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
             transition={{ type: "spring", stiffness: 260, damping: 20 }}
             className="fixed z-50 flex items-center gap-2 chat-widget-trigger"
             style={{
-              bottom: 24,
-              right: isRTL ? 24 : "auto",
-              left: isRTL ? "auto" : 24,
+              bottom: "calc(env(safe-area-inset-bottom, 0px) + 16px)",
+              right: 24,
+              left: "auto",
               direction: "ltr",
-              flexDirection: isRTL ? "row-reverse" : "row",
+              flexDirection: "row",
             }}
           >
             {/* Title label */}
@@ -159,7 +361,7 @@ export default function FloatingChatWidget({ lang = "ar", theme = "dark" }) {
                 boxShadow: "0 2px 12px rgba(124,58,237,0.15)",
               }}
             >
-              {isRTL ? "مساعد زيادة الذكي" : "Ziyada AI Assistant"}
+              {isRTL ? "Website Chat" : "Website Chat"}
             </motion.div>
 
             {/* Glowing button */}
@@ -189,7 +391,7 @@ export default function FloatingChatWidget({ lang = "ar", theme = "dark" }) {
           50% { box-shadow: 0 0 30px rgba(124,58,237,0.7), 0 0 60px rgba(59,130,246,0.4), 0 4px 20px rgba(0,0,0,0.3); }
         }
         @media (max-width: 768px) {
-          .chat-widget-trigger { bottom: 80px !important; }
+          .chat-widget-trigger { bottom: calc(env(safe-area-inset-bottom, 0px) + 16px) !important; }
           .chat-widget-label { display: none !important; }
         }
       `}</style>
@@ -209,9 +411,9 @@ export default function FloatingChatWidget({ lang = "ar", theme = "dark" }) {
               maxWidth: "calc(100vw - 32px)",
               height: 520,
               maxHeight: "calc(100vh - 100px)",
-              bottom: 24,
-              right: isRTL ? 24 : "auto",
-              left: isRTL ? "auto" : 24,
+              bottom: "calc(env(safe-area-inset-bottom, 0px) + 16px)",
+              right: 24,
+              left: "auto",
               background: theme === "dark" ? "#0f172a" : "#ffffff",
               border: `1px solid ${theme === "dark" ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"}`,
             }}
@@ -264,7 +466,7 @@ export default function FloatingChatWidget({ lang = "ar", theme = "dark" }) {
                           (msg.role === "user" && !isRTL) || (msg.role === "assistant" && isRTL) ? 4 : undefined,
                       }}
                     >
-                      {msg.content}
+                      {renderMessageContent(msg.content)}
                     </div>
                   </div>
                 ))}
@@ -358,14 +560,4 @@ export default function FloatingChatWidget({ lang = "ar", theme = "dark" }) {
       </AnimatePresence>
     </>
   );
-}
-
-function getSessionId() {
-  const key = "ziyada_chat_session";
-  let id = sessionStorage.getItem(key);
-  if (!id) {
-    id = crypto.randomUUID();
-    sessionStorage.setItem(key, id);
-  }
-  return id;
 }
