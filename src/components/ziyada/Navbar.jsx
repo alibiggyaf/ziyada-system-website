@@ -29,22 +29,21 @@ export default function Navbar({ lang, toggleLang, theme, toggleTheme, isRTL: _i
   const isRTL = lang === "ar";
 
   return (
-    <header className="glass-topbar" dir={isRTL ? "rtl" : "ltr"}>
+    <header className="glass-topbar" dir="ltr">
       <div className="glass-topbar-inner">
-        {/* Logo */}
-        <Link to="/Home" style={{ textDecoration: "none" }}>
-          <span className="brand-wordmark" style={{ fontSize: "1.3rem", fontWeight: 900, letterSpacing: "-0.02em" }}>
-            Ziyada Systems
-          </span>
+        {/* Logo placeholder (intentionally empty until final approved asset) */}
+        <Link to="/Home" className="glass-topbar-logo" style={{ textDecoration: "none" }} aria-label="Home">
+          <span className="brand-placeholder" aria-hidden="true" />
         </Link>
 
         {/* Desktop Nav */}
-        <nav style={{ display: "flex", gap: 28, listStyle: "none" }} className="hidden-mobile">
+        <nav style={{ display: "flex", gap: "clamp(10px, 1.6vw, 22px)", listStyle: "none" }} className="hidden-mobile glass-topbar-nav">
           {NAV[lang].map(item => (
             <Link key={item.path} to={item.path} style={{
               textDecoration: "none", fontSize: "0.9rem", fontWeight: 500,
               color: location.pathname === item.path ? "var(--accent-primary)" : "var(--text-secondary)",
-              transition: "color 0.2s"
+              transition: "color 0.2s",
+              direction: isRTL ? "rtl" : "ltr"
             }}>
               {item.label}
             </Link>
@@ -52,7 +51,7 @@ export default function Navbar({ lang, toggleLang, theme, toggleTheme, isRTL: _i
         </nav>
 
         {/* Controls */}
-        <div className="glass-topbar-controls">
+        <div className="glass-topbar-controls" style={{ direction: "ltr" }}>
           <GlassButton size="icon" onClick={toggleTheme} aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}>
             {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
           </GlassButton>
@@ -116,12 +115,39 @@ export default function Navbar({ lang, toggleLang, theme, toggleTheme, isRTL: _i
           box-shadow: 0 10px 26px rgba(2, 6, 23, 0.28);
           backdrop-filter: blur(14px) saturate(140%);
           -webkit-backdrop-filter: blur(14px) saturate(140%);
+          overflow: hidden;
+        }
+
+        .glass-topbar-logo {
+          display: inline-flex;
+          align-items: center;
+          justify-content: flex-start;
+          flex: 0 0 auto;
+          min-width: 0;
+          max-width: min(38vw, 220px);
+        }
+
+        .brand-placeholder {
+          display: block;
+          width: 132px;
+          height: 46px;
+        }
+
+        .glass-topbar-nav {
+          flex: 1 1 auto;
+          align-items: center;
+          justify-content: center;
+          direction: rtl;
+          min-width: 0;
         }
 
         .glass-topbar-controls {
           display: flex;
           align-items: center;
           gap: 8px;
+          flex-shrink: 0;
+          justify-content: flex-end;
+          margin-left: auto;
         }
 
         .glass-topbar-controls .glass-button {
@@ -130,19 +156,8 @@ export default function Navbar({ lang, toggleLang, theme, toggleTheme, isRTL: _i
           color: #f8fafc;
         }
 
-        .brand-wordmark {
-          background: linear-gradient(135deg, #dbeafe 0%, #93c5fd 40%, #c4b5fd 100%);
-          -webkit-background-clip: text;
-          background-clip: text;
-          -webkit-text-fill-color: transparent;
-          color: transparent;
-        }
-
-        .light-mode .brand-wordmark {
-          background: none;
-          -webkit-text-fill-color: #0f172a;
-          color: #0f172a;
-          text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+        .mobile-menu-btn {
+          display: none !important;
         }
 
         .glass-mobile-nav {
@@ -160,11 +175,33 @@ export default function Navbar({ lang, toggleLang, theme, toggleTheme, isRTL: _i
           display: none;
         }
 
-        @media (max-width: 768px) {
+        @media (max-width: 1100px) {
           .hidden-mobile { display: none !important; }
           .mobile-menu-btn { display: flex !important; }
           .nav-cta-link { display: none !important; }
           .glass-topbar { padding: 8px 10px 0; }
+          .glass-topbar-inner {
+            gap: 8px;
+            padding-left: 10px;
+            padding-right: 10px;
+          }
+          .glass-topbar-logo {
+            max-width: min(38vw, 180px);
+          }
+
+          .brand-placeholder {
+            width: 116px;
+            height: 40px;
+          }
+        }
+
+        @media (max-width: 768px) {
+          .mobile-menu-btn { display: flex !important; }
+          .glass-topbar { padding: 8px 10px 0; }
+          .glass-topbar-logo {
+            min-width: 0;
+            max-width: min(38vw, 160px);
+          }
           .glass-topbar-inner {
             height: 60px;
             min-height: 60px;
@@ -173,6 +210,20 @@ export default function Navbar({ lang, toggleLang, theme, toggleTheme, isRTL: _i
             padding-top: 0;
             padding-bottom: 0;
             border-radius: 999px;
+          }
+        }
+
+        @media (max-width: 420px) {
+          .glass-topbar-controls > .glass-button:first-child {
+            display: none !important;
+          }
+          .glass-topbar-logo {
+            max-width: min(32vw, 130px);
+          }
+
+          .brand-placeholder {
+            width: 96px;
+            height: 34px;
           }
         }
 

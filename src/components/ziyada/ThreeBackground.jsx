@@ -14,6 +14,8 @@ export default function ThreeBackground({ theme = "dark", muted = false }) {
 
     /* ── Renderer ── */
     const W = window.innerWidth, H = window.innerHeight;
+    const getSpeedBoost = () => (window.matchMedia("(max-width: 768px)").matches ? 1.25 : 1.12);
+    let speedBoost = getSpeedBoost();
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(W, H);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -35,11 +37,21 @@ export default function ThreeBackground({ theme = "dark", muted = false }) {
       target.x = (e.clientX / window.innerWidth  - 0.5) * 2;
       target.y = (e.clientY / window.innerHeight - 0.5) * 2;
     };
+
+    /* ── Touch tracking (mobile finger drag) ── */
+    const onTouchMove = (e) => {
+      if (!e.touches.length) return;
+      const t = e.touches[0];
+      target.x = (t.clientX / window.innerWidth  - 0.5) * 2;
+      target.y = (t.clientY / window.innerHeight - 0.5) * 2;
+    };
+
     const onScroll = () => {
       const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
       targetScrollY = maxScroll > 0 ? window.scrollY / maxScroll : 0;
     };
     window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("touchmove", onTouchMove, { passive: true });
     window.addEventListener("scroll", onScroll, { passive: true });
 
     /* ── Custom cursor (desktop pointer devices only) ── */
@@ -137,8 +149,8 @@ export default function ThreeBackground({ theme = "dark", muted = false }) {
       const elapsed = clock.getElapsedTime();
 
       // Smooth mouse lerp
-      mouse.x += (target.x - mouse.x) * 0.05;
-      mouse.y += (target.y - mouse.y) * 0.05;
+      mouse.x += (target.x - mouse.x) * 0.05 * speedBoost;
+      mouse.y += (target.y - mouse.y) * 0.05 * speedBoost;
 
       // Smooth scroll lerp
       scrollY += (targetScrollY - scrollY) * 0.04;
@@ -149,13 +161,13 @@ export default function ThreeBackground({ theme = "dark", muted = false }) {
 
       // Core — mouse-responsive + gentle floating
       const floatY = Math.sin(elapsed * 0.3) * 0.5;
-      core.rotation.x = elapsed * 0.04 + mouse.y * 0.08;
-      core.rotation.y = elapsed * 0.05 + mouse.x * 0.08;
+      core.rotation.x = elapsed * 0.04 * speedBoost + mouse.y * 0.08 * speedBoost;
+      core.rotation.y = elapsed * 0.05 * speedBoost + mouse.x * 0.08 * speedBoost;
       core.position.y = floatY;
 
       // TorusKnot — cursor drag + slow scroll offset + floating
-      tk.rotation.x = elapsed * 0.025 + mouse.y * 0.06 + scrollY * Math.PI * 0.08;
-      tk.rotation.y = elapsed * 0.03 + mouse.x * 0.06 + scrollY * Math.PI * 0.05;
+      tk.rotation.x = elapsed * 0.025 * speedBoost + mouse.y * 0.06 * speedBoost + scrollY * Math.PI * 0.08;
+      tk.rotation.y = elapsed * 0.03 * speedBoost + mouse.x * 0.06 * speedBoost + scrollY * Math.PI * 0.05;
       tk.rotation.z = scrollY * Math.PI * 0.1;
       tk.position.y = floatY;
 
@@ -163,7 +175,7 @@ export default function ThreeBackground({ theme = "dark", muted = false }) {
       const scaleTK = 1 + scrollY * 0.03;
       tk.scale.set(scaleTK, scaleTK, scaleTK);
 
-      particles.rotation.y = elapsed * 0.008 + scrollY * 0.2;
+      particles.rotation.y = elapsed * 0.008 * speedBoost + scrollY * 0.2;
       particles.rotation.x = scrollY * 0.1;
 
       // Theme opacity — nearly invisible in light mode
@@ -185,12 +197,14 @@ export default function ThreeBackground({ theme = "dark", muted = false }) {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
+      speedBoost = getSpeedBoost();
     };
     window.addEventListener("resize", onResize);
 
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("touchmove", onTouchMove);
       if (onMouseMoveDOM) window.removeEventListener("mousemove", onMouseMoveDOM);
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onResize);

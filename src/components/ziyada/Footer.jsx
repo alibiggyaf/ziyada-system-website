@@ -29,7 +29,7 @@ export default function Footer({ lang }) {
     setSubStatus("loading");
     try {
       const res = await siteApi.functions.invoke("subscribeEmail", { email, language: lang });
-      if (res.data?.success) {
+      if (res?.data && !res?.error) {
         setSubStatus("success");
         confetti({
           particleCount: 150,
@@ -54,13 +54,8 @@ export default function Footer({ lang }) {
       dir={isRTL ? "rtl" : "ltr"}>
       <div style={{ maxWidth: 1200, margin: "0 auto" }}>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 40, marginBottom: 40 }}>
-          {/* Brand */}
-          <div>
-            <div className="gradient-text" style={{ fontSize: "1.4rem", fontWeight: 900, marginBottom: 12 }}>Ziyada Systems</div>
-            <p style={{ color: "var(--text-secondary)", fontSize: "0.9rem", lineHeight: 1.7 }}>
-              {isRTL ? "تصميم وبناء الأنظمة التشغيلية والرقمية للشركات الطموحة." : "Building operational and digital systems for ambitious companies."}
-            </p>
-          </div>
+          {/* Brand placeholder (intentionally empty until final approved asset) */}
+          <div aria-hidden="true" style={{ height: 72 }} />
 
           {/* Links */}
           <div>
@@ -97,7 +92,20 @@ export default function Footer({ lang }) {
               </div>
             ) : (
               <form onSubmit={handleSubscribe} style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                <div style={{ position: "absolute", left: "-9999px", opacity: 0 }} aria-hidden="true">
+                <div
+                  style={{
+                    position: "absolute",
+                    width: 1,
+                    height: 1,
+                    padding: 0,
+                    margin: -1,
+                    overflow: "hidden",
+                    clip: "rect(0, 0, 0, 0)",
+                    whiteSpace: "nowrap",
+                    border: 0,
+                  }}
+                  aria-hidden="true"
+                >
                   <input
                     type="text"
                     name="website"
@@ -113,8 +121,10 @@ export default function Footer({ lang }) {
                   style={{ 
                     flex: 1, 
                     minWidth: 160,
-                    background: "#ffffff",
+                    background: "#f8fafc",
                     color: "#0f172a",
+                    WebkitTextFillColor: "#0f172a",
+                    caretColor: "#0f172a",
                     border: "1px solid rgba(59,130,246,0.3)"
                   }} required />
                 <button type="submit" className="btn-primary-ziyada" style={{ padding: "10px 16px", fontSize: "0.85rem" }}>

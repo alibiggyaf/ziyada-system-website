@@ -198,6 +198,7 @@ export default function Home() {
       .home-cta-sub {
         color: var(--text-primary) !important;
       }
+
       .light-mode .home-cta-card {
         border-color: rgba(37, 99, 235, 0.16) !important;
         background:
