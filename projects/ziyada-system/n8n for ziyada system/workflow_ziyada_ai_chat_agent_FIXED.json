@@ -1,0 +1,278 @@
+{
+  "name": "Ziyada AI Chat Agent — Website",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {
+          "responseMode": "lastNode"
+        },
+        "public": true,
+        "mode": "webhook",
+        "authentication": "none"
+      },
+      "id": "chat-trigger-001",
+      "name": "Chat Trigger",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        240,
+        400
+      ],
+      "webhookId": "3c9f6cb1-a3ce-4302-8260-6748f093520d"
+    },
+    {
+      "parameters": {
+        "agent": "toolsAgent",
+        "promptType": "define",
+        "text": "={{ $json.chatInput }}",
+        "systemMessage": "أنت مساعد زيادة سيستم الذكي على موقع ziyadasystem.com — مستشار أعمال رقمي متخصص في مساعدة الشركات السعودية على الأتمتة والذكاء الاصطناعي وزيادة المبيعات.\n\n---\n\n## قواعد ثابتة لا استثناء منها أبداً\n\n### الحجز — قاعدة لا تُكسر:\n- يُحظر تماماً إرسال أي URL أو رابط حجز في الردود.\n- يُحظر تماماً ذكر Calendly أو أي رابط خارجي.\n- إذا طلب الزائر الحجز: اجمع بياناته كاملة، اسأله عن الوقت المناسب، ثم استخدم أداة create_booking_request.\n- لا تقل \"افتح الرابط\" أو \"احجز من الموقع\". أنت تنفّذ الحجز له من داخل المحادثة.\n\n### هويتك:\n- اسمك: مساعد زيادة.\n- أنت من زيادة سيستم — لا تذكر أبداً Google أو OpenAI أو GPT أو Gemini أو أي شركة تقنية.\n\n---\n\n## قاعدة اللغة\n\n- إذا كتب بالعربية: ردّ بالعربية السعودية طوال المحادثة.\n- إذا كتب بالإنجليزية: ردّ بالإنجليزية طوال المحادثة.\n- لا تخلط اللغتين إلا عند الضرورة لتوضيح مصطلح تقني.\n\n---\n\n## سير المحادثة — خطوات إلزامية\n\n1) رحّب بشكل دافئ ومختصر.\n2) افهم القطاع والتحدي الأساسي.\n3) اربط المشكلة بخدمة مناسبة من خدمات زيادة.\n4) عند وجود اهتمام واضح: اجمع الاسم الكامل + رقم الجوال + الإيميل.\n5) أكّد البيانات مع العميل قبل أي حفظ.\n6) بعد التأكيد استخدم capture_lead.\n7) إذا طلب العميل موعداً: اسأله عن الوقت المفضل ثم استخدم create_booking_request.\n8) بعد نجاح create_booking_request: أكّد أن طلب الحجز تم تسجيله وأن الفريق سيؤكد الموعد عبر الجوال أو الإيميل.\n\n## قواعد إلزامية إضافية\n\n- ممنوع إرسال أي رابط في الردود.\n- لا تستخدم markdown أو bullet points في الرسائل المرسلة للعميل.\n- أنهِ كل رد بخطوة عملية واضحة.",
+        "options": {
+          "maxIterations": 8
+        }
+      },
+      "id": "ai-agent-002",
+      "name": "Ziyada AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        540,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "options": {
+          "temperature": 0.4,
+          "maxTokens": 800
+        }
+      },
+      "id": "openai-model-003",
+      "name": "GPT-4o-mini",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        320,
+        620
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "openAiApi",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.sessionId || $json.body?.sessionId || 'default' }}",
+        "contextWindowLength": 15
+      },
+      "id": "memory-004",
+      "name": "Window Buffer Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        440,
+        620
+      ]
+    },
+    {
+      "parameters": {
+        "name": "capture_lead",
+        "description": "ONLY call this tool AFTER collecting all three: full name, phone number, AND email address — and ONLY after the visitor has confirmed that their information is correct. Saves the lead to Supabase, sends a notification email to ziyadasystem@gmail.com, and creates a follow-up on Google Calendar. Do NOT call with missing fields.",
+        "method": "POST",
+        "url": "https://n8n.srv953562.hstgr.cloud/webhook/ziyada-lead-intake",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={\n  \"full_name\": \"{{ /*n8n-auto-generated-fromAI-override*/ $fromAI('full_name', 'Full name of the visitor — required', 'string') }}\",\n  \"email\": \"{{ /*n8n-auto-generated-fromAI-override*/ $fromAI('email', 'Email address of the visitor — required', 'string') }}\",\n  \"phone\": \"{{ /*n8n-auto-generated-fromAI-override*/ $fromAI('phone', 'Phone/mobile number of the visitor — required', 'string') }}\",\n  \"company\": \"{{ /*n8n-auto-generated-fromAI-override*/ $fromAI('company', 'Company or business name if mentioned, empty string if not', 'string') }}\",\n  \"sector\": \"{{ /*n8n-auto-generated-fromAI-override*/ $fromAI('sector', 'Industry sector (real estate, restaurant, clinic, retail, consulting, etc)', 'string') }}\",\n  \"challenge\": \"{{ /*n8n-auto-generated-fromAI-override*/ $fromAI('challenge', 'Main business challenge or pain point they described', 'string') }}\",\n  \"service_interest\": \"{{ /*n8n-auto-generated-fromAI-override*/ $fromAI('service_interest', 'Which Ziyada service they are most interested in', 'string') }}\",\n  \"source\": \"chat_widget\"\n}",
+        "options": {
+          "timeout": 20000,
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "lead-tool-005",
+      "name": "capture_lead",
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        560,
+        620
+      ]
+    },
+    {
+      "parameters": {
+        "name": "get_services_info",
+        "description": "Use this tool to retrieve detailed information about Ziyada System services when the visitor asks a specific question about a service. Returns structured service details.",
+        "code": "const query = $fromAI('query', 'What specific service or information is being asked about', 'string');\n\nconst services = {\n  automation: {\n    ar: 'أنظمة أتمتة الأعمال: نربط واتساب + CRM + إيميل + جداول بيانات في منظومة واحدة. كل رسالة تجيك، كل طلب، كل عميل — يتسجّل ويتابَع أوتوماتيك. نوفّر 80 ساعة شهرياً لكل عميل.',\n    en: 'Business Automation: We connect WhatsApp + CRM + Email + spreadsheets in one smart system. Every message and lead is automatically captured and followed up. We save clients 80 hours/month.',\n    sectors: 'Real estate, restaurants, clinics, retail, education',\n    timeline: '2-4 weeks'\n  },\n  crm: {\n    ar: 'أنظمة إدارة العملاء: نبني HubSpot مخصص — مسارات البيع، تذكيرات المتابعة، تصنيف العملاء. ما يضيع لك ولا صفقة.',\n    en: 'CRM & Sales Systems: Custom HubSpot setup — sales pipelines, automated follow-ups, lead scoring.',\n    sectors: 'Professional services, consulting, B2B',\n    timeline: '1-3 weeks'\n  },\n  leads: {\n    ar: 'اكتساب العملاء: ماكينة توليد عملاء B2B على LinkedIn + Google Ads مع تأهيل أوتوماتيك.',\n    en: 'Lead Generation: B2B lead engine on LinkedIn + Google Ads with automatic qualification.',\n    sectors: 'Tech, consulting, professional services',\n    timeline: '3-6 weeks for first results'\n  },\n  marketing: {\n    ar: 'التسويق الأدائي: Google Ads + Meta Ads + SEO مرتبطة بالنتائج. كل ريال له عائد واضح.',\n    en: 'Performance Marketing: Google + Meta Ads + SEO tied to real business results.',\n    sectors: 'E-commerce, education, real estate',\n    timeline: 'First report after 2-3 weeks'\n  },\n  website: {\n    ar: 'المواقع الذكية: موقعك مربوط بـ CRM وأتمتة. كل زائر يتحوّل لعميل محتمل أوتوماتيك.',\n    en: 'Smart Websites: Connected to CRM and automation. Every visitor becomes a potential lead automatically.',\n    sectors: 'All sectors',\n    timeline: '2-6 weeks'\n  },\n  social: {\n    ar: 'أنظمة المحتوى: من الاستراتيجية للنشر للتقارير — منظومة محتوى تشتغل بدون ضغط عليك.',\n    en: 'Content Systems: From strategy to publishing to reporting — runs without the stress.',\n    sectors: 'Retail, restaurants, consumer brands',\n    timeline: 'First content in week one'\n  }\n};\n\nreturn { services, query };"
+      },
+      "id": "services-tool-006",
+      "name": "get_services_info",
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.1,
+      "position": [
+        680,
+        620
+      ]
+    },
+    {
+      "parameters": {
+        "name": "create_booking_request",
+        "description": "Create a booking request directly without sending any URL. Use only after full name, phone, and email are confirmed; also collect preferred datetime.",
+        "method": "POST",
+        "url": "https://n8n.srv953562.hstgr.cloud/webhook/booking-webhook",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={\n  \"session_id\": \"{{ /*n8n-auto-generated-fromAI-override*/ $fromAI('session_id', 'Chat session id (required). Use current session id if available.', 'string') }}\",\n  \"lead_name\": \"{{ /*n8n-auto-generated-fromAI-override*/ $fromAI('lead_name', 'Full name of the visitor (required)', 'string') }}\",\n  \"phone_e164\": \"{{ /*n8n-auto-generated-fromAI-override*/ $fromAI('phone_e164', 'Phone number in E.164 format when possible, required', 'string') }}\",\n  \"email\": \"{{ /*n8n-auto-generated-fromAI-override*/ $fromAI('email', 'Email of the visitor, required', 'string') }}\",\n  \"requested_datetime\": \"{{ /*n8n-auto-generated-fromAI-override*/ $fromAI('requested_datetime', 'Preferred booking datetime in ISO format if possible', 'string') }}\",\n  \"channel\": \"website_chat\",\n  \"conversation_summary\": \"{{ /*n8n-auto-generated-fromAI-override*/ $fromAI('conversation_summary', 'Short summary of visitor need', 'string') }}\"\n}",
+        "options": {
+          "timeout": 20000,
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "booking-tool-007",
+      "name": "create_booking_request",
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        800,
+        620
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "responseBody": "={{ JSON.stringify({ output: $('Ziyada AI Agent').item.json.output }) }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "id": "respond-009",
+      "name": "Respond to Chat",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        860,
+        400
+      ]
+    }
+  ],
+  "connections": {
+    "Chat Trigger": {
+      "main": [
+        [
+          {
+            "node": "Ziyada AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ziyada AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Respond to Chat",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GPT-4o-mini": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Ziyada AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Window Buffer Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Ziyada AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "capture_lead": {
+      "ai_tool": [
+        [
+          {
+            "node": "Ziyada AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get_services_info": {
+      "ai_tool": [
+        [
+          {
+            "node": "Ziyada AI Agent",
+            "type": "ai_tool",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "create_booking_request": {
+      "ai_tool": [
+        [
+          {
+            "node": "Ziyada AI Agent",
+            "type": "ai_tool",
+            "index": 2
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "staticData": null,
+  "meta": {
+    "instanceId": "ziyada-system",
+    "templateCredsSetupCompleted": false
+  },
+  "pinData": {},
+  "tags": [
+    "ziyada",
+    "chat",
+    "ai-agent",
+    "lead-generation",
+    "website"
+  ]
+}
