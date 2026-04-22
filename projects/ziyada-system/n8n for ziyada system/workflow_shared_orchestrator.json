@@ -1,0 +1,98 @@
+{
+  "name": "Shared Response Orchestrator — Omnichannel",
+  "description": "Core orchestrator that receives normalized events from website chat and WhatsApp, resolves identity confidence, loads context from Supabase, applies confidence policy, calls AI agent, and routes response to correct channel. Emits structured events for persistence layer.",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "mode": "webhook",
+        "authentication": "none"
+      },
+      "id": "orchestrator-trigger",
+      "name": "Unified Event Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 400],
+      "webhookId": "shared-orchestrator-webhook"
+    },
+    {
+      "parameters": {
+        "functionCode": "// Load event from trigger\nconst event = $json.event || $json.body || $json;\n\n// Ensure required fields\nreturn {\n  ...event,\n  timestamp: new Date().toISOString()\n};\n"
+      },
+      "id": "validate-event",
+      "name": "Validate Event Contract",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 400]
+    },
+    {
+      "parameters": {
+        "resource": "database",
+        "database": "Supabase",
+        "operation": "select",
+        "schema": "public",
+        "table": "leads",
+        "searchType": "manual",
+        "where": "OR:email:=:$json.email|phone_normalized:=:$json.phone_e164",
+        "limit": 1
+      },
+      "id": "resolve-contact-identity",
+      "name": "Resolve Contact Identity",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [640, 400],
+      "credentials": {
+        "postgres": {
+          "id": "supabase_postgres",
+          "name": "Supabase Postgres"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "// Determine identity confidence based on contact resolution\nconst event = $json;\nconst contact = Array.isArray($json) && $json.length > 0 ? $json[0] : null;\nconst email = event.email;\nconst phoneE164 = event.phone_e164;\n\nlet confidence = 'none';\nlet contactId = null;\n\nif (contact) {\n  contactId = contact.id;\n  const emailMatch = email && contact.email && email.toLowerCase() === contact.email.toLowerCase();\n  const phoneMatch = phoneE164 && contact.phone_normalized && phoneE164 === contact.phone_normalized;\n  \n  if (emailMatch && phoneMatch) {\n    confidence = 'high';\n  } else if (emailMatch || phoneMatch) {\n    confidence = 'medium';\n  } else {\n    confidence = 'low';\n  }\n} else {\n  confidence = 'none';\n}\n\nreturn {\n  ...event,\n  identity_confidence: confidence,\n  contact_id: contactId,\n  matched_contact: contact\n};\n"
+      },
+      "id": "assess-identity-confidence",
+      "name": "Assess Identity Confidence",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [840, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {\n          "conditions": [\n            {\n              "key": "identity_confidence",\n              "operator": "equals",\n              "value": "medium"\n            }\n          ]\n        }\n      },
+      "id": "if-medium-confidence",
+      "name": "Identity Confidence Level?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1040, 400]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Medium confidence: ask soft verification question before loading context\nconst event = $json;\nconst contactName = event.matched_contact?.name || 'dear friend';\n\nreturn {\n  ...event,\n  verification_question: `Just to confirm — are you ${contactName}? I want to make sure I pull up your right information.`,\n  context_access_allowed: false\n};\n"
+      },
+      "id": "medium-confidence-handler",
+      "name": "Medium Confidence Handler",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1240, 250]
+    },
+    {
+      "parameters": {
+        "functionCode": "// High or low confidence: load context based on policy\nconst event = $json;\nconst confidence = event.identity_confidence;\n\nlet contextAccessAllowed = false;\nif (confidence === 'high') {\n  contextAccessAllowed = true; // High confidence: load all context\n} else if (confidence === 'low' || confidence === 'none') {\n  contextAccessAllowed = false; // Low/none: do not load private context\n}\n\nreturn {\n  ...event,\n  context_access_allowed: contextAccessAllowed\n};\n"
+      },
+      "id": "high-low-confidence-handler",
+      "name": "High/Low Confidence Handler",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1240, 550]
+    },
+    {
+      "parameters": {
+        "resource": "database",
+        "database": "Supabase",
+        "operation": "select",
+        "schema": "public",
+        "table": "chat_messages",\n        "where": "session_id:=:$json.session_id",\n        "limit": 10,\n        "orderBy": "created_at",\n        "orderDirection": "DESC"\n      },\n      "id": "load-conversation-history",
+      "name": "Load Conversation History",\n      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,\n      "position": [1440, 400],\n      "credentials": {\n        "postgres": {\n          "id": "supabase_postgres",\n          "name": "Supabase Postgres"\n        }\n      }\n    },\n    {\n      "parameters": {\n        "model": "gpt-4o-mini",\n        "options": {\n          "temperature": 0.7,\n          \"maxTokens\": 1000\n        }\n      },\n      "id": "openai-model",\n      "name": "GPT-4o Mini",\n      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",\n      "typeVersion": 1.2,\n      "position": [1640, 400],\n      "credentials": {\n        "openAiApi": {\n          "id": "openAiApi",\n          "name": "OpenAI API"\n        }\n      }\n    },\n    {\n      "parameters": {\n        "sessionIdType": "customKey",\n        \"sessionKey\": \"={{ $json.session_id }}\",\n        \"contextWindowLength\": 15\n      },\n      "id": \"memory-buffer",\n      "name": "Window Buffer Memory\",\n      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow\",\n      "typeVersion": 1.3,\n      "position\": [1840, 400]\n    },\n    {\n      "parameters\": {\n        \"aith\": false,\n        \"responseMode\": \"lastNode\"\n      },\n      \"id\": \"response-router\",\n      \"name\": \"Route Response to Channel\",\n      \"type\": \"n8n-nodes-base.code\",\n      \"typeVersion\": 2,\n      \"position\": [2040, 400]\n    },\n    {\n      \"parameters\": {\n        \"responseData\": \"{{ $response_mode == 'lastNode' ? $json : undefined }}\"\n      },\n      \"id\": \"webhook-response\",\n      \"name\": \"Webhook Response\",\n      \"type\": \"n8n-nodes-base.respondToWebhook\",\n      \"typeVersion\": 1,\n      \"position\": [2240, 400]\n    }\n  ],\n  \"connections\": {\n    \"orchestrator-trigger\": {\n      \"main\": [\n        [\n          {\n            \"node\": \"validate-event\",\n            \"type\": \"main\",\n            \"index\": 0\n          }\n        ]\n      ]\n    },\n    \"validate-event\": {\n      \"main\": [\n        [\n          {\n            \"node\": \"resolve-contact-identity\",\n            \"type\": \"main\",\n            \"index\": 0\n          }\n        ]\n      ]\n    },\n    \"resolve-contact-identity\": {\n      \"main\": [\n        [\n          {\n            \"node\": \"assess-identity-confidence\",\n            \"type\": \"main\",\n            \"index\": 0\n          }\n        ]\n      ]\n    },\n    \"assess-identity-confidence\": {\n      \"main\": [\n        [\n          {\n            \"node\": \"if-medium-confidence\",\n            \"type\": \"main\",\n            \"index\": 0\n          }\n        ]\n      ]\n    },\n    \"if-medium-confidence\": {\n      \"main\": [\n        [\n          {\n            \"node\": \"medium-confidence-handler\",\n            \"type\": \"main\",\n            \"index\": 0\n          }\n        ],\n        [\n          {\n            \"node\": \"high-low-confidence-handler\",\n            \"type\": \"main\",\n            \"index\": 0\n          }\n        ]\n      ]\n    },\n    \"medium-confidence-handler\": {\n      \"main\": [\n        [\n          {\n            \"node\": \"load-conversation-history\",\n            \"type\": \"main\",\n            \"index\": 0\n          }\n        ]\n      ]\n    },\n    \"high-low-confidence-handler\": {\n      \"main\": [\n        [\n          {\n            \"node\": \"load-conversation-history\",\n            \"type\": \"main\",\n            \"index\": 0\n          }\n        ]\n      ]\n    },\n    \"load-conversation-history\": {\n      \"main\": [\n        [\n          {\n            \"node\": \"openai-model\",\n            \"type\": \"main\",\n            \"index\": 0\n          }\n        ]\n      ]\n    },\n    \"openai-model\": {\n      \"main\": [\n        [\n          {\n            \"node\": \"memory-buffer\",\n            \"type\": \"main\",\n            \"index\": 0\n          }\n        ]\n      ]\n    },\n    \"memory-buffer\": {\n      \"main\": [\n        [\n          {\n            \"node\": \"response-router\",\n            \"type\": \"main\",\n            \"index\": 0\n          }\n        ]\n      ]\n    },\n    \"response-router\": {\n      \"main\": [\n        [\n          {\n            \"node\": \"webhook-response\",\n            \"type\": \"main\",\n            \"index\": 0\n          }\n        ]\n      ]\n    }\n  }\n}\n

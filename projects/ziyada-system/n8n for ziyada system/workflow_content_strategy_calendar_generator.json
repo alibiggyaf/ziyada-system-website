@@ -1,0 +1,131 @@
+{
+  "name": "Content Strategy Calendar Generator",
+  "description": "Generates monthly platform-specific content packages with hooks, keywords, hashtags, banana image prompts, and video prompts.",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "mode": "webhook",
+        "authentication": "none"
+      },
+      "id": "strategy-trigger",
+      "name": "Strategy Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [220, 320],
+      "webhookId": "content-strategy-calendar"
+    },
+    {
+      "parameters": {
+        "functionCode": "const body = $json.body || $json;\nconst targetMonth = body.target_month || new Date().toISOString().slice(0, 7);\nconst batchId = body.batch_id || `batch-${Date.now()}`;\nconst counts = body.requested_counts || { instagram: 10, x: 8, tiktok: 8, facebook: 6, linkedin: 6 };\nconst platforms = ['instagram', 'x', 'tiktok', 'facebook', 'linkedin'];\nconst rows = [];\nfor (const platform of platforms) {\n  const amount = Number(counts[platform] || 0);\n  for (let i = 0; i < amount; i += 1) {\n    rows.push({\n      batch_id: batchId,\n      target_month: targetMonth,\n      platform,\n      post_type: i % 3 === 0 ? 'video' : i % 3 === 1 ? 'image' : 'carousel',\n      subject_title: `${platform.toUpperCase()} topic ${i + 1}`,\n      five_hooks: [\n        `Hook 1 for ${platform} ${i + 1}`,\n        `Hook 2 for ${platform} ${i + 1}`,\n        `Hook 3 for ${platform} ${i + 1}`,\n        `Hook 4 for ${platform} ${i + 1}`,\n        `Hook 5 for ${platform} ${i + 1}`\n      ],\n      content_instagram: platform === 'instagram' ? `Instagram copy ${i + 1}` : null,\n      content_x: platform === 'x' ? `X copy ${i + 1}` : null,\n      content_tiktok: platform === 'tiktok' ? `TikTok copy ${i + 1}` : null,\n      content_facebook: platform === 'facebook' ? `Facebook copy ${i + 1}` : null,\n      content_linkedin: platform === 'linkedin' ? `LinkedIn copy ${i + 1}` : null,\n      caption_text: `Caption for ${platform} ${i + 1}`,\n      blog_article: `Blog brief for ${platform} ${i + 1}`,\n      newsletter_text: `Newsletter snippet for ${platform} ${i + 1}`,\n      competitor_keywords: [`${platform} keyword`, 'competitor angle'],\n      recommended_hashtags: ['#ziyadasystem', '#businessgrowth', '#marketing'],\n      banana_image_prompt: `Banana-style image prompt for ${platform} ${i + 1}`,\n      video_generator_prompt: `Video generation prompt for ${platform} ${i + 1}`\n    });\n  }\n}\nreturn { batch_id: batchId, target_month: targetMonth, rows, summary: `Generated ${rows.length} calendar items` };"
+      },
+      "id": "build-calendar-rows",
+      "name": "Build Calendar Rows",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 320]
+    },
+    {
+      "parameters": {
+        "resource": "database",
+        "database": "Supabase",
+        "operation": "insert",
+        "schema": "public",
+        "table": "content_calendar_entries",
+        "values": "={{ $json.rows }}"
+      },
+      "id": "insert-calendar-entries",
+      "name": "Insert Calendar Entries",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [660, 320],
+      "credentials": {
+        "postgres": {
+          "id": "supabase_postgres",
+          "name": "Supabase Postgres"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "database",
+        "database": "Supabase",
+        "operation": "update",
+        "schema": "public",
+        "table": "content_calendar_batches",
+        "where": "batch_id:=:$json.batch_id",
+        "values": {
+          "status": "completed",
+          "summary": "={{ $json.summary }}"
+        }
+      },
+      "id": "complete-batch",
+      "name": "Complete Batch",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [900, 320],
+      "credentials": {
+        "postgres": {
+          "id": "supabase_postgres",
+          "name": "Supabase Postgres"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "responseData": "={{ { success: true, batch_id: $json.batch_id, summary: $json.summary } }}"
+      },
+      "id": "respond",
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1120, 320]
+    }
+  ],
+  "connections": {
+    "strategy-trigger": {
+      "main": [
+        [
+          {
+            "node": "build-calendar-rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "build-calendar-rows": {
+      "main": [
+        [
+          {
+            "node": "insert-calendar-entries",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "insert-calendar-entries": {
+      "main": [
+        [
+          {
+            "node": "complete-batch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "complete-batch": {
+      "main": [
+        [
+          {
+            "node": "respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

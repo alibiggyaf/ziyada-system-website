@@ -1,0 +1,166 @@
+{
+  "name": "Competitor Calendar Agent",
+  "description": "Collects competitor inputs and generates one-month content calendar payload for Supabase persistence and admin dashboard rendering.",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "mode": "webhook",
+        "authentication": "none"
+      },
+      "id": "agent-trigger",
+      "name": "Agent Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 360],
+      "webhookId": "competitor-calendar-agent"
+    },
+    {
+      "parameters": {
+        "functionCode": "const body = $json.body || $json;\nconst competitorInputs = Array.isArray(body.competitor_inputs) ? body.competitor_inputs : [];\nif (!competitorInputs.length) { throw new Error('competitor_inputs is required'); }\nconst targetMonth = body.target_month || new Date().toISOString().slice(0, 7);\nconst requestedCounts = body.requested_counts || {};\nconst batchId = body.batch_id || `batch-${Date.now()}`;\nreturn { target_month: targetMonth, competitor_inputs: competitorInputs, requested_counts: requestedCounts, batch_id: batchId, include_assets: !!body.include_assets, include_newsletter: !!body.include_newsletter, include_blog_article: !!body.include_blog_article };"
+      },
+      "id": "validate-request",
+      "name": "Validate Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 360]
+    },
+    {
+      "parameters": {
+        "resource": "database",
+        "database": "Supabase",
+        "operation": "insert",
+        "schema": "public",
+        "table": "content_calendar_batches",
+        "values": {
+          "batch_id": "={{ $json.batch_id }}",
+          "target_month": "={{ $json.target_month }}",
+          "requested_counts": "={{ $json.requested_counts }}",
+          "competitor_inputs": "={{ $json.competitor_inputs }}",
+          "status": "running"
+        }
+      },
+      "id": "insert-batch",
+      "name": "Insert Calendar Batch",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [680, 220],
+      "credentials": {
+        "postgres": {
+          "id": "supabase_postgres",
+          "name": "Supabase Postgres"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "executeWorkflow",
+        "workflowId": "CONTENT_STRATEGY_CALENDAR_GENERATOR_ID",
+        "workflowInputs": "={{ $json }}"
+      },
+      "id": "call-strategy-generator",
+      "name": "Call Strategy Generator",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [680, 500]
+    },
+    {
+      "parameters": {
+        "resource": "database",
+        "database": "Supabase",
+        "operation": "insert",
+        "schema": "public",
+        "table": "agent_conversations",
+        "values": {
+          "agent_type": "competitor_calendar",
+          "user_message": "={{ JSON.stringify({ competitor_inputs: $json.competitor_inputs, target_month: $json.target_month, requested_counts: $json.requested_counts }) }}",
+          "agent_response": "={{ $json.summary || 'Calendar generation started' }}",
+          "metadata": "={{ $json }}"
+        }
+      },
+      "id": "log-agent-response",
+      "name": "Log Agent Response",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [920, 360],
+      "credentials": {
+        "postgres": {
+          "id": "supabase_postgres",
+          "name": "Supabase Postgres"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "responseData": "={{ { success: true, batch_id: $json.batch_id, target_month: $json.target_month, message: 'Calendar agent job started. Results will appear in dashboard.' } }}"
+      },
+      "id": "respond",
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1140, 360]
+    }
+  ],
+  "connections": {
+    "agent-trigger": {
+      "main": [
+        [
+          {
+            "node": "validate-request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "validate-request": {
+      "main": [
+        [
+          {
+            "node": "insert-batch",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "call-strategy-generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "insert-batch": {
+      "main": [
+        [
+          {
+            "node": "log-agent-response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "call-strategy-generator": {
+      "main": [
+        [
+          {
+            "node": "log-agent-response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "log-agent-response": {
+      "main": [
+        [
+          {
+            "node": "respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

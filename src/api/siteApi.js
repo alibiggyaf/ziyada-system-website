@@ -13,6 +13,9 @@ const TABLE_MAP = {
   Service: "services",
   CompetitorIntel: "competitor_intel",
   ContentSuggestion: "content_suggestions",
+  AgentConversation: "agent_conversations",
+  ContentCalendarBatch: "content_calendar_batches",
+  ContentCalendarEntry: "content_calendar_entries",
 };
 
 // ---------------------------------------------------------------------------
@@ -36,6 +39,30 @@ const parseSort = (sort) => {
   const column = SORT_FIELD_MAP[raw] || raw;
 
   return { column, ascending: !descending };
+};
+
+const normalizePhone = (phone) => {
+  if (!phone) return null;
+  const raw = String(phone).trim();
+  if (!raw) return null;
+  const cleaned = raw.replace(/[\s\-().]/g, "");
+  if (cleaned.startsWith("+")) {
+    return /^\+[1-9]\d{7,14}$/.test(cleaned) ? cleaned : null;
+  }
+  const digits = cleaned.replace(/\D/g, "");
+  if (digits.startsWith("966") && digits.length === 12) return `+${digits}`;
+  if (digits.startsWith("0") && digits.length === 10) return `+966${digits.slice(1)}`;
+  if (digits.length >= 8 && digits.length <= 15) return `+${digits}`;
+  return null;
+};
+
+const normalizeCsvOrArray = (value) => {
+  if (!value) return [];
+  if (Array.isArray(value)) return value.filter(Boolean).map(String);
+  return String(value)
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
 };
 
 // ---------------------------------------------------------------------------
@@ -162,8 +189,12 @@ const createEntityClient = (entityName) => {
  * Insert a new lead with normalized fields.
  */
 const submitLead = async (payload) => {
+  const phone = payload.phone || payload.phone_e164 || null;
   const record = {
     ...payload,
+    phone,
+    phone_normalized: normalizePhone(phone),
+    services_requested: normalizeCsvOrArray(payload.services_requested || payload.service_interest),
     status: "new",
     source: payload.source || "contact",
   };
@@ -185,46 +216,63 @@ const subscribeEmail = async (payload) => {
   const { email } = payload;
   if (!email) throw new Error("Email is required");
 
-  const { data: existing } = await supabase
-    .from("subscribers")
-    .select("*")
-    .eq("email", email)
-    .maybeSingle();
+  const fallbackRecord = {
+    email,
+    name: payload.name || null,
+    language: payload.language || "ar",
+    status: "active",
+  };
 
-  if (existing) {
+  try {
+    const { data: existing } = await supabase
+      .from("subscribers")
+      .select("*")
+      .eq("email", email)
+      .maybeSingle();
+
+    if (existing) {
+      const result = await supabase
+        .from("subscribers")
+        .update({
+          status: "active",
+          language: payload.language || existing.language,
+        })
+        .eq("email", email)
+        .select()
+        .single();
+
+      if (!result.error) {
+        triggerHubSpotSync("subscriber", result.data);
+        return { success: true, subscriber: result.data };
+      }
+
+      throw result.error;
+    }
+
     const result = await supabase
       .from("subscribers")
-      .update({
-        status: "active",
-        language: payload.language || existing.language,
-      })
-      .eq("email", email)
+      .insert(fallbackRecord)
       .select()
       .single();
 
     if (!result.error) {
       triggerHubSpotSync("subscriber", result.data);
+      return { success: true, subscriber: result.data };
     }
 
-    return throwIfError(result);
+    throw result.error;
+  } catch (error) {
+    // Production fallback: if RLS blocks browser writes, continue notification flow.
+    const errMsg = (typeof error === "object" && error && "message" in error)
+      ? String(error.message || "")
+      : String(error || "");
+    const msg = errMsg.toLowerCase();
+    if (msg.includes("row-level security") || msg.includes("permission") || msg.includes("not allowed")) {
+      triggerHubSpotSync("subscriber", fallbackRecord);
+      return { success: true, subscriber: fallbackRecord, fallback: "n8n_only" };
+    }
+    throw error;
   }
-
-  const result = await supabase
-    .from("subscribers")
-    .insert({
-      email,
-      name: payload.name || null,
-      language: payload.language || "ar",
-      status: "active",
-    })
-    .select()
-    .single();
-
-  if (!result.error) {
-    triggerHubSpotSync("subscriber", result.data);
-  }
-
-  return throwIfError(result);
 };
 
 /**
@@ -254,6 +302,8 @@ const bookMeeting = async (payload) => {
 
   const booking = {
     ...payload,
+    lead_phone: payload.lead_phone || payload.phone || payload.phone_e164 || null,
+    source: payload.source || payload.source_label || "website",
     status: "pending",
   };
 
@@ -312,16 +362,20 @@ const n8nWebhook = async (payload) => {
 // ---------------------------------------------------------------------------
 
 const N8N_BASE = import.meta.env.VITE_N8N_HOST || "";
+const HUBSPOT_SYNC_PATH = import.meta.env.VITE_N8N_HUBSPOT_SYNC_WEBHOOK || "/webhook/hubspot-sync";
+const NOTIFY_SYNC_PATH = import.meta.env.VITE_N8N_NOTIFY_WEBHOOK || "/webhook/notify";
+const NEWSLETTER_BCC_EMAIL = import.meta.env.VITE_NEWSLETTER_BCC_EMAIL || "ali.biggy.af@gmail.com";
+const BRAND_EMAIL = import.meta.env.VITE_BRAND_EMAIL || "ali.biggy.af@gmail.com";
 
 /** Helper to trigger HubSpot and internal syncs via n8n */
 const triggerHubSpotSync = (type, record) => {
-  const path = "/webhook/hubspot-sync";
-  const url = path.startsWith("http") ? path : `${N8N_BASE}${path}`;
+  const url = HUBSPOT_SYNC_PATH.startsWith("http") ? HUBSPOT_SYNC_PATH : `${N8N_BASE}${HUBSPOT_SYNC_PATH}`;
+  const notifyUrl = NOTIFY_SYNC_PATH.startsWith("http") ? NOTIFY_SYNC_PATH : `${N8N_BASE}${NOTIFY_SYNC_PATH}`;
   
   // Design-specific context for premium welcome flow & BCC tracking
   const designContext = {
-    brand_email: "ziyadasystem@gmail.com",
-    bcc_recipient: "ziyadasystem@gmail.com",
+    brand_email: BRAND_EMAIL,
+    bcc_recipient: NEWSLETTER_BCC_EMAIL,
     template_v: "2026-premium-auth",
     campaign: "New Subscriber Journey"
   };
@@ -340,6 +394,21 @@ const triggerHubSpotSync = (type, record) => {
   }).catch((err) => {
     console.warn("[HubSpot sync] Non-blocking failure:", err.message);
   });
+
+  // Trigger customer/admin email notifications for subscriber/newsletter events.
+  if (type === "subscriber" || type === "newsletter") {
+    fetch(notifyUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        type: "newsletter",
+        record,
+        meta: designContext,
+      }),
+    }).catch((err) => {
+      console.warn("[Notify sync] Non-blocking failure:", err.message);
+    });
+  }
 };
 
 async function callN8nWebhook(envVar, body) {
@@ -371,6 +440,17 @@ const publishBlogDraft = (suggestion_id) =>
 const triggerZiyadaWriter = (query) =>
   callN8nWebhook("VITE_N8N_NEWSLETTER_WRITER_WEBHOOK", { query, type: "newsletter_and_blog" });
 
+/** Trigger the competitor research planner agent from admin dashboard */
+const triggerCompetitorAgent = (payload) =>
+  callN8nWebhook("VITE_N8N_COMPETITOR_AGENT_WEBHOOK", payload);
+
+/** Explicit helper for month calendar generation requests */
+const generateMonthlyCalendar = (payload) =>
+  callN8nWebhook("VITE_N8N_CONTENT_STRATEGY_WEBHOOK", {
+    action: "generate_monthly_calendar",
+    ...payload,
+  });
+
 /** Map of function name -> implementation */
 const FUNCTIONS = {
   submitLead,
@@ -395,6 +475,9 @@ export const siteApi = {
     Service: createEntityClient("Service"),
     CompetitorIntel: createEntityClient("CompetitorIntel"),
     ContentSuggestion: createEntityClient("ContentSuggestion"),
+    AgentConversation: createEntityClient("AgentConversation"),
+    ContentCalendarBatch: createEntityClient("ContentCalendarBatch"),
+    ContentCalendarEntry: createEntityClient("ContentCalendarEntry"),
   },
   functions: {
     invoke: async (name, payload) => {
@@ -407,5 +490,7 @@ export const siteApi = {
     generateCompetitorContent,
     publishBlogDraft,
     triggerZiyadaWriter,
+    triggerCompetitorAgent,
+    generateMonthlyCalendar,
   },
 };

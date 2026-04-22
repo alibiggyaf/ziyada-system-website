@@ -1,0 +1,201 @@
+{
+  "updatedAt": "2026-04-16T21:39:10.775Z",
+  "createdAt": "2026-04-02T01:35:05.756Z",
+  "id": "eO6LzcPrnPT3JlpA",
+  "name": "🚀 Ziyada Chat Widget - Gemini Flash (Cheapest)",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "id": "chat-trigger-node",
+      "name": "Chat Message Received",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "position": [
+        240,
+        280
+      ],
+      "typeVersion": 1.1,
+      "webhookId": "3c9f6cb1-a3ce-4302-8260-6748f093520d",
+      "parameters": {
+        "public": true,
+        "mode": "webhook",
+        "authentication": "none",
+        "options": {
+          "responseMode": "lastNode"
+        }
+      }
+    },
+    {
+      "id": "smart-response-node",
+      "name": "Smart Response Engine",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        500,
+        280
+      ],
+      "typeVersion": 2,
+      "parameters": {
+        "jsCode": "\nconst payload = $input.first().json || {};\nconst msg = String(payload.chatInput || '').trim();\nconst isArabic = /[\\u0600-\\u06FF]/.test(msg);\n\nconst BASE_URL = 'https://ziyadasystem.com';\nconst ALLOWED_HOSTS = new Set(['ziyadasystem.com', 'www.ziyadasystem.com']);\n\nfunction sanitizeLinks(text) {\n  return String(text || '').replace(/https?:\\/\\/[^\\s)]+/gi, (url) => {\n    const lower = url.toLowerCase();\n    if (lower.startsWith('https://ziyadasystem.com') || lower.startsWith('https://www.ziyadasystem.com')) {\n      return url;\n    }\n    return BASE_URL;\n  });\n}\n\nfunction detectIntent(text) {\n  const t = text.toLowerCase();\n  if (/مرح|أهلا|اهلا|سلام|هلا|hello|hi\\b|hey|good\\s*(morning|evening)/.test(t)) return 'greeting';\n  if (/خدم|services?|what do you|what can/.test(t)) return 'services';\n  if (/استشار|consult|book|احجز|meeting|جلسة|session|appointment|demo/.test(t)) return 'consult';\n  if (/سعر|price|pricing|cost|كم|تكلف|budget|quote|عرض سعر/.test(t)) return 'price';\n  if (/تواصل|contact|اتصل|email|phone|رقم|واتس|whatsapp/.test(t)) return 'contact';\n  if (/أتمت|automat|workflow|n8n|agent|integration/.test(t)) return 'automation';\n  return 'default';\n}\n\nfunction extractEmail(text, fallback) {\n  if (fallback && /@/.test(String(fallback))) return String(fallback).trim();\n  const m = text.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}/i);\n  return m ? m[0] : '';\n}\n\nfunction extractPhone(text, fallback) {\n  if (fallback) return String(fallback).trim();\n  const m = text.match(/(?:\\+?966|0)?5\\d{8}|\\+?\\d{8,15}/);\n  return m ? m[0].replace(/\\s+/g, '') : '';\n}\n\nfunction extractName(text) {\n  const ar = text.match(/(?:اسمي|انا|أنا)\\s+([\\u0600-\\u06FF\\s]{2,40})/);\n  if (ar) return ar[1].trim();\n  const en = text.match(/(?:my name is|i am)\\s+([a-zA-Z\\s]{2,40})/i);\n  if (en) return en[1].trim();\n  return '';\n}\n\nfunction extractCompany(text) {\n  const ar = text.match(/(?:شركة|مؤسسة|اسم الشركة)\\s*[:\\-]?\\s*([\\u0600-\\u06FFa-zA-Z0-9\\s\\-_.]{2,60})/i);\n  if (ar) return ar[1].trim();\n  const en = text.match(/(?:company|business)\\s*[:\\-]?\\s*([a-zA-Z0-9\\s\\-_.]{2,60})/i);\n  if (en) return en[1].trim();\n  return '';\n}\n\nfunction mapService(text) {\n  const t = text.toLowerCase();\n  if (/أتمت|automat|workflow|n8n|agent/.test(t)) return isArabic ? 'أتمتة الأعمال' : 'Business Automation';\n  if (/crm|عملاء|مبيعات/.test(t)) return isArabic ? 'إدارة العملاء والمبيعات' : 'CRM & Sales';\n  if (/تسويق|ads|marketing/.test(t)) return isArabic ? 'التسويق الأدائي' : 'Performance Marketing';\n  if (/موقع|website|ويب/.test(t)) return isArabic ? 'المواقع الذكية' : 'Smart Websites';\n  if (/محتو|content|social/.test(t)) return isArabic ? 'أنظمة المحتوى' : 'Content Systems';\n  return '';\n}\n\nconst lead = {\n  name: extractName(msg),\n  email: extractEmail(msg, payload.email),\n  phone: extractPhone(msg, payload.phone_e164),\n  company: extractCompany(msg),\n  challenge: msg,\n  service_interest: mapService(msg),\n  source: 'chat_widget',\n  language: isArabic ? 'ar' : 'en',\n};\n\nconst hasLeadData = Boolean((lead.email || lead.phone) && lead.challenge);\n\nconst links = {\n  home: 'https://ziyadasystem.com',\n  book: 'https://ziyadasystem.com/BookMeeting',\n  quote: 'https://ziyadasystem.com/RequestProposal',\n  contact: 'https://ziyadasystem.com/Contact',\n  services: 'https://ziyadasystem.com/work',\n};\n\nconst arResponses = {\n  greeting: `أهلاً وسهلاً 👋\\nأنا مساعد زيادة سيستم.\\n\\nتقدر تتصفح خدماتنا هنا: ${links.services}\\nأو تحجز استشارة مجانية: ${links.book}`,\n  services: `خدماتنا الرئيسية في زيادة سيستم:\\n• أتمتة الأعمال\\n• CRM وإدارة المبيعات\\n• اكتساب العملاء\\n• التسويق الأدائي\\n• المواقع الذكية\\n• أنظمة المحتوى\\n\\nتفاصيل الخدمات: ${links.services}`,\n  consult: `ممتاز، نقدر نرتب لك استشارة مجانية من هنا: ${links.book}\\n\\nقبل الحجز النهائي، أرسل لي:\\n1) الاسم\\n2) الإيميل\\n3) رقم الجوال\\n4) التحدي الرئيسي في نشاطك`,\n  price: `الأسعار تعتمد على نطاق العمل وحجم النشاط.\\n\\nعشان نعطيك عرض دقيق، قدم طلب عرض سعر من: ${links.quote}\\nأو أرسل اسمك + إيميلك + جوالك + التحدي الرئيسي هنا ونرتبها لك.`,\n  contact: `تقدر تتواصل معنا عبر صفحة التواصل: ${links.contact}\\nأو تحجز استشارة مباشرة: ${links.book}`,\n  automation: `ممتاز، الأتمتة عندنا تركّز على تقليل العمل اليدوي وربط الأنظمة (CRM, WhatsApp, Email).\\n\\nابدأ من هنا: ${links.book}`,\n  default: `فهمت عليك. إذا حاب نبدأ بشكل عملي، أرسل:\\n• الاسم\\n• الإيميل\\n• رقم الجوال\\n• التحدي الرئيسي\\n\\nوأنا بجهزها كطلب داخل النظام.\\n\\nالخدمات: ${links.services}`,\n  lead_capture: `وصلتني بياناتك بشكل واضح.\\n\\nبجهز طلبك الآن للفريق باستخدام نفس حقول النموذج عندنا، وإذا حاب تكمل مباشرة تقدر تزور: ${links.book}`,\n};\n\nconst enResponses = {\n  greeting: `Hi there 👋 I am Ziyada Systems assistant.\\n\\nServices: ${links.services}\\nBook free consultation: ${links.book}`,\n  services: `Our main services:\\n• Business Automation\\n• CRM & Sales Systems\\n• Lead Generation\\n• Performance Marketing\\n• Smart Websites\\n• Content Systems\\n\\nSee details: ${links.services}`,\n  consult: `Great. You can book a free consultation here: ${links.book}\\n\\nTo prepare your case, please send:\\n1) Name\\n2) Email\\n3) Phone\\n4) Main business concern`,\n  price: `Pricing depends on scope and goals.\\n\\nRequest a tailored quote here: ${links.quote}\\nOr share your name + email + phone + main concern and I will log it for the team.`,\n  contact: `Contact page: ${links.contact}\\nBook consultation: ${links.book}`,\n  automation: `Our automation service connects your tools (CRM, WhatsApp, Email) and removes manual work.\\n\\nStart here: ${links.book}`,\n  default: `I can help with your request. Please share:\\n• Name\\n• Email\\n• Phone\\n• Main concern\\n\\nI will log it for follow-up.\\nServices: ${links.services}`,\n  lead_capture: `I have your details clearly now.\\n\\nI will pass this into the same lead fields used on the website form, and if you want to continue directly you can visit: ${links.book}`,\n};\n\nconst intent = detectIntent(msg);\nconst responses = isArabic ? arResponses : enResponses;\nconst output = sanitizeLinks(hasLeadData ? responses.lead_capture : (responses[intent] || responses.default));\n\nreturn [{\n  json: {\n    output,\n    status: 'success',\n    model: 'ziyada-smart-agent-v2',\n    lead_capture: {\n      ...lead,\n      captured: hasLeadData,\n    },\n  }\n}];\n"
+      }
+    }
+  ],
+  "connections": {
+    "Chat Message Received": {
+      "main": [
+        [
+          {
+            "node": "Smart Response Engine",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "4862d521-6000-4c27-9901-0503812fc12f",
+  "activeVersionId": "4862d521-6000-4c27-9901-0503812fc12f",
+  "versionCounter": 137,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-04-02T01:35:05.761Z",
+      "createdAt": "2026-04-02T01:35:05.761Z",
+      "role": "workflow:owner",
+      "workflowId": "eO6LzcPrnPT3JlpA",
+      "projectId": "lQkRiejfv0RIw5iC",
+      "project": {
+        "updatedAt": "2025-08-11T20:17:00.050Z",
+        "createdAt": "2025-08-11T19:54:06.995Z",
+        "id": "lQkRiejfv0RIw5iC",
+        "name": "ali fallatah <ali.biggy.af@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "updatedAt": "2025-08-11T19:54:06.996Z",
+            "createdAt": "2025-08-11T19:54:06.996Z",
+            "userId": "e159d4f4-7111-4850-8d98-2ac5355287ee",
+            "projectId": "lQkRiejfv0RIw5iC",
+            "user": {
+              "updatedAt": "2026-04-16T21:34:54.000Z",
+              "createdAt": "2025-08-11T19:54:06.747Z",
+              "id": "e159d4f4-7111-4850-8d98-2ac5355287ee",
+              "email": "ali.biggy.af@gmail.com",
+              "firstName": "ali",
+              "lastName": "fallatah",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2025-08-11T20:18:14.384Z",
+                "personalization_survey_n8n_version": "1.106.3",
+                "companyType": "personal",
+                "reportedSource": "youtube"
+              },
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "26j1xQElms99KHtT",
+                "userActivatedAt": 1754949159393,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1775446980252
+                }
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-04-15",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-04-16T21:39:10.775Z",
+    "createdAt": "2026-04-16T21:39:10.775Z",
+    "versionId": "4862d521-6000-4c27-9901-0503812fc12f",
+    "workflowId": "eO6LzcPrnPT3JlpA",
+    "nodes": [
+      {
+        "id": "chat-trigger-node",
+        "name": "Chat Message Received",
+        "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+        "position": [
+          240,
+          280
+        ],
+        "typeVersion": 1.1,
+        "webhookId": "3c9f6cb1-a3ce-4302-8260-6748f093520d",
+        "parameters": {
+          "public": true,
+          "mode": "webhook",
+          "authentication": "none",
+          "options": {
+            "responseMode": "lastNode"
+          }
+        }
+      },
+      {
+        "id": "smart-response-node",
+        "name": "Smart Response Engine",
+        "type": "n8n-nodes-base.code",
+        "position": [
+          500,
+          280
+        ],
+        "typeVersion": 2,
+        "parameters": {
+          "jsCode": "\nconst payload = $input.first().json || {};\nconst msg = String(payload.chatInput || '').trim();\nconst isArabic = /[\\u0600-\\u06FF]/.test(msg);\n\nconst BASE_URL = 'https://ziyadasystem.com';\nconst ALLOWED_HOSTS = new Set(['ziyadasystem.com', 'www.ziyadasystem.com']);\n\nfunction sanitizeLinks(text) {\n  return String(text || '').replace(/https?:\\/\\/[^\\s)]+/gi, (url) => {\n    const lower = url.toLowerCase();\n    if (lower.startsWith('https://ziyadasystem.com') || lower.startsWith('https://www.ziyadasystem.com')) {\n      return url;\n    }\n    return BASE_URL;\n  });\n}\n\nfunction detectIntent(text) {\n  const t = text.toLowerCase();\n  if (/مرح|أهلا|اهلا|سلام|هلا|hello|hi\\b|hey|good\\s*(morning|evening)/.test(t)) return 'greeting';\n  if (/خدم|services?|what do you|what can/.test(t)) return 'services';\n  if (/استشار|consult|book|احجز|meeting|جلسة|session|appointment|demo/.test(t)) return 'consult';\n  if (/سعر|price|pricing|cost|كم|تكلف|budget|quote|عرض سعر/.test(t)) return 'price';\n  if (/تواصل|contact|اتصل|email|phone|رقم|واتس|whatsapp/.test(t)) return 'contact';\n  if (/أتمت|automat|workflow|n8n|agent|integration/.test(t)) return 'automation';\n  return 'default';\n}\n\nfunction extractEmail(text, fallback) {\n  if (fallback && /@/.test(String(fallback))) return String(fallback).trim();\n  const m = text.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}/i);\n  return m ? m[0] : '';\n}\n\nfunction extractPhone(text, fallback) {\n  if (fallback) return String(fallback).trim();\n  const m = text.match(/(?:\\+?966|0)?5\\d{8}|\\+?\\d{8,15}/);\n  return m ? m[0].replace(/\\s+/g, '') : '';\n}\n\nfunction extractName(text) {\n  const ar = text.match(/(?:اسمي|انا|أنا)\\s+([\\u0600-\\u06FF\\s]{2,40})/);\n  if (ar) return ar[1].trim();\n  const en = text.match(/(?:my name is|i am)\\s+([a-zA-Z\\s]{2,40})/i);\n  if (en) return en[1].trim();\n  return '';\n}\n\nfunction extractCompany(text) {\n  const ar = text.match(/(?:شركة|مؤسسة|اسم الشركة)\\s*[:\\-]?\\s*([\\u0600-\\u06FFa-zA-Z0-9\\s\\-_.]{2,60})/i);\n  if (ar) return ar[1].trim();\n  const en = text.match(/(?:company|business)\\s*[:\\-]?\\s*([a-zA-Z0-9\\s\\-_.]{2,60})/i);\n  if (en) return en[1].trim();\n  return '';\n}\n\nfunction mapService(text) {\n  const t = text.toLowerCase();\n  if (/أتمت|automat|workflow|n8n|agent/.test(t)) return isArabic ? 'أتمتة الأعمال' : 'Business Automation';\n  if (/crm|عملاء|مبيعات/.test(t)) return isArabic ? 'إدارة العملاء والمبيعات' : 'CRM & Sales';\n  if (/تسويق|ads|marketing/.test(t)) return isArabic ? 'التسويق الأدائي' : 'Performance Marketing';\n  if (/موقع|website|ويب/.test(t)) return isArabic ? 'المواقع الذكية' : 'Smart Websites';\n  if (/محتو|content|social/.test(t)) return isArabic ? 'أنظمة المحتوى' : 'Content Systems';\n  return '';\n}\n\nconst lead = {\n  name: extractName(msg),\n  email: extractEmail(msg, payload.email),\n  phone: extractPhone(msg, payload.phone_e164),\n  company: extractCompany(msg),\n  challenge: msg,\n  service_interest: mapService(msg),\n  source: 'chat_widget',\n  language: isArabic ? 'ar' : 'en',\n};\n\nconst hasLeadData = Boolean((lead.email || lead.phone) && lead.challenge);\n\nconst links = {\n  home: 'https://ziyadasystem.com',\n  book: 'https://ziyadasystem.com/BookMeeting',\n  quote: 'https://ziyadasystem.com/RequestProposal',\n  contact: 'https://ziyadasystem.com/Contact',\n  services: 'https://ziyadasystem.com/work',\n};\n\nconst arResponses = {\n  greeting: `أهلاً وسهلاً 👋\\nأنا مساعد زيادة سيستم.\\n\\nتقدر تتصفح خدماتنا هنا: ${links.services}\\nأو تحجز استشارة مجانية: ${links.book}`,\n  services: `خدماتنا الرئيسية في زيادة سيستم:\\n• أتمتة الأعمال\\n• CRM وإدارة المبيعات\\n• اكتساب العملاء\\n• التسويق الأدائي\\n• المواقع الذكية\\n• أنظمة المحتوى\\n\\nتفاصيل الخدمات: ${links.services}`,\n  consult: `ممتاز، نقدر نرتب لك استشارة مجانية من هنا: ${links.book}\\n\\nقبل الحجز النهائي، أرسل لي:\\n1) الاسم\\n2) الإيميل\\n3) رقم الجوال\\n4) التحدي الرئيسي في نشاطك`,\n  price: `الأسعار تعتمد على نطاق العمل وحجم النشاط.\\n\\nعشان نعطيك عرض دقيق، قدم طلب عرض سعر من: ${links.quote}\\nأو أرسل اسمك + إيميلك + جوالك + التحدي الرئيسي هنا ونرتبها لك.`,\n  contact: `تقدر تتواصل معنا عبر صفحة التواصل: ${links.contact}\\nأو تحجز استشارة مباشرة: ${links.book}`,\n  automation: `ممتاز، الأتمتة عندنا تركّز على تقليل العمل اليدوي وربط الأنظمة (CRM, WhatsApp, Email).\\n\\nابدأ من هنا: ${links.book}`,\n  default: `فهمت عليك. إذا حاب نبدأ بشكل عملي، أرسل:\\n• الاسم\\n• الإيميل\\n• رقم الجوال\\n• التحدي الرئيسي\\n\\nوأنا بجهزها كطلب داخل النظام.\\n\\nالخدمات: ${links.services}`,\n  lead_capture: `وصلتني بياناتك بشكل واضح.\\n\\nبجهز طلبك الآن للفريق باستخدام نفس حقول النموذج عندنا، وإذا حاب تكمل مباشرة تقدر تزور: ${links.book}`,\n};\n\nconst enResponses = {\n  greeting: `Hi there 👋 I am Ziyada Systems assistant.\\n\\nServices: ${links.services}\\nBook free consultation: ${links.book}`,\n  services: `Our main services:\\n• Business Automation\\n• CRM & Sales Systems\\n• Lead Generation\\n• Performance Marketing\\n• Smart Websites\\n• Content Systems\\n\\nSee details: ${links.services}`,\n  consult: `Great. You can book a free consultation here: ${links.book}\\n\\nTo prepare your case, please send:\\n1) Name\\n2) Email\\n3) Phone\\n4) Main business concern`,\n  price: `Pricing depends on scope and goals.\\n\\nRequest a tailored quote here: ${links.quote}\\nOr share your name + email + phone + main concern and I will log it for the team.`,\n  contact: `Contact page: ${links.contact}\\nBook consultation: ${links.book}`,\n  automation: `Our automation service connects your tools (CRM, WhatsApp, Email) and removes manual work.\\n\\nStart here: ${links.book}`,\n  default: `I can help with your request. Please share:\\n• Name\\n• Email\\n• Phone\\n• Main concern\\n\\nI will log it for follow-up.\\nServices: ${links.services}`,\n  lead_capture: `I have your details clearly now.\\n\\nI will pass this into the same lead fields used on the website form, and if you want to continue directly you can visit: ${links.book}`,\n};\n\nconst intent = detectIntent(msg);\nconst responses = isArabic ? arResponses : enResponses;\nconst output = sanitizeLinks(hasLeadData ? responses.lead_capture : (responses[intent] || responses.default));\n\nreturn [{\n  json: {\n    output,\n    status: 'success',\n    model: 'ziyada-smart-agent-v2',\n    lead_capture: {\n      ...lead,\n      captured: hasLeadData,\n    },\n  }\n}];\n"
+        }
+      }
+    ],
+    "connections": {
+      "Chat Message Received": {
+        "main": [
+          [
+            {
+              "node": "Smart Response Engine",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "ali fallatah",
+    "name": null,
+    "description": null,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-04-16T21:39:10.824Z",
+        "id": 523,
+        "workflowId": "eO6LzcPrnPT3JlpA",
+        "versionId": "4862d521-6000-4c27-9901-0503812fc12f",
+        "event": "activated",
+        "userId": "e159d4f4-7111-4850-8d98-2ac5355287ee"
+      },
+      {
+        "createdAt": "2026-04-16T21:39:11.551Z",
+        "id": 524,
+        "workflowId": "eO6LzcPrnPT3JlpA",
+        "versionId": "4862d521-6000-4c27-9901-0503812fc12f",
+        "event": "activated",
+        "userId": "e159d4f4-7111-4850-8d98-2ac5355287ee"
+      }
+    ]
+  }
+}

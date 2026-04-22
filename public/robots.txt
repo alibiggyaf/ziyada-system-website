@@ -1,7 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://ziyadasystem.com/sitemap.xml
-
-# Disallow admin and internal paths
-Disallow: /admin

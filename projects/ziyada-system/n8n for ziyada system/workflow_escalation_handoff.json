@@ -1,0 +1,173 @@
+{
+  "name": "Escalation & Handoff Queue — Business Hours Logic",
+  "description": "Triggered when escalation conditions are met (user request, uncertain AI, complex phrase, policy hit). Creates handoff_queue row, routes to phone or email notification, applies business hours gate (Sun-Thu 12:00-17:00 Asia/Riyadh), and informs user of callback window.",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "mode": "webhook",
+        "authentication": "none"
+      },
+      "id": "escalation-trigger",
+      "name": "Escalation Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 400],
+      "webhookId": "escalation-webhook"
+    },
+    {
+      "parameters": {
+        "functionCode": "// Extract escalation event\nconst escalation = $json.escalation || $json.body || $json;\n\n// Validate required fields\nif (!escalation.session_id || !escalation.reason) {\n  throw new Error('Missing escalation fields: session_id, reason');\n}\n\nreturn {\n  ...escalation,\n  timestamp: new Date().toISOString()\n};\n"
+      },
+      "id": "validate-escalation",
+      "name": "Validate Escalation Event",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 400]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Business hours check: Asia/Riyadh timezone (UTC+3)\n// Sun-Thu 12:00-17:00\nconst checkBusinessHours = () => {\n  const tz = 'Asia/Riyadh';\n  const now = new Date();\n  const parts = new Intl.DateTimeFormat('en-US', {\n    timeZone: tz,\n    weekday: 'narrow',\n    hour: '2-digit',\n    hour12: false\n  }).formatToParts(now);\n\n  const day = parts.find(p => p.type === 'weekday').value; // S=Sun, M=Mon, etc.\n  const hour = parseInt(parts.find(p => p.type === 'hour').value);\n\n  // Sun-Thu: ['S', 'M', 'T', 'W', 'T']\n  const isWeekday = ['S', 'M', 'T', 'W'].includes(day) || (day === 'T' && parts[parts.length-1].value.includes('Thu'));\n  const isBusinessHour = hour >= 12 && hour < 17;\n\n  return isWeekday && isBusinessHour;\n};\n\nconst inBusinessHours = checkBusinessHours();\nconst nextBusinessDay = inBusinessHours ? 'today' : 'next business day (Sun-Thu 12:00-17:00 Riyadh time)';\n\nreturn {\n  ...($json),\n  in_business_hours: inBusinessHours,\n  next_callback_window: nextBusinessDay\n};\n"
+      },
+      "id": "check-business-hours",
+      "name": "Check Business Hours (Asia/Riyadh)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [640, 400]
+    },
+    {
+      "parameters": {
+        "resource": "database",
+        "database": "Supabase",
+        "operation": "insert",
+        "schema": "public",
+        "table": "handoff_queue",
+        "values": {\n          "session_id": "={{ $json.session_id }}",\n          "lead_id": "={{ $json.contact_id }}",\n          "reason": "={{ $json.reason }}",\n          "channel": "={{ $json.channel }}",\n          "phone_e164": "={{ $json.phone_e164 }}",\n          "priority": "={{ $json.priority || 'normal' }}",\n          "status": "pending"\n        }\n      },\n      "id": "create-handoff-queue",
+      "name": "Create Handoff Queue Row",\n      "type": "n8n-nodes-base.postgres",\n      "typeVersion": 2,\n      "position": [840, 400],\n      "credentials": {\n        "postgres": {\n          "id": "supabase_postgres",\n          "name": "Supabase Postgres"\n        }\n      }\n    },\n    {\n      "parameters": {\n        "conditions": {\n          "conditions": [\n            {\n              "key": "channel",\n              "operator": "contains",\n              "value": "whatsapp"\n            }\n          ]\n        }\n      },\n      "id": "if-whatsapp-channel",\n      "name": "Is WhatsApp Channel?",\n      "type": "n8n-nodes-base.if",\n      "typeVersion": 2,\n      "position": [1040, 300]\n    },\n    {\n      "parameters": {\n        "resource": "chat",\n        "extra": "{\n          \"templateName\": \"escalation\"\n        }",\n        "phoneNumber": "={{ $json.phone_e164 }}",\n        "message": "={{\n          const window = $json.in_business_hours ? 'shortly' : 'on the next business day (Sun-Thu 12:00-17:00 Riyadh time)';\n          return `السلام عليكم، شكراً على تواصلك. سيتواصل معك فريق زيادة سيستم ${window} للرد على استفسارك. نقدّر صبرك!`;\n        }}\"\n      },\n      "id": "send-whatsapp-notification",\n      "name": "Send WhatsApp Notification",\n      "type": "n8n-nodes-base.sendWhatsAppMessage",\n      "typeVersion": 2,\n      "position": [1240, 200],\n      "credentials": {\n        "evolution": {\n          "id": "evolution_api",\n          "name": "Evolution API"\n        }\n      }\n    },\n    {\n      "parameters": {\n        "subject": \"={{ $json.reason }}: New Escalation\",\n        \"body": \"={{\n          const transcript = $json.conversation_summary || 'See session in Supabase';\n          return `Escalation Reason: ${$json.reason}\\n\\nSession ID: ${$json.session_id}\\nChannel: ${$json.channel}\\nPhone: ${$json.phone_e164}\\n\\nConversation Summary:\\n${transcript}\\n\\nPriority: ${$json.priority || 'normal'}\\nBusiness Hours: ${$json.in_business_hours ? 'YES' : 'NO — respond on next business day'}`;\n        }}\",\n        \"to\": \"ziyadasystem@gmail.com\",\n        \"from\": \"noreply@ziyadasystem.com\"\n      },\n      "id": "send-email-notification",\n      "name": "Send Email to ziyadasystem@gmail.com",\n      "type": "n8n-nodes-base.sendEmail",\n      "typeVersion": 1,\n      "position": [1240, 550],\n      "credentials": {\n        \"smtp\": {\n          \"id\": \"smtp_credentials\",\n          \"name\": \"SMTP\"\n        }\n      }\n    },\n    {\n      "parameters": {\n        "resource": "database",\n        "database": "Supabase",\n        "operation": "insert",\n        "schema": "public",\n        "table": "contact_events",\n        "values": {\n          "lead_id": "={{ $json.contact_id }}",\n          "event_type": "escalation",\n          "event_source": "={{ $json.channel }}",\n          "event_data": \"={{ { reason: $json.reason, in_business_hours: $json.in_business_hours, session_id: $json.session_id } | JSON.stringify() }}\"\n        }\n      },\n      "id": "log-escalation",\n      "name": "Log Escalation Event",\n      "type": "n8n-nodes-base.postgres",\n      "typeVersion": 2,\n      "position": [1440, 400],\n      "credentials": {\n        "postgres": {\n          "id": "supabase_postgres",\n          "name": "Supabase Postgres"\n        }\n      }\n    },\n    {\n      "parameters": {\n        "functionCode": "// Emit completion event\nreturn {\n  success: true,\n  escalation_id: $json.id,\n  session_id: $json.session_id,\n  reason: $json.reason,\n  in_business_hours: $json.in_business_hours,\n  next_callback_window: $json.next_callback_window,\n  notifications_sent: [$json.channel === 'whatsapp' ? 'whatsapp' : '', 'email'].filter(Boolean),\n  timestamp: new Date().toISOString()\n};\n"
+      },
+      "id": "emit-completion",
+      "name": "Emit Completion Event",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1640, 400]
+    },
+    {
+      "parameters": {
+        "responseData": "{{ $json }}"
+      },
+      "id": "webhook-response",
+      "name": "Webhook Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1840, 400]
+    }
+  ],
+  "connections": {
+    "escalation-trigger": {
+      "main": [
+        [
+          {
+            "node": "validate-escalation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "validate-escalation": {
+      "main": [
+        [
+          {
+            "node": "check-business-hours",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "check-business-hours": {
+      "main": [
+        [
+          {
+            "node": "create-handoff-queue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "create-handoff-queue": {
+      "main": [
+        [
+          {
+            "node": "if-whatsapp-channel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "if-whatsapp-channel": {
+      "main": [
+        [
+          {
+            "node": "send-whatsapp-notification",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "send-email-notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "send-whatsapp-notification": {
+      "main": [
+        [
+          {
+            "node": "log-escalation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "send-email-notification": {
+      "main": [
+        [
+          {
+            "node": "log-escalation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "log-escalation": {
+      "main": [
+        [
+          {
+            "node": "emit-completion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "emit-completion": {
+      "main": [
+        [
+          {
+            "node": "webhook-response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

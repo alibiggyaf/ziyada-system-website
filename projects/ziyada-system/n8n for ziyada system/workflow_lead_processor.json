@@ -1,0 +1,272 @@
+{
+  "name": "Ziyada Lead Processor — Supabase + Email + Calendar + HubSpot",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ziyada-lead-intake",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-001",
+      "name": "Receive Lead",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [200, 400],
+      "webhookId": "ziyada-lead-intake"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "check-name",
+              "leftValue": "={{ $json.body.full_name || $json.body.name || '' }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            },
+            {
+              "id": "check-phone",
+              "leftValue": "={{ $json.body.phone || $json.body.email || '' }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "validate-002",
+      "name": "Validate Required Fields",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [420, 400]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"full_name\": \"{{ $('Receive Lead').item.json.body.full_name || $('Receive Lead').item.json.body.name || '' }}\",\n  \"email\": \"{{ $('Receive Lead').item.json.body.email || '' }}\",\n  \"phone\": \"{{ $('Receive Lead').item.json.body.phone || '' }}\",\n  \"company\": \"{{ $('Receive Lead').item.json.body.company || '' }}\",\n  \"sector\": \"{{ $('Receive Lead').item.json.body.sector || $('Receive Lead').item.json.body.industry || '' }}\",\n  \"challenge\": \"{{ $('Receive Lead').item.json.body.challenge || '' }}\",\n  \"service_interest\": \"{{ $('Receive Lead').item.json.body.service_interest || $('Receive Lead').item.json.body.services_requested || '' }}\",\n  \"meeting_purpose\": \"{{ $('Receive Lead').item.json.body.meeting_purpose || '' }}\",\n  \"visitor_need\": \"{{ $('Receive Lead').item.json.body.visitor_need || '' }}\",\n  \"booking_intent\": \"{{ $('Receive Lead').item.json.body.booking_intent || false }}\",\n  \"source\": \"{{ $('Receive Lead').item.json.body.source || 'chat_widget' }}\",\n  \"source_context\": \"{{ $('Receive Lead').item.json.body.source_context || '' }}\",\n  \"session_id\": \"{{ $('Receive Lead').item.json.body.session_id || '' }}\",\n  \"ip_address\": \"{{ $('Receive Lead').item.json.body.ip_address || $('Receive Lead').item.json.headers?.x-forwarded-for || '' }}\",\n  \"utm_source\": \"{{ $('Receive Lead').item.json.body.utm_source || '' }}\",\n  \"utm_medium\": \"{{ $('Receive Lead').item.json.body.utm_medium || '' }}\",\n  \"utm_campaign\": \"{{ $('Receive Lead').item.json.body.utm_campaign || '' }}\",\n  \"utm_term\": \"{{ $('Receive Lead').item.json.body.utm_term || '' }}\",\n  \"utm_content\": \"{{ $('Receive Lead').item.json.body.utm_content || '' }}\"\n}",
+        "options": {}
+      },
+      "id": "prepare-003",
+      "name": "Prepare Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [660, 280]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://nuyscajjlhxviuyrxzyq.supabase.co/rest/v1/leads",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "return=representation"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"name\": \"{{ $('Prepare Data').item.json.full_name }}\",\n  \"email\": \"{{ $('Prepare Data').item.json.email }}\",\n  \"phone\": \"{{ $('Prepare Data').item.json.phone }}\",\n  \"company\": \"{{ $('Prepare Data').item.json.company }}\",\n  \"industry\": \"{{ $('Prepare Data').item.json.sector }}\",\n  \"challenge\": \"{{ $('Prepare Data').item.json.challenge }}\",\n  \"services_requested\": \"{{ $('Prepare Data').item.json.service_interest }}\",\n  \"source\": \"{{ $('Prepare Data').item.json.source }}\",\n  \"source_page\": \"{{ $('Prepare Data').item.json.source_context }}\",\n  \"meeting_purpose\": \"{{ $('Prepare Data').item.json.meeting_purpose }}\",\n  \"visitor_need\": \"{{ $('Prepare Data').item.json.visitor_need }}\",\n  \"ip_address\": \"{{ $('Prepare Data').item.json.ip_address }}\",\n  \"utm_source\": \"{{ $('Prepare Data').item.json.utm_source }}\",\n  \"utm_medium\": \"{{ $('Prepare Data').item.json.utm_medium }}\",\n  \"utm_campaign\": \"{{ $('Prepare Data').item.json.utm_campaign }}\",\n  \"utm_term\": \"{{ $('Prepare Data').item.json.utm_term }}\",\n  \"utm_content\": \"{{ $('Prepare Data').item.json.utm_content }}\",\n  \"status\": \"new\",\n  \"approval_status\": \"pending\"\n}",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "id": "supabase-004",
+      "name": "Save to Supabase",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [900, 180],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "supabaseServiceRole",
+          "name": "supabaseServiceRole"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "ziyadastsrem@gmail.com,info@ziyadasystem.com",
+        "subject": "=🔔 طلب استشارة جديد (Pending Approval) — {{ $('Prepare Data').item.json.full_name }}",
+        "emailType": "html",
+        "message": "=<div dir=\"rtl\" style=\"font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #f9fafb; border-radius: 12px;\">\n  <h2 style=\"margin: 0 0 12px; color: #1a202c;\">طلب جديد من {{ $('Prepare Data').item.json.source }}</h2>\n  <p style=\"margin: 0 0 8px; color: #4a5568;\">الحالة: <strong>Pending Approval</strong></p>\n  <p style=\"margin: 0 0 8px; color: #4a5568;\">الاسم: {{ $('Prepare Data').item.json.full_name }}</p>\n  <p style=\"margin: 0 0 8px; color: #4a5568;\">الجوال: {{ $('Prepare Data').item.json.phone }}</p>\n  <p style=\"margin: 0 0 8px; color: #4a5568;\">الإيميل: {{ $('Prepare Data').item.json.email || '—' }}</p>\n  <p style=\"margin: 0 0 8px; color: #4a5568;\">الاحتياج: {{ $('Prepare Data').item.json.visitor_need || '—' }}</p>\n  <p style=\"margin: 0 0 8px; color: #4a5568;\">سبب الاجتماع: {{ $('Prepare Data').item.json.meeting_purpose || '—' }}</p>\n  <p style=\"margin: 0 0 8px; color: #4a5568;\">UTM: {{ $('Prepare Data').item.json.utm_source || '-' }} / {{ $('Prepare Data').item.json.utm_medium || '-' }} / {{ $('Prepare Data').item.json.utm_campaign || '-' }}</p>\n  <p style=\"margin: 0; color: #c53030;\">اعتمدوا الحجز يدوياً ثم أرسلوا القرار إلى webhook /booking-approval.</p>\n</div>",
+        "options": {}
+      },
+      "id": "gmail-005",
+      "name": "Send Email Notification",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [900, 340],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "gmailZiyada",
+          "name": "Gmail — ziyadasystem@gmail.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "ziyadasystem@gmail.com",
+          "mode": "id"
+        },
+        "start": "={{ DateTime.now().setZone('Asia/Riyadh').plus({ days: 1 }).startOf('day').plus({ hours: 10 }).toISO() }}",
+        "end": "={{ DateTime.now().setZone('Asia/Riyadh').plus({ days: 1 }).startOf('day').plus({ hours: 10, minutes: 30 }).toISO() }}",
+        "additionalFields": {
+          "summary": "=⏳ Pending Approval — {{ $('Prepare Data').item.json.full_name }} — {{ $('Prepare Data').item.json.service_interest || 'استشارة' }}",
+          "description": "=تفاصيل العميل:\nالاسم: {{ $('Prepare Data').item.json.full_name }}\nالجوال: {{ $('Prepare Data').item.json.phone }}\nالإيميل: {{ $('Prepare Data').item.json.email || '—' }}\nالمصدر: {{ $('Prepare Data').item.json.source }}\nالاحتياج: {{ $('Prepare Data').item.json.visitor_need || '—' }}\nسبب الاجتماع: {{ $('Prepare Data').item.json.meeting_purpose || '—' }}",
+          "location": "Pending Approval",
+          "colorId": "5"
+        }
+      },
+      "id": "calendar-006",
+      "name": "Create Calendar Follow-up",
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.3,
+      "position": [900, 500],
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "googleCalendarZiyada",
+          "name": "Google Calendar — ziyadasystem@gmail.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://n8n.srv953562.hstgr.cloud/webhook/hubspot-sync",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"name\": \"{{ $('Prepare Data').item.json.full_name }}\",\n  \"email\": \"{{ $('Prepare Data').item.json.email }}\",\n  \"phone\": \"{{ $('Prepare Data').item.json.phone }}\",\n  \"company\": \"{{ $('Prepare Data').item.json.company }}\",\n  \"industry\": \"{{ $('Prepare Data').item.json.sector }}\",\n  \"services_requested\": \"{{ $('Prepare Data').item.json.service_interest }}\",\n  \"source\": \"{{ $('Prepare Data').item.json.source }}\",\n  \"source_page\": \"{{ $('Prepare Data').item.json.source_context }}\",\n  \"hs_lead_status\": \"NEW\",\n  \"lifecycle_stage\": \"subscriber\"\n}",
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "id": "hubspot-006b",
+      "name": "Sync to HubSpot",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [900, 660]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": true,\n  \"message\": \"Lead saved as pending approval. Notifications and CRM sync triggered.\",\n  \"supabase_id\": \"{{ $('Save to Supabase').item.json[0]?.id || 'saved' }}\",\n  \"approval_status\": \"pending\",\n  \"name\": \"{{ $('Prepare Data').item.json.full_name }}\"\n}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "id": "respond-success-007",
+      "name": "Respond Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1160, 340]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"success\": false, \"error\": \"Missing required fields: full_name and at least one contact field (phone or email) are required\" }",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "id": "respond-error-008",
+      "name": "Respond Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [660, 520]
+    }
+  ],
+  "connections": {
+    "Receive Lead": {
+      "main": [
+        [
+          { "node": "Validate Required Fields", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Validate Required Fields": {
+      "main": [
+        [
+          { "node": "Prepare Data", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "Respond Error", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Prepare Data": {
+      "main": [
+        [
+          { "node": "Save to Supabase", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Save to Supabase": {
+      "main": [
+        [
+          { "node": "Send Email Notification", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Send Email Notification": {
+      "main": [
+        [
+          { "node": "Create Calendar Follow-up", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Create Calendar Follow-up": {
+      "main": [
+        [
+          { "node": "Sync to HubSpot", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Sync to HubSpot": {
+      "main": [
+        [
+          { "node": "Respond Success", "type": "main", "index": 0 }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "errorWorkflow": ""
+  },
+  "staticData": null,
+  "meta": {
+    "instanceId": "ziyada-system"
+  },
+  "pinData": {},
+  "tags": ["ziyada", "lead-processor", "supabase", "gmail", "google-calendar", "hubspot"]
+}

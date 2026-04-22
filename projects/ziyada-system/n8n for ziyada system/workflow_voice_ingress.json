@@ -1,0 +1,151 @@
+{
+  "name": "Voice Ingress",
+  "description": "Receives transcript payloads from website voice widget, normalizes event contract, and routes to Voice Agent.",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "mode": "webhook",
+        "authentication": "none",
+        "path": "voice-ingress-webhook",
+        "httpMethod": "POST",
+        "responseMode": "lastNode"
+      },
+      "id": "voice-trigger",
+      "name": "Voice Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 320],
+      "webhookId": "voice-ingress-webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "const payload = $json.body || $json;\nconst transcript = String(payload.transcript || '').trim();\nif (!transcript) {\n  throw new Error('Missing transcript. Homepage voice widget must send transcript text.');\n}\nconst language = payload.language || (/\\u0600-\\u06FF/.test(transcript) ? 'ar' : 'en');\nconst provider = String(payload.provider || 'browser').toLowerCase();\nconst sessionId = payload.sessionId || payload.session_id || `voice-${Date.now()}`;\nreturn [{ json: {\n  transcript,\n  language,\n  provider,\n  session_id: sessionId,\n  timestamp: payload.timestamp || new Date().toISOString(),\n  vapi: payload.vapi || {},\n  source_page: payload.source_page || null,\n  page_url: payload.page_url || null,\n  referrer_url: payload.referrer_url || null,\n  utm_source: payload.utm_source || null,\n  utm_medium: payload.utm_medium || null,\n  utm_campaign: payload.utm_campaign || null,\n  utm_term: payload.utm_term || null,\n  utm_content: payload.utm_content || null\n} }];"
+      },
+      "id": "validate-input",
+      "name": "Validate Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 320]
+    },
+    {
+      "parameters": {
+        "jsCode": "const event = {\n  channel: 'website_voice',\n  session_id: $json.session_id,\n  message_id: `voice-${$json.session_id}-${Date.now()}`,\n  direction: 'inbound',\n  event_ts: $json.timestamp,\n  source_label: 'website_voice',\n  source_page: $json.source_page,\n  page_url: $json.page_url,\n  referrer_url: $json.referrer_url,\n  utm_source: $json.utm_source,\n  utm_medium: $json.utm_medium,\n  utm_campaign: $json.utm_campaign,\n  utm_term: $json.utm_term,\n  utm_content: $json.utm_content,\n  content: $json.transcript,\n  language: $json.language,\n  source_channel_confidence: 0.95,\n  _metadata: {\n    provider: $json.provider,\n    vapi: {\n      assistant_id: $json.vapi?.assistant_id || null,\n      public_key: $json.vapi?.public_key || null,\n      system_prompt: $json.vapi?.system_prompt || null,\n      tools: Array.isArray($json.vapi?.tools) ? $json.vapi.tools : []\n    },\n    transcription_provider: 'browser-speech-api',\n    transcription_confidence: 0.95,\n    detected_language: $json.language\n  }\n};\nreturn [{ json: event }];"
+      },
+      "id": "normalize-event",
+      "name": "Normalize Event",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 320]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://n8n.srv953562.hstgr.cloud/webhook/ziyada-voice-agent",
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ { event: $json } }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "id": "call-voice-agent",
+      "name": "Call Voice Agent",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [900, 320]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "success",
+              "name": "success",
+              "value": "=true",
+              "type": "boolean"
+            },
+            {
+              "id": "message",
+              "name": "message",
+              "value": "Voice message received and processed",
+              "type": "string"
+            },
+            {
+              "id": "session_id",
+              "name": "session_id",
+              "value": "={{ $item(0).$node['Normalize Event'].json.session_id || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "response",
+              "name": "response",
+              "value": "={{ (() => { const raw = $json.data || $json.body || $json.response || $json.output || $json.text || ''; if (raw && typeof raw === 'object') { return raw.response || raw.output || raw.text || JSON.stringify(raw); } if (typeof raw === 'string') { try { const parsed = JSON.parse(raw); return parsed.response || parsed.output || parsed.text || raw; } catch (error) { return raw; } } return ''; })() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "respond-output",
+      "name": "Respond Output",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1120, 320]
+    }
+  ],
+  "connections": {
+    "voice-trigger": {
+      "main": [
+        [
+          {
+            "node": "validate-input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "validate-input": {
+      "main": [
+        [
+          {
+            "node": "normalize-event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "normalize-event": {
+      "main": [
+        [
+          {
+            "node": "call-voice-agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "call-voice-agent": {
+      "main": [
+        [
+          {
+            "node": "respond-output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

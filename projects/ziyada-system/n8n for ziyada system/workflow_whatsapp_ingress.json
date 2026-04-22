@@ -1,0 +1,134 @@
+{
+  "name": "WhatsApp Ingress — Evolution Webhook Receiver",
+  "description": "Receives Evolution API webhooks from WhatsApp, normalizes payload as unified event contract, deduplicates by message_id, applies anti-loop guard (skips outbound echoes), and fans out to Shared Orchestrator.",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "mode": "webhook",
+        "authentication": "none"
+      },
+      "id": "evolution-webhook-trigger",
+      "name": "Evolution Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 400],
+      "webhookId": "whatsapp-inbound-webhook"
+    },
+    {
+      "parameters": {
+        "functionCode": "// Extract Evolution API webhook payload\nconst evolutionPayload = $json.body || $json;\n\n// Parse Evolution message structure\nconst message = evolutionPayload.data?.message || evolutionPayload.message || {};\nconst phoneE164 = evolutionPayload.data?.from || evolutionPayload.from;\nconst messageId = message.id || message.key?.id || `${phoneE164}-${Date.now()}`;\nconst direction = message.fromMe !== undefined ? (message.fromMe ? 'outbound' : 'inbound') : 'inbound';\nconst content = message.body || message.text || '';\nconst eventTs = new Date(message.timestamp * 1000).toISOString();\n\n// Normalize to unified contract\nreturn {\n  channel: 'whatsapp',\n  session_id: `${phoneE164}-whatsapp-session`, // Session per phone number on WhatsApp\n  phone_e164: phoneE164,\n  email: null, // WhatsApp doesn't provide email\n  contact_id: null, // To be resolved by orchestrator\n  message_id: messageId,\n  direction: direction,\n  event_ts: eventTs,\n  source_label: 'whatsapp',\n  content: content,\n  raw_evolution_payload: evolutionPayload,\n  _metadata: {\n    evolution_message_key: message.key,\n    evolution_from_me: message.fromMe,\n    evolution_status: message.status\n  }\n};\n"
+      },
+      "id": "normalize-evolution-payload",
+      "name": "Normalize Evolution Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 400]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Anti-loop guard: skip if outbound (our own message echoed back)\nconst normalized = $json;\n\nif (normalized.direction === 'outbound') {\n  return { skip: true, reason: 'outbound_echo_skipped' };\n}\n\nreturn { skip: false, event: normalized };\n"
+      },
+      "id": "anti-loop-check",
+      "name": "Anti-loop Guard",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [640, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "conditions": [\n            {\n              "key": "skip",\n              "operator": "equals",\n              "value": true\n            }\n          ]\n        }\n      },
+      "id": "if-skip-outbound",\      "name": "Skip Outbound Echo?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [840, 300]
+    },
+    {
+      "parameters": {
+        "resource": "executeWorkflow",
+        "workflowId": "ORCHESTRATOR_WORKFLOW_ID",
+        "workflowInputs": "={{ { event: $json.event } }}"
+      },
+      "id": "call-orchestrator",
+      "name": "Call Shared Orchestrator",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [1040, 400]
+    },
+    {
+      "parameters": {
+        "responseData": "{{ $response_mode == 'lastNode' ? $json : undefined }}"
+      },
+      "id": "webhook-response",
+      "name": "Webhook Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1240, 400]
+    }
+  ],
+  "connections": {
+    "evolution-webhook-trigger": {
+      "main": [
+        [
+          {
+            "node": "normalize-evolution-payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "normalize-evolution-payload": {
+      "main": [
+        [
+          {
+            "node": "anti-loop-check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "anti-loop-check": {
+      "main": [
+        [
+          {
+            "node": "if-skip-outbound",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "if-skip-outbound": {
+      "main": [
+        [
+          {
+            "node": "webhook-response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "call-orchestrator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "call-orchestrator": {
+      "main": [
+        [
+          {
+            "node": "webhook-response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

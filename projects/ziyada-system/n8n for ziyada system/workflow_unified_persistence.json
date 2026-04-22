@@ -1,0 +1,133 @@
+{
+  "name": "Unified Persistence — Omnichannel Event Logger",
+  "description": "Listens for events emitted by orchestrator, writes to chat_messages and chat_sessions, updates leads lifecycle_state and last_contact_method. Ensures every write includes source_label for traceability.",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "mode": "webhook",
+        "authentication": "none"
+      },
+      "id": "persistence-trigger",
+      "name": "Event Stream Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 400],
+      "webhookId": "persistence-webhook"
+    },
+    {
+      "parameters": {
+        "functionCode": "// Extract event details\nconst event = $json.event || $json.body || $json;\n\n// Validate required fields for persistence\nif (!event.session_id || !event.message_id || !event.direction) {\n  throw new Error('Missing required persistence fields: session_id, message_id, direction');\n}\n\nreturn {\n  ...event\n};\n"
+      },
+      "id": "validate-persistence",
+      "name": "Validate Event for Persistence",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 400]
+    },
+    {
+      "parameters": {
+        "resource": "database",
+        "database": "Supabase",
+        "operation": "insert",
+        "schema": "public",
+        "table": "chat_sessions",
+        "values": {\n          "session_id": "={{ $json.session_id }}",\n          "lead_id": "={{ $json.contact_id }}",\n          "channel": "={{ $json.channel }}",\n          "language": "={{ $json._metadata?.language || 'ar' }}",\n          "identity_confidence": "={{ $json.identity_confidence || 'none' }}",\n          "status": "active"\n        },\n        "upsert": true\n      },\n      "id": "upsert-session",\n      "name": "Upsert Chat Session",\n      "type": "n8n-nodes-base.postgres",\n      "typeVersion": 2,\n      "position": [640, 250],\n      "credentials": {\n        "postgres": {\n          "id": "supabase_postgres",\n          "name": "Supabase Postgres"\n        }\n      }\n    },\n    {\n      "parameters": {\n        "resource": "database",\n        "database": "Supabase",\n        "operation": "insert",\n        "schema": "public",\n        "table": "chat_messages",\n        "values": {\n          "session_id": "={{ $json.session_id }}",\n          "message_id": "={{ $json.message_id }}",\n          "direction": "={{ $json.direction }}",\n          "content": "={{ $json.content }}",\n          "ai_model": "={{ $json.ai_model || 'gpt-4o-mini' }}",\n          "created_at": "={{ $json.event_ts }}"\n        }\n      },\n      "id": "insert-message",\n      "name": "Insert Chat Message",\n      "type": "n8n-nodes-base.postgres",\n      "typeVersion": 2,\n      "position": [640, 550],\n      "credentials": {\n        "postgres": {\n          "id": "supabase_postgres",\n          "name": "Supabase Postgres"\n        }\n      }\n    },\n    {\n      "parameters": {\n        "resource": "database",\n        "database": "Supabase",\n        "operation": "update",\n        "schema": "public",\n        "table": "leads",\n        "where": "id:=:$json.contact_id",\n        "values": {\n          "latest_session_id": "={{ $json.session_id }}",\n          "last_contact_method": "={{ $json.source_label }}",\n          "lifecycle_state": "known"\n        }\n      },\n      "id": "update-lead-state",\n      "name": "Update Lead Lifecycle State",\n      "type": "n8n-nodes-base.postgres",\n      "typeVersion": 2,\n      "position": [840, 400],\n      "credentials": {\n        "postgres": {\n          "id": "supabase_postgres",\n          "name": "Supabase Postgres"\n        }\n      }\n    },\n    {\n      "parameters": {\n        "resource": "database",\n        "database": "Supabase",\n        "operation": "insert",\n        "schema": "public",\n        "table": "contact_events",\n        "values": {\n          "lead_id": "={{ $json.contact_id }}",\n          "event_type": "message",\n          "event_source": "={{ $json.source_label }}",\n          "event_data": "={{ { channel: $json.channel, direction: $json.direction, message_id: $json.message_id, session_id: $json.session_id } | JSON.stringify() }}"\n        }\n      },\n      "id": "log-contact-event",\n      "name": "Log Contact Event",\n      "type": "n8n-nodes-base.postgres",\n      "typeVersion": 2,\n      "position": [1040, 400],\n      "credentials": {\n        "postgres": {\n          "id": "supabase_postgres",\n          "name": "Supabase Postgres"\n        }\n      }\n    },\n    {\n      "parameters": {\n        "functionCode": "// Emit completion event with traceability\nreturn {\n  success: true,\n  persisted_to: ['chat_sessions', 'chat_messages', 'contact_events', 'leads'],\n  session_id: $json.session_id,\n  message_id: $json.message_id,\n  source_label: $json.source_label,\n  timestamp: new Date().toISOString()\n};\n"
+      },
+      "id": "emit-completion",
+      "name": "Emit Completion Event",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1240, 400]
+    },
+    {
+      "parameters": {
+        "responseData": "{{ $json }}"
+      },
+      "id": "webhook-response",
+      "name": "Webhook Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1440, 400]
+    }
+  ],
+  "connections": {
+    "persistence-trigger": {
+      "main": [
+        [
+          {
+            "node": "validate-persistence",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "validate-persistence": {
+      "main": [
+        [
+          {
+            "node": "upsert-session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "upsert-session": {
+      "main": [
+        [
+          {
+            "node": "insert-message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "insert-message": {
+      "main": [
+        [
+          {
+            "node": "update-lead-state",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "update-lead-state": {
+      "main": [
+        [
+          {
+            "node": "log-contact-event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "log-contact-event": {
+      "main": [
+        [
+          {
+            "node": "emit-completion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "emit-completion": {
+      "main": [
+        [
+          {
+            "node": "webhook-response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

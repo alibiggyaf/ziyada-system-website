@@ -312,7 +312,7 @@ DEBUG_CHATBOT_WEBHOOK=true
 tail -f /var/log/n8n/workflow.log | grep chat
 
 # Or use N8N API:
-curl -H "X-N8N-API-KEY: $N8N_KEY" \
+curl -H "<API_KEY_HEADER>: <YOUR_API_KEY>" \
   https://n8n.srv953562.hstgr.cloud/api/v1/executions?limit=10
 ```
 

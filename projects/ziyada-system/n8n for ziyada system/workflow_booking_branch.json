@@ -1,0 +1,365 @@
+{
+  "name": "Booking Branch — Approval Gate",
+  "description": "Creates pending booking requests, notifies internal team, and sends visitor confirmation only after manual approval webhook decision.",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "mode": "webhook",
+        "authentication": "none",
+        "path": "booking-webhook",
+        "httpMethod": "POST",
+        "responseMode": "responseNode"
+      },
+      "id": "booking-trigger",
+      "name": "Booking Request Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [180, 280],
+      "webhookId": "booking-webhook"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const booking = $json.booking || $json.body || $json;\nconst leadName = booking.lead_name || booking.name || '';\nconst phone = booking.phone_e164 || booking.phone || '';\nconst email = booking.email || booking.lead_email || '';\n\nif (!booking.session_id || !leadName || (!phone && !email)) {\n  throw new Error('Missing booking fields: session_id, lead_name/name, and at least one contact field (phone_e164/phone or email)');\n}\n\nconst requestedDateTime = booking.requested_datetime || null;\nlet bookingDate = booking.booking_date || null;\nlet bookingTime = booking.booking_time || null;\n\nif (requestedDateTime) {\n  const parsed = new Date(requestedDateTime);\n  if (!Number.isNaN(parsed.getTime())) {\n    bookingDate = bookingDate || parsed.toISOString().slice(0, 10);\n    bookingTime = bookingTime || parsed.toISOString().slice(11, 16);\n  }\n}\n\nreturn [{\n  json: {\n    ...booking,\n    lead_name: leadName,\n    name: leadName,\n    phone_e164: phone,\n    phone,\n    email,\n    lead_email: email,\n    requested_datetime: requestedDateTime,\n    booking_date: bookingDate,\n    booking_time: bookingTime,\n    approval_status: 'pending',\n    lifecycle_stage: 'meeting_requested',\n    created_at: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "validate-booking",
+      "name": "Validate Booking Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [420, 280]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://nuyscajjlhxviuyrxzyq.supabase.co/rest/v1/bookings",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "return=representation"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"session_id\": \"{{ $('Validate Booking Request').item.json.session_id }}\",\n  \"lead_name\": \"{{ $('Validate Booking Request').item.json.lead_name }}\",\n  \"lead_email\": \"{{ $('Validate Booking Request').item.json.email || '' }}\",\n  \"lead_phone\": \"{{ $('Validate Booking Request').item.json.phone_e164 || '' }}\",\n  \"name\": \"{{ $('Validate Booking Request').item.json.lead_name }}\",\n  \"phone\": \"{{ $('Validate Booking Request').item.json.phone_e164 || '' }}\",\n  \"email\": \"{{ $('Validate Booking Request').item.json.email || '' }}\",\n  \"meeting_purpose\": \"{{ $('Validate Booking Request').item.json.meeting_purpose || '' }}\",\n  \"visitor_need\": \"{{ $('Validate Booking Request').item.json.visitor_need || '' }}\",\n  \"requested_datetime\": \"{{ $('Validate Booking Request').item.json.requested_datetime || '' }}\",\n  \"booking_date\": \"{{ $('Validate Booking Request').item.json.booking_date || '' }}\",\n  \"booking_time\": \"{{ $('Validate Booking Request').item.json.booking_time || '' }}\",\n  \"status\": \"pending_approval\",\n  \"approval_status\": \"pending\",\n  \"source\": \"{{ $('Validate Booking Request').item.json.source_label || $('Validate Booking Request').item.json.channel || 'website_voice' }}\",\n  \"source_label\": \"{{ $('Validate Booking Request').item.json.source_label || $('Validate Booking Request').item.json.channel || 'website_voice' }}\",\n  \"entry_point\": \"voice_agent\"\n}",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "id": "save-pending-booking",
+      "name": "Save Pending Booking",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [660, 180],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "supabaseServiceRole",
+          "name": "supabaseServiceRole"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "ziyadastsrem@gmail.com,info@ziyadasystem.com",
+        "subject": "=⏳ Pending Meeting Approval — {{ $('Validate Booking Request').item.json.lead_name }}",
+        "emailType": "html",
+        "message": "=<div dir=\"rtl\" style=\"font-family: Arial, sans-serif;\">\n  <h2>طلب حجز جديد (Pending Approval)</h2>\n  <p>الاسم: {{ $('Validate Booking Request').item.json.lead_name }}</p>\n  <p>الجوال: {{ $('Validate Booking Request').item.json.phone_e164 }}</p>\n  <p>الإيميل: {{ $('Validate Booking Request').item.json.email }}</p>\n  <p>الوقت المطلوب: {{ $('Validate Booking Request').item.json.requested_datetime || 'غير محدد' }}</p>\n  <p>سبب الاجتماع: {{ $('Validate Booking Request').item.json.meeting_purpose || '—' }}</p>\n  <p>للموافقة أرسل POST إلى /webhook/booking-approval مع القرار yes وبيانات العميل.</p>\n</div>",
+        "options": {}
+      },
+      "id": "notify-approval-team",
+      "name": "Notify Approval Team",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [660, 360],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "gmailZiyada",
+          "name": "Gmail — ziyadasystem@gmail.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://n8n.srv953562.hstgr.cloud/webhook/hubspot-sync",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"name\": \"{{ $('Validate Booking Request').item.json.lead_name }}\",\n  \"email\": \"{{ $('Validate Booking Request').item.json.email }}\",\n  \"phone\": \"{{ $('Validate Booking Request').item.json.phone_e164 }}\",\n  \"services_requested\": \"{{ $('Validate Booking Request').item.json.meeting_purpose || 'consultation' }}\",\n  \"source\": \"{{ $('Validate Booking Request').item.json.source_label || $('Validate Booking Request').item.json.channel || 'website_voice' }}\",\n  \"hs_lead_status\": \"OPEN\",\n  \"lifecycle_stage\": \"opportunity\"\n}",
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "id": "hubspot-open-stage",
+      "name": "HubSpot Mark Opportunity",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [900, 280]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": true,\n  \"approval_status\": \"pending\",\n  \"message\": \"Booking request recorded. Team approval required before visitor confirmation.\"\n}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "id": "respond-booking-intake",
+      "name": "Respond Pending",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1120, 280]
+    },
+    {
+      "parameters": {
+        "public": true,
+        "mode": "webhook",
+        "authentication": "none",
+        "path": "booking-approval",
+        "httpMethod": "POST",
+        "responseMode": "responseNode"
+      },
+      "id": "approval-trigger",
+      "name": "Booking Approval Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [180, 740],
+      "webhookId": "booking-approval"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const payload = $json.body || $json;\nconst decision = String(payload.decision || '').toLowerCase();\nif (!['yes', 'approved', 'no', 'rejected'].includes(decision)) {\n  throw new Error('decision must be yes/approved/no/rejected');\n}\n\nreturn [{\n  json: {\n    ...payload,\n    decision,\n    approved: decision === 'yes' || decision === 'approved',\n    updated_at: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "normalize-decision",
+      "name": "Normalize Approval Decision",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [420, 740]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "conditions": [
+            {
+              "key": "approved",
+              "operator": "equals",
+              "value": true
+            }
+          ]
+        }
+      },
+      "id": "if-approved",
+      "name": "Approved?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [640, 740]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.email }}",
+        "subject": "=تأكيد موعدك مع زيادة سيستم",
+        "emailType": "html",
+        "message": "=<div dir=\"rtl\" style=\"font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #f8fafc;\">\n  <h2 style=\"margin: 0 0 12px; color: #0f172a;\">تم تأكيد طلب اجتماعك</h2>\n  <p style=\"margin: 0 0 8px; color: #1f2937;\">أهلاً {{ $json.lead_name || $json.full_name || 'عميلنا الكريم' }}،</p>\n  <p style=\"margin: 0 0 8px; color: #1f2937;\">تمت الموافقة على طلبك، وفريق زيادة سيستم سيتواصل معك قريباً لتأكيد التفاصيل النهائية.</p>\n  <p style=\"margin: 0 0 8px; color: #1f2937;\">موعدك المطلوب: {{ $json.requested_datetime || 'سيتم تحديده بالتواصل المباشر' }}</p>\n  <p style=\"margin: 0; color: #334155;\">شكراً لثقتك بزيادة سيستم.</p>\n</div>",
+        "options": {}
+      },
+      "id": "send-visitor-confirmation",
+      "name": "Send Visitor Confirmation Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [880, 660],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "gmailZiyada",
+          "name": "Gmail — ziyadasystem@gmail.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://n8n.srv953562.hstgr.cloud/webhook/hubspot-sync",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"name\": \"{{ $json.lead_name || '' }}\",\n  \"email\": \"{{ $json.email || '' }}\",\n  \"phone\": \"{{ $json.phone_e164 || '' }}\",\n  \"source\": \"{{ $json.source_label || $json.channel || 'website_voice' }}\",\n  \"hs_lead_status\": \"CONNECTED\",\n  \"lifecycle_stage\": \"customer\"\n}",
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "id": "hubspot-approved-stage",
+      "name": "HubSpot Mark Approved",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1080, 660]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": true,\n  \"approval_status\": \"approved\",\n  \"message\": \"Booking approved and confirmation email sent.\"\n}",
+        "options": {}
+      },
+      "id": "respond-approved",
+      "name": "Respond Approved",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1300, 660]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": true,\n  \"approval_status\": \"rejected\",\n  \"message\": \"Booking rejected. No visitor confirmation sent.\"\n}",
+        "options": {}
+      },
+      "id": "respond-rejected",
+      "name": "Respond Rejected",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [880, 840]
+    }
+  ],
+  "connections": {
+    "Booking Request Webhook": {
+      "main": [
+        [
+          {
+            "node": "Validate Booking Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Booking Request": {
+      "main": [
+        [
+          {
+            "node": "Save Pending Booking",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Pending Booking": {
+      "main": [
+        [
+          {
+            "node": "Notify Approval Team",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notify Approval Team": {
+      "main": [
+        [
+          {
+            "node": "HubSpot Mark Opportunity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HubSpot Mark Opportunity": {
+      "main": [
+        [
+          {
+            "node": "Respond Pending",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Booking Approval Webhook": {
+      "main": [
+        [
+          {
+            "node": "Normalize Approval Decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Approval Decision": {
+      "main": [
+        [
+          {
+            "node": "Approved?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Approved?": {
+      "main": [
+        [
+          {
+            "node": "Send Visitor Confirmation Email",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Rejected",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Visitor Confirmation Email": {
+      "main": [
+        [
+          {
+            "node": "HubSpot Mark Approved",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HubSpot Mark Approved": {
+      "main": [
+        [
+          {
+            "node": "Respond Approved",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "errorWorkflow": ""
+  },
+  "staticData": null,
+  "meta": {
+    "instanceId": "ziyada-system"
+  },
+  "pinData": {},
+  "tags": ["ziyada", "booking", "approval", "hubspot", "voice"]
+}

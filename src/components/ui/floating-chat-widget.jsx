@@ -120,8 +120,34 @@ export default function FloatingChatWidget({ lang = "ar", theme = "dark" }) {
     }
   };
 
+  // Strip any bad links the AI might hallucinate — runs before rendering
+  const sanitizeBotOutput = (raw) => {
+    const cleaned = String(raw || "")
+      // Remove all URL-like tokens including bare domains.
+      .replace(/(?:https?:\/\/)?(?:www\.)?(?:calendly\.com|app\.cal\.com|cal\.com|acuityscheduling\.com)\/?[^\s\n]*/gi, "")
+      .replace(/(?:https?:\/\/)?localhost(?::\d+)?\/?[^\s\n]*/gi, "")
+      .replace(/(?:https?:\/\/|www\.)[^\s\n]+/gi, "")
+      // Remove markdown formatting tokens.
+      .replace(/\*\*/g, "")
+      .replace(/(^|\s)[#*_`]{1,3}(?=\s|$)/g, " ")
+      // Turn bullet style lines into readable short paragraphs.
+      .replace(/^\s*[-•]\s+/gm, "\n\n")
+      .replace(/\s+-\s+/g, "\n\n")
+      // Remove lines that still mention links explicitly.
+      .split("\n")
+      .map((line) => line.trim())
+      .filter((line) => line && !/(?:\burl\b|\blink\b|\bhttp\b|\bwww\b|\bcalendly\b|\bcal\.com\b|رابط|لينك|localhost)/i.test(line))
+      .join("\n")
+      // Normalize whitespace and paragraph breaks.
+      .replace(/\n{3,}/g, "\n\n")
+      .replace(/[ \t]{2,}/g, " ")
+      .trim();
+
+    return cleaned || (lang === "ar" ? "تم تسجيل طلبك، والفريق سيتواصل معك قريباً لتأكيد التفاصيل." : "Your request has been recorded, and our team will contact you shortly to confirm details.");
+  };
+
   const renderMessageContent = (text) => {
-    const content = String(text || "").trim();
+    const content = sanitizeBotOutput(text);
 
     // Render a single line: handles **bold**, inline links (ziyadasystem only), plain text
     const renderInline = (str, keyPrefix) => {

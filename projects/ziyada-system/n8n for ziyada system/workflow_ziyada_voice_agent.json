@@ -1,0 +1,310 @@
+{
+  "name": "Ziyada Voice Agent",
+  "description": "Dedicated website voice agent for Ziyada System. Enforces business-only scope, digit-by-digit number capture, Saudi white-dialect tone, and short voice-safe replies.",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "mode": "webhook",
+        "authentication": "none",
+        "path": "ziyada-voice-agent",
+        "httpMethod": "POST",
+        "responseMode": "responseNode"
+      },
+      "id": "voice-agent-trigger",
+      "name": "Voice Agent Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 400],
+      "webhookId": "ziyada-voice-agent"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const root = $json.body || $json;\nconst event = root.event || $json.event || root;\nconst content = String(event.content || event.transcript || root.chatInput || root.message || root.text || '').trim();\nif (!content) {\n  throw new Error('Missing voice content');\n}\n\nreturn [{\n  json: {\n    ...event,\n    userText: content,\n    language: event.language || root.language || 'ar',\n    channel: event.channel || root.channel || 'website_voice',\n    source_label: event.source_label || root.source_label || 'website_voice',\n    session_id: event.session_id || root.session_id || `voice-${Date.now()}`,\n    event_ts: event.event_ts || event.timestamp || root.timestamp || new Date().toISOString()\n  }\n}];\n"
+      },
+      "id": "prepare-voice-event",
+      "name": "Prepare Voice Event",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 400]
+    },
+    {
+      "parameters": {
+        "agent": "toolsAgent",
+        "promptType": "define",
+        "text": "={{ $json.userText || $json.chatInput || $json.message || '' }}",
+        "systemMessage": "أنت مساعد زيادة سيستم الصوتي للموقع. دورك الوحيد هو مساعدة أصحاب الأعمال والعملاء المحتملين في خدمات زيادة سيستم: الأتمتة، CRM، توليد العملاء، التسويق الأدائي، المواقع الذكية، وأنظمة المحتوى.\n\nقواعد إلزامية:\n- إذا كان السؤال خارج نطاق الأعمال أو خارج خدمات زيادة سيستم فقل حرفياً أو بمعنى قريب جداً: هذا خارج نطاقي، أقدر أساعدك في خدمات زيادة سيستم ونمو عملك. وش التحدي الرئيسي عندكم؟\n- لا تجب عن أسئلة عامة مثل الفضاء، الطب، التاريخ، الرياضة، أو المعلومات العامة إلا بإعادة التوجيه المهني.\n- ردودك صوتية قصيرة: من جملة إلى ثلاث جمل كحد أقصى. لا تستخدم نقاط أو تنسيق أو فقرات طويلة.\n- استخدم لهجة سعودية بيضاء مهنية وواضحة، من غير مبالغة ومن غير حشو.\n- إذا احتجت رقماً مثل الجوال أو أي أرقام مهمة: اطلبه رقم رقم، ثم أعده رقم رقم للتأكيد قبل الحفظ.\n- إذا تكلم المستخدم بالعربية، انطق الأرقام بالعربية فقط. وإذا طلب الإنجليزية أو تكلم بالإنجليزية، انطق الأرقام بالإنجليزية فقط. لا تخلط اللغتين في قراءة الأرقام.\n- لا تخترع أي معلومة غير مؤكدة. إذا لم تكن متأكدًا، اسأل سؤال توضيحي قصير.\n- ابدأ دائماً بفهم النشاط أو المشكلة، ثم اربطها بخدمة مناسبة من زيادة سيستم، ثم ادعُ المستخدم إلى الحجز أو مشاركة بياناته.\n- إذا ذكر المستخدم اهتماماً واضحاً أو أعطى اسماً مع وسيلة تواصل، استخدم أداة new_client_crm.\n- إذا طلب حجزاً أو ديمو أو استشارة، استخدم أداة book_event وأبلغ المستخدم أن الطلب يحتاج موافقة فريق زيادة قبل التأكيد النهائي.\n- إذا احتاج المستخدم ترشيح خدمة مناسبة بسرعة، استخدم أداة client_lookup.\n- حد المكالمة 8 دقائق. عند الاقتراب من النهاية أعطِ تنبيه مهذب أن الديمو سينتهي قريباً ثم اقترح إكمال التفاصيل في الدردشة أو بمتابعة الفريق.\n- إذا احتجت تذكيراً بأسلوب الحديث أو الأولويات، استخدم أداة voice_reference_rules.\n\nمعلومات زيادة سيستم المختصرة:\n- أنظمة أتمتة الأعمال\n- أنظمة إدارة العملاء والمبيعات CRM\n- أنظمة اكتساب العملاء Lead Generation\n- التسويق الأدائي و SEO\n- المواقع الذكية والمنصات الرقمية\n- أنظمة المحتوى ووسائل التواصل\n\nهدفك من كل مكالمة:\n1. فهم التحدي بسرعة\n2. ربطه بخدمة مناسبة\n3. جمع بيانات العميل عند وجود نية واضحة\n4. دفعه إلى حجز استشارة أو متابعة بشرية\n",
+        "options": {
+          "maxIterations": 5
+        }
+      },
+      "id": "voice-ai-agent",
+      "name": "Voice Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [720, 400]
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-4.1-mini",
+        "options": {
+          "temperature": 0.35,
+          "maxTokens": 350
+        }
+      },
+      "id": "voice-openai-model",
+      "name": "OpenRouter Voice Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [620, 620],
+      "credentials": {
+        "openRouterApi": {
+          "id": "7lgtW78BPjg09egV",
+          "name": "OpenRouter 2026"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.session_id }}",
+        "contextWindowLength": 12
+      },
+      "id": "voice-memory",
+      "name": "Conversation Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [780, 620]
+    },
+    {
+      "parameters": {
+        "name": "new_client_crm",
+        "description": "Use when the caller provides a name plus at least one contact detail, or clearly wants follow-up about a Ziyada service. Capture identity + source metadata for CRM follow-up.",
+        "workflowId": {
+          "__rl": true,
+          "value": "ImrkLJa5mO7TvJmk",
+          "mode": "id"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "name": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('name', 'Caller full name', 'string') }}",
+            "email": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('email', 'Caller email if provided', 'string') }}",
+            "phone": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('phone', 'Caller phone if provided', 'string') }}",
+            "company": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('company', 'Company name if mentioned', 'string') }}",
+            "sector": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('sector', 'Business sector', 'string') }}",
+            "challenge": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('challenge', 'Main business challenge', 'string') }}",
+            "service_interest": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('service_interest', 'Relevant Ziyada service', 'string') }}",
+            "meeting_purpose": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('meeting_purpose', 'Reason for requested meeting or consultation goal', 'string') }}",
+            "visitor_need": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('visitor_need', 'Specific need/problem to solve', 'string') }}",
+            "booking_intent": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('booking_intent', 'true if caller wants to book a meeting, else false', 'boolean') }}",
+            "source": "website_voice",
+            "source_context": "voice_widget",
+            "session_id": "={{ $json.session_id || '' }}",
+            "ip_address": "={{ $json.client_ip || $json.ip || '' }}",
+            "utm_source": "={{ $json.utm_source || '' }}",
+            "utm_medium": "={{ $json.utm_medium || '' }}",
+            "utm_campaign": "={{ $json.utm_campaign || '' }}",
+            "utm_term": "={{ $json.utm_term || '' }}",
+            "utm_content": "={{ $json.utm_content || '' }}"
+          }
+        }
+      },
+      "id": "voice-capture-lead-tool",
+      "name": "new_client_crm",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2,
+      "position": [940, 620]
+    },
+    {
+      "parameters": {
+        "name": "client_lookup",
+        "description": "Use when the caller asks which service fits their problem or asks for details about a Ziyada service.",
+        "jsCode": "const query = $fromAI('query', 'What service detail is the caller asking for', 'string');\n\nconst services = {\n  automation: 'أنظمة أتمتة الأعمال: نربط أدواتك ونبني تدفق شغل يقلل الهدر والأخطاء ويوفر وقت الفريق.',\n  crm: 'أنظمة CRM والمبيعات: نرتب المتابعة والمراحل البيعية ونقلل ضياع الفرص.',\n  leads: 'توليد العملاء: نبني مسار واضح لالتقاط وتأهيل العملاء المحتملين ومتابعتهم.',\n  marketing: 'التسويق الأدائي و SEO: نركز على العملاء والنتيجة التجارية وليس المشاهدات فقط.',\n  website: 'المواقع الذكية: موقع مربوط بإدارة العملاء والأتمتة ويخدم المبيعات فعلاً.',\n  social: 'أنظمة المحتوى: استراتيجية ونشر ومتابعة تخدم الهدف التجاري.'\n};\n\nreturn { query, services };"
+      },
+      "id": "voice-services-tool",
+      "name": "client_lookup",
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.1,
+      "position": [1080, 620]
+    },
+    {
+      "parameters": {
+        "name": "book_event",
+        "description": "Use when the caller asks for booking/demo. Submit a pending booking request for manual team approval and confirmation.",
+        "method": "POST",
+        "url": "https://n8n.srv953562.hstgr.cloud/webhook/booking-webhook",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={\n  \"session_id\": \"{{ $json.session_id || /*n8n-auto-generated-fromAI-override*/ $fromAI('session_id', 'Current voice session id', 'string') }}\",\n  \"lead_name\": \"{{ /*n8n-auto-generated-fromAI-override*/ $fromAI('lead_name', 'Caller full name', 'string') }}\",\n  \"phone_e164\": \"{{ /*n8n-auto-generated-fromAI-override*/ $fromAI('phone_e164', 'Caller phone number in E.164 when possible', 'string') }}\",\n  \"email\": \"{{ /*n8n-auto-generated-fromAI-override*/ $fromAI('email', 'Caller email address', 'string') }}\",\n  \"requested_datetime\": \"{{ /*n8n-auto-generated-fromAI-override*/ $fromAI('requested_datetime', 'Preferred meeting date/time in ISO format', 'string') }}\",\n  \"meeting_purpose\": \"{{ /*n8n-auto-generated-fromAI-override*/ $fromAI('meeting_purpose', 'Reason for meeting', 'string') }}\",\n  \"visitor_need\": \"{{ /*n8n-auto-generated-fromAI-override*/ $fromAI('visitor_need', 'Specific problem they want solved', 'string') }}\",\n  \"channel\": \"website_voice\",\n  \"source_label\": \"website_voice\",\n  \"utm_source\": \"{{ $json.utm_source || '' }}\",\n  \"utm_medium\": \"{{ $json.utm_medium || '' }}\",\n  \"utm_campaign\": \"{{ $json.utm_campaign || '' }}\",\n  \"utm_term\": \"{{ $json.utm_term || '' }}\",\n  \"utm_content\": \"{{ $json.utm_content || '' }}\",\n  \"conversation_summary\": \"{{ /*n8n-auto-generated-fromAI-override*/ $fromAI('conversation_summary', 'Short summary of conversation and expected outcome', 'string') }}\"\n}",
+        "options": {
+          "timeout": 20000,
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "voice-booking-tool",
+      "name": "book_event",
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [1220, 620]
+    },
+    {
+      "parameters": {
+        "name": "voice_reference_rules",
+        "description": "Use when you need a quick reminder of the approved Ziyada voice rules, tone, off-topic policy, and number-handling policy.",
+        "jsCode": "return {\n  rules: [\n    'Business only. Redirect off-topic questions back to Ziyada services.',\n    'Short voice-safe replies only.',\n    'Ask one question at a time.',\n    'Collect numbers digit by digit and repeat them digit by digit.',\n    'Do not mix Arabic and English when reading numbers unless requested.',\n    'Guide toward consultation booking or qualified lead capture.'\n  ]\n};"
+      },
+      "id": "voice-reference-tool",
+      "name": "voice_reference_rules",
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.1,
+      "position": [1360, 620]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: true, session_id: $json.session_id || '', channel: $json.channel || 'website_voice', response: $json.output || $json.response || '' }) }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "id": "voice-respond",
+      "name": "Respond to Voice Widget",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1060, 400]
+    }
+  ],
+  "connections": {
+    "Voice Agent Trigger": {
+      "main": [
+        [
+          {
+            "node": "Prepare Voice Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Voice Event": {
+      "main": [
+        [
+          {
+            "node": "Voice Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Voice Agent": {
+      "main": [
+        [
+          {
+            "node": "Respond to Voice Widget",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Voice Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Voice Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Conversation Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Voice Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "new_client_crm": {
+      "ai_tool": [
+        [
+          {
+            "node": "Voice Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "client_lookup": {
+      "ai_tool": [
+        [
+          {
+            "node": "Voice Agent",
+            "type": "ai_tool",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "book_event": {
+      "ai_tool": [
+        [
+          {
+            "node": "Voice Agent",
+            "type": "ai_tool",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "voice_reference_rules": {
+      "ai_tool": [
+        [
+          {
+            "node": "Voice Agent",
+            "type": "ai_tool",
+            "index": 3
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "staticData": null,
+  "meta": {
+    "instanceId": "ziyada-system",
+    "templateCredsSetupCompleted": false
+  },
+  "pinData": {},
+  "tags": ["ziyada", "voice", "website", "ai-agent"]
+}
