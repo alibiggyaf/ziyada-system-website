@@ -23,6 +23,29 @@ const SERVICES = {
 
 };
 
+const CHAT_TEASER = {
+  ar: {
+    title: "اسأل المساعد الذكي",
+    sub: "مساعد زيادة يجاوبك الحين على أي سؤال عن خدماتنا أو يرتب لك استشارة",
+    questions: [
+      "وش خدماتكم؟",
+      "كيف تساعدون المطاعم؟",
+      "أبي أحجز استشارة مجانية",
+    ],
+    cta: "ابدأ المحادثة ←",
+  },
+  en: {
+    title: "Ask Our AI Assistant",
+    sub: "Ziyada's assistant answers your questions instantly and can book a free consultation for you",
+    questions: [
+      "What services do you offer?",
+      "How do you help businesses?",
+      "I'd like to book a free consultation",
+    ],
+    cta: "Start Chatting →",
+  },
+};
+
 const C = {
   ar: {
     hero_tag: "أنظمة زيادة — حيث يبدأ النمو المستدام",
@@ -40,6 +63,8 @@ const C = {
     { value: "40%", label: "متوسط نمو الإيرادات" },
     { value: "80h", label: "توفير شهري لكل عميل" },
     { value: "3", label: "أشهر ضمان ما بعد التسليم" }],
+
+    cta_chat: "اسألنا الآن 💬",
     cta_section_title: "جاهز لبناء منظومة النمو الخاصة بك؟",
     cta_section_sub: "احجز استشارة مجانية مع فريقنا واكتشف كيف يمكننا مضاعفة إيراداتك"
   },
@@ -59,6 +84,8 @@ const C = {
     { value: "40%", label: "Avg Revenue Growth" },
     { value: "80h", label: "Monthly Savings Per Client" },
     { value: "3", label: "Months Post-Delivery Guarantee" }],
+
+    cta_chat: "Ask Us Now 💬",
     cta_section_title: "Ready to Build Your Growth System?",
     cta_section_sub: "Book a free consultation with our team and discover how we can multiply your revenue"
   }
@@ -372,6 +399,29 @@ export default function Home() {
             <Link to="/Why">
               <button className="btn-outline-ziyada home-hero-secondary" style={{ padding: "15px 36px", fontSize: "1rem" }}>{c.cta_secondary}</button>
             </Link>
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent("ziyada-chat-open"))}
+              style={{
+                padding: "15px 32px",
+                fontSize: "1rem",
+                fontWeight: 700,
+                borderRadius: 60,
+                border: "1px solid rgba(124,58,237,0.45)",
+                background: "rgba(124,58,237,0.12)",
+                color: "#a78bfa",
+                cursor: "pointer",
+                backdropFilter: "blur(8px)",
+                transition: "all 0.25s ease",
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = "rgba(124,58,237,0.22)"; e.currentTarget.style.borderColor = "rgba(124,58,237,0.7)"; }}
+              onMouseLeave={e => { e.currentTarget.style.background = "rgba(124,58,237,0.12)"; e.currentTarget.style.borderColor = "rgba(124,58,237,0.45)"; }}
+            >
+              <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#a78bfa", display: "inline-block", boxShadow: "0 0 8px #a78bfa", animation: "chatGlowPulse 1.8s ease infinite" }} />
+              {c.cta_chat}
+            </button>
           </div>
         </div>
       </section>
@@ -415,6 +465,72 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Chat Teaser */}
+      <section className="reveal-section" style={{ padding: "60px 24px" }}>
+        <div style={{ maxWidth: 780, margin: "0 auto" }}>
+          <div className="glass-panel" style={{
+            padding: "44px 40px",
+            border: "1px solid rgba(124,58,237,0.25)",
+            background: "linear-gradient(145deg, rgba(124,58,237,0.08), rgba(59,130,246,0.06))",
+            borderRadius: 28,
+            textAlign: "center",
+          }}>
+            {/* Pulsing avatar */}
+            <div style={{ display: "flex", justifyContent: "center", marginBottom: 20 }}>
+              <div style={{
+                width: 56, height: 56, borderRadius: "50%",
+                background: "linear-gradient(135deg, #3b82f6, #7c3aed)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: "1.5rem", fontWeight: 900, color: "#fff",
+                boxShadow: "0 0 24px rgba(124,58,237,0.5), 0 0 48px rgba(59,130,246,0.2)",
+                animation: "ctaGlowPulse 3s ease infinite",
+              }}>ز</div>
+            </div>
+
+            <h2 style={{ fontSize: "1.7rem", fontWeight: 900, marginBottom: 10, color: "var(--text-primary)" }}>
+              {CHAT_TEASER[lang]?.title}
+            </h2>
+            <p style={{ color: "var(--text-primary)", opacity: 0.78, marginBottom: 28, fontSize: "1rem", lineHeight: 1.7 }}>
+              {CHAT_TEASER[lang]?.sub}
+            </p>
+
+            {/* Quick question chips */}
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 10, justifyContent: "center", marginBottom: 28 }}>
+              {CHAT_TEASER[lang]?.questions.map((q, i) => (
+                <button
+                  key={i}
+                  onClick={() => window.dispatchEvent(new CustomEvent("ziyada-chat-open", { detail: { message: q } }))}
+                  style={{
+                    padding: "9px 18px",
+                    borderRadius: 999,
+                    border: "1px solid rgba(124,58,237,0.35)",
+                    background: "rgba(124,58,237,0.1)",
+                    color: "#a78bfa",
+                    fontSize: "0.9rem",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    transition: "all 0.2s",
+                    backdropFilter: "blur(6px)",
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.background = "rgba(124,58,237,0.22)"; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = "rgba(124,58,237,0.1)"; }}
+                >
+                  {q}
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent("ziyada-chat-open"))}
+              className="btn-primary-ziyada"
+              style={{ padding: "13px 36px", fontSize: "1rem" }}
+            >
+              {CHAT_TEASER[lang]?.cta}
+            </button>
+          </div>
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="reveal-section" style={{ padding: "80px 24px" }}>
         <div style={{ maxWidth: 800, margin: "0 auto" }}>
@@ -427,6 +543,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-    </div>
-  );
+    </div>);
+
 }
