@@ -1,6 +1,5 @@
 # Temporary files
 .tmp/
-**/.tmp/
 
 # Environment variables and secrets
 .env
@@ -9,14 +8,12 @@
 *.local
 **/.env
 **/.env.*
-
-# Credential and token files
 **/credentials.json
 **/token.json
 **/token.pickle
 **/token_docs.json
 **/token_*.json
-**/client_secret_*.json
+client_secret_*.json
 **/.tmp/credentials.cleaned.json
 
 # Logs

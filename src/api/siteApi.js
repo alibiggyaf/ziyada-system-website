@@ -41,30 +41,6 @@ const parseSort = (sort) => {
   return { column, ascending: !descending };
 };
 
-const normalizePhone = (phone) => {
-  if (!phone) return null;
-  const raw = String(phone).trim();
-  if (!raw) return null;
-  const cleaned = raw.replace(/[\s\-().]/g, "");
-  if (cleaned.startsWith("+")) {
-    return /^\+[1-9]\d{7,14}$/.test(cleaned) ? cleaned : null;
-  }
-  const digits = cleaned.replace(/\D/g, "");
-  if (digits.startsWith("966") && digits.length === 12) return `+${digits}`;
-  if (digits.startsWith("0") && digits.length === 10) return `+966${digits.slice(1)}`;
-  if (digits.length >= 8 && digits.length <= 15) return `+${digits}`;
-  return null;
-};
-
-const normalizeCsvOrArray = (value) => {
-  if (!value) return [];
-  if (Array.isArray(value)) return value.filter(Boolean).map(String);
-  return String(value)
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean);
-};
-
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -189,12 +165,8 @@ const createEntityClient = (entityName) => {
  * Insert a new lead with normalized fields.
  */
 const submitLead = async (payload) => {
-  const phone = payload.phone || payload.phone_e164 || null;
   const record = {
     ...payload,
-    phone,
-    phone_normalized: normalizePhone(phone),
-    services_requested: normalizeCsvOrArray(payload.services_requested || payload.service_interest),
     status: "new",
     source: payload.source || "contact",
   };
@@ -302,8 +274,6 @@ const bookMeeting = async (payload) => {
 
   const booking = {
     ...payload,
-    lead_phone: payload.lead_phone || payload.phone || payload.phone_e164 || null,
-    source: payload.source || payload.source_label || "website",
     status: "pending",
   };
 
