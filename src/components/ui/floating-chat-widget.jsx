@@ -12,7 +12,7 @@ const ALLOWED_LINK_HOSTS = new Set(["ziyadasystem.com", "www.ziyadasystem.com"])
 
 const L = {
   ar: {
-    name: "Website Chat",
+    name: "محادثة زيادة",
     role: "مستشار أعمال رقمي",
     welcome: "أهلاً! أنا مساعد زيادة سيستم. كيف أقدر أساعدك اليوم؟",
     placeholder: "اكتب رسالتك...",
@@ -24,9 +24,11 @@ const L = {
     offline: "المساعد غير متاح حالياً. تقدر تحجز استشارة مجانية أو تتواصل معنا مباشرة.",
     offlineCta: "احجز استشارة مجانية",
     error: "عذراً، حصل خطأ. حاول مرة ثانية.",
+    send: "إرسال",
+    typing: "يكتب...",
   },
   en: {
-    name: "Website Chat",
+    name: "Ziyada Chat",
     role: "Digital Business Consultant",
     welcome: "Hi! I'm the Ziyada Systems assistant. How can I help you today?",
     placeholder: "Type your message...",
@@ -38,6 +40,8 @@ const L = {
     offline: "The assistant is currently unavailable. You can book a free consultation or contact us directly.",
     offlineCta: "Book Free Consultation",
     error: "Sorry, something went wrong. Please try again.",
+    send: "Send",
+    typing: "Typing...",
   },
 };
 
@@ -361,7 +365,7 @@ export default function FloatingChatWidget({ lang = "ar", theme = "dark" }) {
                 boxShadow: "0 2px 12px rgba(124,58,237,0.15)",
               }}
             >
-              {isRTL ? "Website Chat" : "Website Chat"}
+              {l.name}
             </motion.div>
 
             {/* Glowing button */}
