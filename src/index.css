@@ -1,5 +1,55 @@
 @import url("https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");
 
+/* --- Ziyada System Custom Button Styles --- */
+.btn-primary-ziyada {
+  background: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 100%);
+  color: #fff !important;
+  border: none;
+  border-radius: 999px;
+  font-weight: 700;
+  box-shadow: 0 2px 16px rgba(59,130,246,0.12);
+  transition: background 0.2s, box-shadow 0.2s;
+}
+.btn-primary-ziyada:hover {
+  background: linear-gradient(90deg, #8b5cf6 0%, #3b82f6 100%);
+  box-shadow: 0 4px 24px rgba(139,92,246,0.18);
+}
+.btn-outline-ziyada {
+  background: transparent;
+  color: #3b82f6 !important;
+  border: 2px solid #3b82f6;
+  border-radius: 999px;
+  font-weight: 700;
+  transition: background 0.2s, color 0.2s;
+}
+.btn-outline-ziyada:hover {
+  background: #3b82f6;
+  color: #fff !important;
+}
+.light-mode .btn-primary-ziyada {
+  background: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 100%);
+  color: #fff !important;
+}
+.light-mode .btn-outline-ziyada {
+  color: #3b82f6 !important;
+  border-color: #3b82f6;
+}
+.light-mode .btn-outline-ziyada:hover {
+  background: #3b82f6;
+  color: #fff !important;
+}
+
+/* --- Service Card Icon Color Fix --- */
+.service-card .icon-box-anim svg {
+  color: #7c3aed !important;
+  fill: none;
+}
+
+/* --- Floating Widget Z-Index Fix --- */
+.FloatingChatWidget,
+.FloatingVoiceWidget {
+  z-index: 9999 !important;
+}
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
