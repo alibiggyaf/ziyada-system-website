@@ -1,7 +1,5 @@
 import React, { useRef } from 'react';
 import Vapi from '@vapi-ai/web';
-// Use the actual widget icon used on your site
-import VoiceWidgetIcon from '/assets/corporate-design-kit/icons/icon-chat.svg';
 
 const VAPI_API_KEY = import.meta.env.VITE_VAPI_PUBLIC_KEY;
 const VAPI_ASSISTANT_ID = import.meta.env.VITE_VAPI_ASSISTANT_ID;
@@ -11,7 +9,7 @@ const VoiceCallTrigger = () => {
 
   const handleIconClick = () => {
     if (!VAPI_API_KEY || !VAPI_ASSISTANT_ID) {
-      alert('Voice assistant is not configured. Please set VITE_VAPI_PUBLIC_KEY and VITE_VAPI_ASSISTANT_ID in your environment variables.');
+      console.warn('Voice assistant: VITE_VAPI_PUBLIC_KEY or VITE_VAPI_ASSISTANT_ID not set.');
       return;
     }
     if (!vapiRef.current) {
@@ -21,9 +19,30 @@ const VoiceCallTrigger = () => {
   };
 
   return (
-    <span onClick={handleIconClick} style={{ cursor: 'pointer', display: 'inline-block', position: 'fixed', bottom: 24, right: 24, zIndex: 1000 }}>
-      <img src={VoiceWidgetIcon} alt="Voice Assistant" style={{ width: 56, height: 56, boxShadow: '0 4px 16px rgba(59,130,246,0.18)', borderRadius: '50%' }} />
-    </span>
+    <button
+      onClick={handleIconClick}
+      aria-label="Start voice assistant"
+      style={{
+        cursor: 'pointer',
+        position: 'fixed',
+        bottom: 88,
+        right: 24,
+        zIndex: 1000,
+        width: 52,
+        height: 52,
+        borderRadius: '50%',
+        border: 'none',
+        background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
+        boxShadow: '0 4px 16px rgba(59,130,246,0.35)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: '#fff',
+        fontSize: 22,
+      }}
+    >
+      🎙️
+    </button>
   );
 };
 
