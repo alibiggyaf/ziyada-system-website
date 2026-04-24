@@ -1,4 +1,11 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+
+class WidgetErrorBoundary extends React.Component {
+  constructor(props) { super(props); this.state = { crashed: false }; }
+  static getDerivedStateFromError() { return { crashed: true }; }
+  componentDidCatch(err) { console.error('[WidgetErrorBoundary]', err); }
+  render() { return this.state.crashed ? null : this.props.children; }
+}
 import { Outlet, useLocation } from 'react-router-dom';
 import Navbar from './Navbar';
 import Footer from './Footer';
@@ -85,8 +92,8 @@ export default function ZiyadaLayout() {
         <Outlet context={{ t, lang, isRTL, theme }} />
       </main>
       <Footer t={t} isRTL={isRTL} lang={lang} />
-      <FloatingChatWidget lang={lang} theme={theme} />
-      <FloatingVoiceWidget lang={lang} theme={theme} />
+      <WidgetErrorBoundary><FloatingChatWidget lang={lang} theme={theme} /></WidgetErrorBoundary>
+      <WidgetErrorBoundary><FloatingVoiceWidget lang={lang} theme={theme} /></WidgetErrorBoundary>
     </div>
   );
 }
