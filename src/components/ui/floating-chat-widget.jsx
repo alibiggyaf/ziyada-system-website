@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageCircle, X, Send, Loader2 } from "lucide-react";
+import { MessageCircle, X, Send, Loader2, Mic } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
@@ -12,7 +12,7 @@ const ALLOWED_LINK_HOSTS = new Set(["ziyadasystem.com", "www.ziyadasystem.com"])
 
 const L = {
   ar: {
-    name: "محادثة زيادة",
+    name: "Website Chat",
     role: "مستشار أعمال رقمي",
     welcome: "أهلاً! أنا مساعد زيادة سيستم. كيف أقدر أساعدك اليوم؟",
     placeholder: "اكتب رسالتك...",
@@ -24,11 +24,9 @@ const L = {
     offline: "المساعد غير متاح حالياً. تقدر تحجز استشارة مجانية أو تتواصل معنا مباشرة.",
     offlineCta: "احجز استشارة مجانية",
     error: "عذراً، حصل خطأ. حاول مرة ثانية.",
-    send: "إرسال",
-    typing: "يكتب...",
   },
   en: {
-    name: "Ziyada Chat",
+    name: "Website Chat",
     role: "Digital Business Consultant",
     welcome: "Hi! I'm the Ziyada Systems assistant. How can I help you today?",
     placeholder: "Type your message...",
@@ -40,8 +38,6 @@ const L = {
     offline: "The assistant is currently unavailable. You can book a free consultation or contact us directly.",
     offlineCta: "Book Free Consultation",
     error: "Sorry, something went wrong. Please try again.",
-    send: "Send",
-    typing: "Typing...",
   },
 };
 
@@ -51,6 +47,7 @@ export default function FloatingChatWidget({ lang = "ar", theme = "dark" }) {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [offline, setOffline] = useState(false);
+  const [showBookingButton, setShowBookingButton] = useState(false);
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
   const isRTL = lang === "ar";
@@ -124,8 +121,30 @@ export default function FloatingChatWidget({ lang = "ar", theme = "dark" }) {
     }
   };
 
+  const sanitizeBotOutput = (raw) => {
+    const cleaned = String(raw || "")
+      .replace(/(?:https?:\/\/)?(?:www\.)?(?:calendly\.com|app\.cal\.com|cal\.com|acuityscheduling\.com)\/?[^\s\n]*/gi, "")
+      .replace(/(?:https?:\/\/)?localhost(?::\d+)?\/?[^\s\n]*/gi, "")
+      .replace(/(?:https?:\/\/|www\.)[^\s\n]+/gi, "")
+      .replace(/\*\*/g, "")
+      .replace(/(^|\s)[#*_`]{1,3}(?=\s|$)/g, " ")
+      .replace(/^\s*[-•]\s+/gm, "\n\n")
+      .replace(/\s+-\s+/g, "\n\n")
+      .split("\n")
+      .map((line) => line.trim())
+      .filter((line) => line && !/(?:\burl\b|\blink\b|\bhttp\b|\bwww\b|\bcalendly\b|\bcal\.com\b|رابط|لينك|localhost)/i.test(line))
+      .join("\n")
+      .replace(/\n{3,}/g, "\n\n")
+      .replace(/[ \t]{2,}/g, " ")
+      .trim();
+
+    return cleaned || (lang === "ar"
+      ? "تم تسجيل طلبك، والفريق سيتواصل معك قريباً لتأكيد التفاصيل."
+      : "Your request has been recorded, and our team will contact you shortly to confirm details.");
+  };
+
   const renderMessageContent = (text) => {
-    const content = String(text || "").trim();
+    const content = sanitizeBotOutput(text);
 
     // Render a single line: handles **bold**, inline links (ziyadasystem only), plain text
     const renderInline = (str, keyPrefix) => {
@@ -266,7 +285,7 @@ export default function FloatingChatWidget({ lang = "ar", theme = "dark" }) {
     try {
       const messageId = crypto.randomUUID();
       const chatInput = text.trim();
-      const identity = getKnownIdentity();
+      const identity = getKnownIdentity() || {};
       const res = await fetch(webhookUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -297,12 +316,16 @@ export default function FloatingChatWidget({ lang = "ar", theme = "dark" }) {
         setLoading(false);
         return;
       }
-      const data = await res.json();
+      const rawData = await res.json();
+      const data = Array.isArray(rawData) ? (rawData[0] || {}) : (rawData || {});
+
       if (data?.lead_capture?.captured) {
         persistLeadCapture(data.lead_capture).catch((error) => {
           console.warn("Chat lead capture failed:", error);
         });
       }
+
+      setShowBookingButton(!!data.showBookingButton);
 
       // Support multiple response formats: Gemini Flash, OpenAI, Claude, etc.
       let reply = data.output ||
@@ -365,7 +388,7 @@ export default function FloatingChatWidget({ lang = "ar", theme = "dark" }) {
                 boxShadow: "0 2px 12px rgba(124,58,237,0.15)",
               }}
             >
-              {l.name}
+              {isRTL ? "Website Chat" : "Website Chat"}
             </motion.div>
 
             {/* Glowing button */}
@@ -411,6 +434,7 @@ export default function FloatingChatWidget({ lang = "ar", theme = "dark" }) {
             className="fixed z-50 flex flex-col overflow-hidden rounded-2xl shadow-2xl"
             dir={isRTL ? "rtl" : "ltr"}
             style={{
+              zIndex: 9999,
               width: 380,
               maxWidth: "calc(100vw - 32px)",
               height: 520,
@@ -424,7 +448,7 @@ export default function FloatingChatWidget({ lang = "ar", theme = "dark" }) {
           >
             {/* Header */}
             <div
-              className="flex items-center gap-3 px-4 py-3"
+              className="flex items-center gap-3 px-4 py-3 relative"
               style={{
                 background: "linear-gradient(135deg, #1e3a8a, #7c3aed)",
                 color: "#fff",
@@ -438,6 +462,32 @@ export default function FloatingChatWidget({ lang = "ar", theme = "dark" }) {
               <div className="flex-1 min-w-0">
                 <div className="font-bold text-sm leading-tight">{l.name}</div>
                 <div className="text-xs opacity-80">{l.role}</div>
+              </div>
+              <div style={{ position: "absolute", top: 10, right: 60, zIndex: 51 }}>
+                <button
+                  onClick={() => {
+                    window.dispatchEvent(new CustomEvent("ziyada-voice-open-from-chat"));
+                    setOpen(false);
+                  }}
+                  className="ziyada-chat-mic-btn"
+                  style={{
+                    background: "linear-gradient(135deg, #3b82f6, #8b5cf6)",
+                    color: "#fff",
+                    borderRadius: "9999px",
+                    width: 38,
+                    height: 38,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    boxShadow: "0 4px 16px rgba(59,130,246,0.18)",
+                    border: "2px solid #fff",
+                  }}
+                  aria-label="Voice Assistant"
+                >
+                  <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Mic size={22} />
+                  </span>
+                </button>
               </div>
               <button
                 onClick={() => setOpen(false)}
@@ -474,6 +524,34 @@ export default function FloatingChatWidget({ lang = "ar", theme = "dark" }) {
                     </div>
                   </div>
                 ))}
+
+                {showBookingButton && (
+                  <div className="flex justify-center mt-2">
+                    <a
+                      href="/BookMeeting?source=chat_widget"
+                      className="ziyada-booking-cta-btn"
+                      style={{
+                        display: "inline-block",
+                        background: "#fff",
+                        color: "#0f172a",
+                        border: "2px solid #3b82f6",
+                        borderRadius: 16,
+                        fontWeight: 700,
+                        fontSize: "1rem",
+                        padding: "12px 32px",
+                        boxShadow: "0 2px 12px rgba(59,130,246,0.08)",
+                        margin: "12px 0",
+                        textDecoration: "none",
+                        transition: "background 0.2s, color 0.2s",
+                      }}
+                      onClick={() => setShowBookingButton(false)}
+                    >
+                      {lang === "ar"
+                        ? "احجز استشارة مع فريق زيادة سيستم"
+                        : "Book a Consultation with Ziyada Team"}
+                    </a>
+                  </div>
+                )}
 
                 {loading && (
                   <div className="flex justify-start">

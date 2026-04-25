@@ -269,6 +269,7 @@ export default function FloatingVoiceWidget({ lang = "ar", theme = "dark" }) {
             dir={isRTL ? "rtl" : "ltr"}
             className="fixed z-50 w-[360px] max-w-[calc(100vw-32px)] overflow-hidden rounded-2xl shadow-2xl"
             style={{
+              zIndex: 9999,
               bottom: "calc(env(safe-area-inset-bottom,0px) + 84px)",
               right: 24,
               border: `1px solid ${theme === "dark" ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"}`,
@@ -410,4 +411,3 @@ export default function FloatingVoiceWidget({ lang = "ar", theme = "dark" }) {
     </>
   );
 }
-

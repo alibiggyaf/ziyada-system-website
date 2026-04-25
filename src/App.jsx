@@ -1,3 +1,15 @@
+import { useEffect } from 'react';
+function CompanyProfileEmbed() {
+  useEffect(() => { window.scrollTo(0, 0); }, []);
+  return (
+    <iframe
+      src="/company-profile.html"
+      title="Ziyada System Company Profile"
+      style={{ width: "100vw", height: "100vh", border: "none" }}
+      sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+    />
+  );
+}
 import { lazy, Suspense } from 'react'
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
@@ -85,6 +97,7 @@ const AppRoutes = () => {
         <Route path="/Services/seo-sem" element={<Navigate to="/Services/marketing" replace />} />
         <Route path="/Services/social-media" element={<ServiceSocial />} />
         <Route path="/FAQ" element={<FAQ />} />
+        <Route path="/company-profile" element={<CompanyProfileEmbed />} />
       </Route>
 
       {/* Backward compatibility redirects */}

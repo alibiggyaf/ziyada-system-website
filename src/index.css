@@ -46,9 +46,42 @@
 }
 
 /* --- Floating Widget Z-Index Fix --- */
+/* Floating widget fix: ensure floating and visibility */
 .FloatingChatWidget,
-.FloatingVoiceWidget {
+.FloatingVoiceWidget,
+.chat-widget-trigger {
+  position: fixed !important;
   z-index: 9999 !important;
+}
+
+.chat-widget-label,
+.voice-widget-label {
+  z-index: 9999 !important;
+}
+
+/* Glass navbar fix */
+.glass-topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  padding: 8px 18px 0;
+  background: rgba(15,23,42,0.7);
+  border-radius: 999px;
+  box-shadow: 0 8px 32px 0 rgba(0,0,0,0.18);
+  backdrop-filter: blur(12px);
+}
+.glass-topbar-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 16px;
+  border-radius: 999px;
 }
 @tailwind base;
 @tailwind components;
